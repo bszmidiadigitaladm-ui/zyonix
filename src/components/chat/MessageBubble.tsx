@@ -7,8 +7,8 @@ export function MessageBubble({ role, content }: { role: "user" | "assistant"; c
         className={cn(
           "max-w-[80%] rounded-lg px-3 py-2 text-sm",
           role === "user"
-            ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-            : "bg-neutral-100 text-neutral-800 dark:bg-neutral-900 dark:text-neutral-200",
+            ? "bg-accent text-accent-foreground"
+            : "bg-surface-raised text-foreground",
         )}
       >
         {content}

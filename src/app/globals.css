@@ -1,26 +1,43 @@
 @import "tailwindcss";
 
+/* Dark, teal-accented brand theme — this is the app's one look, not a
+   light/dark toggle (matches the reference design's premium, cinematic feel). */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #06100e;
+  --surface: #0c1917;
+  --surface-raised: #10221f;
+  --foreground: #f3f7f6;
+  --muted: #93a8a3;
+  --border: #1c332e;
+  --accent: #2dd4bf;
+  --accent-soft: #134e4a;
+  --accent-foreground: #04211d;
+  --danger: #f87171;
+  --warning: #fbbf24;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--foreground);
 }

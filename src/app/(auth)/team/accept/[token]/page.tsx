@@ -31,7 +31,7 @@ export default async function AcceptInvitePage({ params }: PageProps<"/team/acce
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-6 text-center">
       <h1 className="mb-2 text-xl font-semibold">Join {team?.name ?? "the team"}</h1>
-      <p className="mb-6 text-sm text-neutral-500">
+      <p className="mb-6 text-sm text-muted">
         You&apos;ve been invited to collaborate on this Church Pro workspace.
       </p>
       <AcceptInviteButton token={token} />
@@ -43,7 +43,7 @@ function StatusMessage({ title, body }: { title: string; body: string }) {
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-6 text-center">
       <h1 className="mb-2 text-xl font-semibold">{title}</h1>
-      <p className="text-sm text-neutral-500">{body}</p>
+      <p className="text-sm text-muted">{body}</p>
     </div>
   );
 }

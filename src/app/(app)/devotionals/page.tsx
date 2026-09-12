@@ -21,7 +21,7 @@ export default async function DevotionalPage() {
     <div className="mx-auto max-w-2xl">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Today&apos;s Devotional</h1>
-        <Link href="/devotionals/history" className="text-sm font-medium underline">
+        <Link href="/devotionals/history" className="text-sm font-medium text-accent hover:underline">
           History
         </Link>
       </div>

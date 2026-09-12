@@ -1,26 +1,28 @@
 import Link from "next/link";
 import { APP_NAME } from "@/lib/config";
+import { Button } from "@/components/ui/Button";
+import { Eyebrow } from "@/components/ui/Eyebrow";
+import { GlowBackdrop } from "@/components/ui/GlowBackdrop";
 
 export default function HomePage() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-6 px-6 text-center">
-      <h1 className="text-3xl font-semibold">{APP_NAME}</h1>
-      <p className="max-w-md text-sm text-neutral-500">
-        Bible art, devotionals, and spiritual support for Christian creators.
-      </p>
-      <div className="flex gap-3">
-        <Link
-          href="/signup"
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white dark:bg-white dark:text-neutral-900"
-        >
-          Start free trial
-        </Link>
-        <Link
-          href="/login"
-          className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium dark:border-neutral-700"
-        >
-          Sign in
-        </Link>
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 text-center">
+      <GlowBackdrop />
+      <div className="relative z-10 flex max-w-xl flex-col items-center gap-6">
+        <Eyebrow>Sua fé. Infinitas possibilidades.</Eyebrow>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{APP_NAME}</h1>
+        <p className="max-w-md text-balance text-muted">
+          Artes que tocam, devocionais que acompanham e um espaço de reflexão bíblica —
+          tudo em um só lugar, feito para quem cria conteúdo de fé.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Link href="/signup">
+            <Button>Começar agora</Button>
+          </Link>
+          <Link href="/login">
+            <Button variant="secondary">Entrar</Button>
+          </Link>
+        </div>
       </div>
     </div>
   );

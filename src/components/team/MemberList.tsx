@@ -29,18 +29,18 @@ export function MemberList({ members, isOwner }: { members: Member[]; isOwner: b
   }
 
   return (
-    <ul className="flex flex-col divide-y divide-neutral-200 dark:divide-neutral-800">
+    <ul className="flex flex-col divide-y divide-border">
       {members.map((m) => (
         <li key={m.id} className="flex items-center justify-between py-2 text-sm">
           <div>
             <span className="font-medium">{m.full_name ?? m.email}</span>{" "}
-            <span className="text-xs text-neutral-500">{m.team_role}</span>
+            <span className="text-xs text-muted">{m.team_role}</span>
           </div>
           {isOwner && m.team_role !== "owner" && (
             <button
               onClick={() => handleRemove(m.id)}
               disabled={removingId === m.id}
-              className="text-xs font-medium text-red-600 underline disabled:opacity-50"
+              className="text-xs font-medium text-danger hover:underline disabled:opacity-50"
             >
               Remove
             </button>

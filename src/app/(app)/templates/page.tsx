@@ -31,7 +31,7 @@ export default async function TemplatesPage() {
 
       {[...byOccasion.entries()].map(([occasion, items]) => (
         <section key={occasion} className="mb-8">
-          <h2 className="mb-3 text-sm font-semibold text-neutral-500">
+          <h2 className="mb-3 text-sm font-semibold text-muted">
             {OCCASION_LABEL[occasion] ?? occasion}
           </h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -41,7 +41,7 @@ export default async function TemplatesPage() {
                 <div
                   key={t.id}
                   className={cn(
-                    "relative overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800",
+                    "relative overflow-hidden rounded-lg border border-border bg-surface",
                     locked && "opacity-50",
                   )}
                 >

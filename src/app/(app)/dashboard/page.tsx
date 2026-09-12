@@ -3,6 +3,7 @@ import { requireOnboardedUser, resolveCreditOwnerId } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { PlanBadge } from "@/components/billing/PlanBadge";
 import { CreditMeter } from "@/components/billing/CreditMeter";
+import { Card } from "@/components/ui/Card";
 
 interface ActivityItem {
   id: string;
@@ -84,20 +85,20 @@ export default async function DashboardPage() {
     <div className="mx-auto max-w-3xl">
       <h1 className="mb-6 text-2xl font-semibold">Dashboard</h1>
 
-      <div className="mb-8 flex items-center justify-between rounded-xl border border-neutral-200 p-5 dark:border-neutral-800">
+      <Card className="mb-8 flex items-center justify-between">
         <div>
           <PlanBadge planCode={subscription!.plan_code} status={subscription!.status} />
-          <p className="mt-2 text-sm text-neutral-500">
+          <p className="mt-2 text-sm text-muted">
             Renews {new Date(subscription!.current_period_end).toLocaleDateString()}
           </p>
         </div>
-        <Link href="/billing" className="text-sm font-medium underline">
+        <Link href="/billing" className="text-sm font-medium text-accent hover:underline">
           Manage plan
         </Link>
-      </div>
+      </Card>
 
       {credits && limits && (
-        <div className="mb-8 flex flex-col gap-4 rounded-xl border border-neutral-200 p-5 dark:border-neutral-800">
+        <Card className="mb-8 flex flex-col gap-4">
           <CreditMeter
             label="Image credits"
             remaining={credits.image_credits_remaining}
@@ -108,7 +109,7 @@ export default async function DashboardPage() {
             remaining={credits.text_credits_remaining}
             total={limits.text_credits_per_cycle}
           />
-        </div>
+        </Card>
       )}
 
       <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -119,18 +120,18 @@ export default async function DashboardPage() {
       </div>
 
       <h2 className="mb-3 mt-8 text-lg font-semibold">Recent activity</h2>
-      <ul className="flex flex-col divide-y divide-neutral-200 dark:divide-neutral-800">
+      <ul className="flex flex-col divide-y divide-border">
         {activity.map((item) => (
           <li key={`${item.type}-${item.id}`} className="py-2 text-sm">
-            <Link href={item.href} className="hover:underline">
+            <Link href={item.href} className="hover:text-accent">
               {item.label}
             </Link>
-            <span className="ml-2 text-xs text-neutral-400">
+            <span className="ml-2 text-xs text-muted">
               {new Date(item.createdAt).toLocaleDateString()}
             </span>
           </li>
         ))}
-        {activity.length === 0 && <li className="py-2 text-sm text-neutral-500">No activity yet.</li>}
+        {activity.length === 0 && <li className="py-2 text-sm text-muted">No activity yet.</li>}
       </ul>
     </div>
   );
@@ -140,7 +141,7 @@ function QuickLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="rounded-md border border-neutral-200 px-3 py-2 text-center text-sm font-medium hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-900"
+      className="rounded-lg border border-border px-3 py-2 text-center text-sm font-medium transition hover:border-accent/50 hover:bg-surface-raised"
     >
       {label}
     </Link>

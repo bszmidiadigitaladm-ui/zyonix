@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/Button";
 
 const CANVAS_SIZE: Record<"feed" | "story" | "carousel", { w: number; h: number }> = {
   feed: { w: 1080, h: 1080 },
@@ -72,7 +73,7 @@ export function PostCanvas({
   return (
     <div className="flex flex-col items-center gap-3">
       <div
-        className="relative w-full max-w-xs overflow-hidden rounded-lg bg-neutral-900"
+        className="relative w-full max-w-xs overflow-hidden rounded-lg bg-surface-raised"
         style={{ aspectRatio: aspect }}
       >
         {imageUrl && (
@@ -85,15 +86,11 @@ export function PostCanvas({
         </div>
       </div>
 
-      {downloadError && <p className="text-xs text-red-600">{downloadError}</p>}
+      {downloadError && <p className="text-xs text-danger">{downloadError}</p>}
 
-      <button
-        onClick={handleDownload}
-        disabled={!captionText}
-        className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-neutral-900"
-      >
+      <Button onClick={handleDownload} disabled={!captionText}>
         Download PNG
-      </button>
+      </Button>
     </div>
   );
 }

@@ -10,8 +10,8 @@ export function TopBar({
   subscription: Subscription | null;
 }) {
   return (
-    <header className="flex items-center justify-between border-b border-neutral-200 px-6 py-3 dark:border-neutral-800">
-      <div className="text-sm text-neutral-500">{profile.email}</div>
+    <header className="flex items-center justify-between border-b border-border px-6 py-3">
+      <div className="text-sm text-muted">{profile.email}</div>
       <div className="flex items-center gap-3">
         {subscription && <PlanBadge planCode={subscription.plan_code} status={subscription.status} />}
         <SignOutButton />

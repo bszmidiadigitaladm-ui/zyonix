@@ -39,7 +39,7 @@ export default async function TeamPage() {
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-semibold">Members</h2>
           {isOwner && (
-            <Link href="/team/invite" className="text-sm font-medium underline">
+            <Link href="/team/invite" className="text-sm font-medium text-accent hover:underline">
               Invite teammate
             </Link>
           )}

@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ART_STYLES, OUTPUT_FORMATS, type ArtStyle, type OutputFormat } from "@/lib/openai/art";
 import type { BibleArtGeneration } from "@/lib/types/database.types";
+import { Button } from "@/components/ui/Button";
+import { Input, Select } from "@/components/ui/Input";
+import { Card } from "@/components/ui/Card";
 
 const STYLE_LABEL: Record<ArtStyle, string> = {
   cinematic: "Cinematic",
@@ -73,75 +76,61 @@ export function ArtForm() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div>
           <label className="mb-1 block text-sm font-medium">Verse reference</label>
-          <input
+          <Input
             value={verseReference}
             onChange={(e) => setVerseReference(e.target.value)}
             placeholder="e.g. Psalm 23:1"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
           />
         </div>
 
-        <div className="text-center text-xs text-neutral-400">or</div>
+        <div className="text-center text-xs text-muted">or</div>
 
         <div>
           <label className="mb-1 block text-sm font-medium">Theme</label>
-          <input
+          <Input
             value={theme}
             onChange={(e) => setTheme(e.target.value)}
             placeholder="e.g. hope in hard times"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
           />
         </div>
 
         <div>
           <label className="mb-1 block text-sm font-medium">Visual style</label>
-          <select
-            value={style}
-            onChange={(e) => setStyle(e.target.value as ArtStyle)}
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
-          >
+          <Select value={style} onChange={(e) => setStyle(e.target.value as ArtStyle)}>
             {ART_STYLES.map((s) => (
               <option key={s} value={s}>
                 {STYLE_LABEL[s]}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         <div>
           <label className="mb-1 block text-sm font-medium">Format</label>
-          <select
-            value={format}
-            onChange={(e) => setFormat(e.target.value as OutputFormat)}
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
-          >
+          <Select value={format} onChange={(e) => setFormat(e.target.value as OutputFormat)}>
             {OUTPUT_FORMATS.map((f) => (
               <option key={f} value={f}>
                 {FORMAT_LABEL[f]}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-danger">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-neutral-900"
-        >
+        <Button type="submit" disabled={loading}>
           {loading ? "Generating…" : "Generate art"}
-        </button>
+        </Button>
       </form>
 
-      <div className="flex items-center justify-center rounded-xl border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
+      <Card className="flex items-center justify-center border-dashed p-4">
         {result ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={result.image_url} alt="Generated Bible art" className="max-h-[480px] rounded-lg" />
         ) : (
-          <p className="text-sm text-neutral-400">Your generated art will appear here</p>
+          <p className="text-sm text-muted">Your generated art will appear here</p>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

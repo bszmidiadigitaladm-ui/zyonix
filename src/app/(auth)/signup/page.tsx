@@ -5,6 +5,10 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { APP_NAME } from "@/lib/config";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { GlowBackdrop } from "@/components/ui/GlowBackdrop";
 
 export default function SignupPage() {
   return (
@@ -70,78 +74,74 @@ function SignupForm() {
 
   if (checkEmail) {
     return (
-      <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-6 text-center">
-        <h1 className="mb-2 text-2xl font-semibold">Check your inbox</h1>
-        <p className="text-sm text-neutral-500">
-          We sent a confirmation link to {email}. Click it to finish creating your {APP_NAME}{" "}
-          account.
-        </p>
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-6">
+        <GlowBackdrop />
+        <Card className="relative z-10 w-full max-w-sm text-center">
+          <h1 className="mb-2 text-2xl font-semibold">Check your inbox</h1>
+          <p className="text-sm text-muted">
+            We sent a confirmation link to {email}. Click it to finish creating your {APP_NAME}{" "}
+            account.
+          </p>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-6">
-      <h1 className="mb-1 text-2xl font-semibold">Create your {APP_NAME} account</h1>
-      <p className="mb-6 text-sm text-neutral-500">
-        Start with a 3-day free trial — no charge until it ends.
-      </p>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-6">
+      <GlowBackdrop />
+      <Card className="relative z-10 w-full max-w-sm">
+        <h1 className="mb-1 text-2xl font-semibold">Create your {APP_NAME} account</h1>
+        <p className="mb-6 text-sm text-muted">
+          Start with a 3-day free trial — no charge until it ends.
+        </p>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <input
-          type="text"
-          required
-          placeholder="Full name"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
-        />
-        <input
-          type="email"
-          required
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
-        />
-        <input
-          type="password"
-          required
-          minLength={8}
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
-        />
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-md bg-neutral-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-neutral-900"
-        >
-          {loading ? "Creating account…" : "Create account"}
-        </button>
-      </form>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <Input
+            type="text"
+            required
+            placeholder="Full name"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+          />
+          <Input
+            type="email"
+            required
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Input
+            type="password"
+            required
+            minLength={8}
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          {error && <p className="text-sm text-danger">{error}</p>}
+          <Button type="submit" disabled={loading} className="w-full">
+            {loading ? "Creating account…" : "Create account"}
+          </Button>
+        </form>
 
-      <div className="my-4 flex items-center gap-3 text-xs text-neutral-400">
-        <div className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
-        or
-        <div className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
-      </div>
+        <div className="my-5 flex items-center gap-3 text-xs text-muted">
+          <div className="h-px flex-1 bg-border" />
+          or
+          <div className="h-px flex-1 bg-border" />
+        </div>
 
-      <button
-        onClick={handleGoogle}
-        className="rounded-md border border-neutral-300 px-3 py-2 text-sm font-medium dark:border-neutral-700"
-      >
-        Continue with Google
-      </button>
+        <Button variant="secondary" onClick={handleGoogle} className="w-full">
+          Continue with Google
+        </Button>
 
-      <p className="mt-6 text-center text-sm text-neutral-500">
-        Already have an account?{" "}
-        <Link href="/login" className="font-medium text-neutral-900 underline dark:text-white">
-          Sign in
-        </Link>
-      </p>
+        <p className="mt-6 text-center text-sm text-muted">
+          Already have an account?{" "}
+          <Link href="/login" className="font-medium text-accent hover:underline">
+            Sign in
+          </Link>
+        </p>
+      </Card>
     </div>
   );
 }

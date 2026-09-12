@@ -3,7 +3,7 @@ import { ArtCard } from "@/components/art/ArtCard";
 
 export function ArtGalleryGrid({ generations }: { generations: BibleArtGeneration[] }) {
   if (generations.length === 0) {
-    return <p className="text-sm text-neutral-500">No art generated yet.</p>;
+    return <p className="text-sm text-muted">No art generated yet.</p>;
   }
 
   return (

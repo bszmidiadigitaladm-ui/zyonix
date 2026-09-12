@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 import type { PlanCode } from "@/lib/config";
 
 interface PlanCardProps {
@@ -66,54 +68,55 @@ export function PlanCard({ code, displayName, priceUsd, features, highlighted }:
   }
 
   return (
-    <div
+    <Card
       className={cn(
-        "flex flex-col rounded-xl border p-6",
-        highlighted
-          ? "border-neutral-900 shadow-sm dark:border-white"
-          : "border-neutral-200 dark:border-neutral-800",
+        "relative flex flex-col",
+        highlighted && "border-accent/60 shadow-[0_0_32px_-12px_var(--accent)]",
       )}
     >
+      {highlighted && (
+        <span className="absolute -top-3 left-6 rounded-full bg-accent px-3 py-0.5 text-xs font-medium text-accent-foreground">
+          Most popular
+        </span>
+      )}
       <h3 className="text-lg font-semibold">{displayName}</h3>
       <p className="mt-1 text-3xl font-bold">
         ${priceUsd.toFixed(2)}
-        <span className="text-sm font-normal text-neutral-500">/mo</span>
+        <span className="text-sm font-normal text-muted">/mo</span>
       </p>
-      <p className="mt-1 text-xs text-neutral-500">3-day free trial, cancel anytime</p>
+      <p className="mt-1 text-xs text-muted">3-day free trial, cancel anytime</p>
 
-      <ul className="my-6 flex flex-1 flex-col gap-2 text-sm text-neutral-600 dark:text-neutral-300">
+      <ul className="my-6 flex flex-1 flex-col gap-2 text-sm text-foreground/90">
         {features.map((f) => (
           <li key={f} className="flex gap-2">
-            <span aria-hidden>✓</span>
+            <span className="text-accent" aria-hidden>
+              ✓
+            </span>
             {f}
           </li>
         ))}
       </ul>
 
-      {error && <p className="mb-2 text-sm text-red-600">{error}</p>}
+      {error && <p className="mb-2 text-sm text-danger">{error}</p>}
 
-      <button
+      <Button
         onClick={handleSelect}
         disabled={loading}
-        className={cn(
-          "rounded-md px-3 py-2 text-sm font-medium disabled:opacity-50",
-          highlighted
-            ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-            : "border border-neutral-300 dark:border-neutral-700",
-        )}
+        variant={highlighted ? "primary" : "secondary"}
+        className="w-full"
       >
         {loading ? "Starting trial…" : "Start free trial"}
-      </button>
+      </Button>
 
       {process.env.NODE_ENV !== "production" && (
         <button
           onClick={handleDevActivate}
           disabled={loading}
-          className="mt-2 rounded-md border border-dashed border-amber-500 px-3 py-2 text-xs font-medium text-amber-700 disabled:opacity-50 dark:text-amber-400"
+          className="mt-2 rounded-full border border-dashed border-warning/50 px-3 py-2 text-xs font-medium text-warning disabled:opacity-50"
         >
           🛠️ Dev: activate without payment
         </button>
       )}
-    </div>
+    </Card>
   );
 }

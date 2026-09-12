@@ -6,7 +6,7 @@ export default function ArtPage() {
     <div className="mx-auto max-w-4xl">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Bible Art Generator</h1>
-        <Link href="/art/gallery" className="text-sm font-medium underline">
+        <Link href="/art/gallery" className="text-sm font-medium text-accent hover:underline">
           View gallery
         </Link>
       </div>

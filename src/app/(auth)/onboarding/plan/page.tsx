@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { PlanCard } from "@/components/billing/PlanCard";
+import { Eyebrow } from "@/components/ui/Eyebrow";
 import { APP_NAME } from "@/lib/config";
 import type { PlanCode } from "@/lib/config";
 
@@ -34,10 +35,11 @@ export default async function OnboardingPlanPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-16">
-      <h1 className="mb-2 text-center text-2xl font-semibold">Choose your {APP_NAME} plan</h1>
-      <p className="mb-10 text-center text-sm text-neutral-500">
-        Every plan starts with a 3-day free trial. Your card won&apos;t be charged until it ends.
-      </p>
+      <div className="mb-10 flex flex-col items-center text-center">
+        <Eyebrow className="mb-3">3-day free trial</Eyebrow>
+        <h1 className="mb-2 text-3xl font-semibold">Choose your {APP_NAME} plan</h1>
+        <p className="text-sm text-muted">Your card won&apos;t be charged until the trial ends.</p>
+      </div>
 
       <div className="grid gap-6 sm:grid-cols-3">
         {plans.map((plan) => {

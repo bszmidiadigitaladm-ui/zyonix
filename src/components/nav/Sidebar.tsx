@@ -1,5 +1,9 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { APP_NAME } from "@/lib/config";
+import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard" },
@@ -12,28 +16,32 @@ const NAV_ITEMS = [
 ];
 
 export function Sidebar({ showTeam }: { showTeam: boolean }) {
+  const pathname = usePathname();
+  const items = showTeam ? [...NAV_ITEMS, { href: "/team", label: "Team" }] : NAV_ITEMS;
+
   return (
-    <nav className="flex w-56 shrink-0 flex-col gap-1 border-r border-neutral-200 p-4 dark:border-neutral-800">
-      <Link href="/dashboard" className="mb-4 px-2 text-lg font-semibold">
+    <nav className="flex w-56 shrink-0 flex-col gap-1 border-r border-border bg-surface/60 p-4">
+      <Link href="/dashboard" className="mb-4 flex items-center gap-2 px-2 text-lg font-semibold">
+        <span className="h-2 w-2 rounded-full bg-accent shadow-[0_0_8px_var(--accent)]" />
         {APP_NAME}
       </Link>
-      {NAV_ITEMS.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className="rounded-md px-2 py-1.5 text-sm text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-900"
-        >
-          {item.label}
-        </Link>
-      ))}
-      {showTeam && (
-        <Link
-          href="/team"
-          className="rounded-md px-2 py-1.5 text-sm text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-900"
-        >
-          Team
-        </Link>
-      )}
+      {items.map((item) => {
+        const active = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              "rounded-lg px-3 py-2 text-sm transition",
+              active
+                ? "bg-accent-soft text-accent"
+                : "text-muted hover:bg-surface-raised hover:text-foreground",
+            )}
+          >
+            {item.label}
+          </Link>
+        );
+      })}
     </nav>
   );
 }

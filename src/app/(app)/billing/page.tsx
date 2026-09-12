@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { CreditMeter } from "@/components/billing/CreditMeter";
 import { ManageBillingButton } from "@/components/billing/ManageBillingButton";
 import { PlanBadge } from "@/components/billing/PlanBadge";
+import { Card } from "@/components/ui/Card";
 
 export default async function BillingPage() {
   const { profile, subscription } = await requireOnboardedUser();
@@ -18,25 +19,25 @@ export default async function BillingPage() {
     <div className="mx-auto max-w-2xl">
       <h1 className="mb-6 text-2xl font-semibold">Plan & Credits</h1>
 
-      <div className="mb-6 flex items-center justify-between rounded-xl border border-neutral-200 p-5 dark:border-neutral-800">
+      <Card className="mb-6 flex items-center justify-between">
         <div>
           <PlanBadge planCode={subscription!.plan_code} status={subscription!.status} />
-          <p className="mt-2 text-sm text-neutral-500">
+          <p className="mt-2 text-sm text-muted">
             {subscription!.cancel_at_period_end
               ? `Access ends on ${new Date(subscription!.current_period_end).toLocaleDateString()}`
               : `Renews on ${new Date(subscription!.current_period_end).toLocaleDateString()}`}
           </p>
           {subscription!.status === "past_due" && (
-            <p className="mt-1 text-sm text-amber-600">
+            <p className="mt-1 text-sm text-warning">
               Your last payment failed — please update your card to keep access.
             </p>
           )}
         </div>
         <ManageBillingButton />
-      </div>
+      </Card>
 
       {credits && limits && (
-        <div className="flex flex-col gap-4 rounded-xl border border-neutral-200 p-5 dark:border-neutral-800">
+        <Card className="flex flex-col gap-4">
           <CreditMeter
             label="Image credits this cycle"
             remaining={credits.image_credits_remaining}
@@ -47,7 +48,7 @@ export default async function BillingPage() {
             remaining={credits.text_credits_remaining}
             total={limits.text_credits_per_cycle}
           />
-        </div>
+        </Card>
       )}
     </div>
   );

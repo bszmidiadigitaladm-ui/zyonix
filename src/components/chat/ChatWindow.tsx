@@ -4,6 +4,9 @@ import { useState } from "react";
 import { DisclaimerBanner } from "@/components/chat/DisclaimerBanner";
 import { MessageBubble } from "@/components/chat/MessageBubble";
 import { CrisisInterrupt } from "@/components/chat/CrisisInterrupt";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Card } from "@/components/ui/Card";
 
 interface DisplayMessage {
   role: "user" | "assistant";
@@ -76,32 +79,28 @@ export function ChatWindow({
           ),
         )}
         {messages.length === 0 && (
-          <p className="text-sm text-neutral-400">Start a conversation whenever you&apos;re ready.</p>
+          <p className="text-sm text-muted">Start a conversation whenever you&apos;re ready.</p>
         )}
       </div>
 
-      {error && <p className="mb-2 text-sm text-red-600">{error}</p>}
+      {error && <p className="mb-2 text-sm text-danger">{error}</p>}
 
       {limitReached ? (
-        <p className="rounded-md border border-neutral-200 p-3 text-sm text-neutral-500 dark:border-neutral-800">
+        <Card className="text-sm text-muted">
           You&apos;ve reached today&apos;s message limit on the Starter plan. Upgrade for unlimited spiritual
           chat, or come back tomorrow.
-        </p>
+        </Card>
       ) : (
         <form onSubmit={handleSend} className="flex gap-2">
-          <input
+          <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Share what's on your heart…"
-            className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            className="flex-1"
           />
-          <button
-            type="submit"
-            disabled={sending}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-neutral-900"
-          >
+          <Button type="submit" disabled={sending}>
             Send
-          </button>
+          </Button>
         </form>
       )}
     </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/Button";
 
 export function AcceptInviteButton({ token }: { token: string }) {
   const router = useRouter();
@@ -33,14 +34,10 @@ export function AcceptInviteButton({ token }: { token: string }) {
 
   return (
     <div>
-      {error && <p className="mb-2 text-sm text-red-600">{error}</p>}
-      <button
-        onClick={handleAccept}
-        disabled={loading}
-        className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-neutral-900"
-      >
+      {error && <p className="mb-2 text-sm text-danger">{error}</p>}
+      <Button onClick={handleAccept} disabled={loading}>
         {loading ? "Joining…" : "Accept and join team"}
-      </button>
+      </Button>
     </div>
   );
 }

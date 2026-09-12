@@ -17,7 +17,7 @@ export default async function DevotionalHistoryPage() {
     <div className="mx-auto max-w-2xl">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Devotional History</h1>
-        <Link href="/devotionals" className="text-sm font-medium underline">
+        <Link href="/devotionals" className="text-sm font-medium text-accent hover:underline">
           Today
         </Link>
       </div>
@@ -27,7 +27,7 @@ export default async function DevotionalHistoryPage() {
           <DevotionalCard key={d.id} devotional={d} />
         ))}
         {devotionals?.length === 0 && (
-          <p className="text-sm text-neutral-500">No devotionals yet.</p>
+          <p className="text-sm text-muted">No devotionals yet.</p>
         )}
       </div>
     </div>

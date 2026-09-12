@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 
 export function InviteForm() {
   const [email, setEmail] = useState("");
@@ -37,30 +40,26 @@ export function InviteForm() {
   return (
     <div>
       <form onSubmit={handleSubmit} className="flex gap-2">
-        <input
+        <Input
           type="email"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="teammate@church.org"
-          className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          className="flex-1"
         />
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-neutral-900"
-        >
+        <Button type="submit" disabled={loading}>
           {loading ? "Sending…" : "Create invite"}
-        </button>
+        </Button>
       </form>
 
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-sm text-danger">{error}</p>}
 
       {acceptUrl && (
-        <div className="mt-3 rounded-md border border-neutral-200 p-3 text-sm dark:border-neutral-800">
-          <p className="mb-1 text-neutral-500">Share this link with your teammate:</p>
-          <code className="break-all">{acceptUrl}</code>
-        </div>
+        <Card className="mt-3 text-sm">
+          <p className="mb-1 text-muted">Share this link with your teammate:</p>
+          <code className="break-all text-accent">{acceptUrl}</code>
+        </Card>
       )}
     </div>
   );

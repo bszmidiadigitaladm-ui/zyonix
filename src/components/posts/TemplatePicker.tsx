@@ -24,9 +24,7 @@ export function TemplatePicker({
             onClick={() => onSelect(t)}
             className={cn(
               "relative overflow-hidden rounded-lg border text-left",
-              selectedId === t.id
-                ? "border-neutral-900 dark:border-white"
-                : "border-neutral-200 dark:border-neutral-800",
+              selectedId === t.id ? "border-accent" : "border-border",
               locked && "opacity-40",
             )}
           >

@@ -20,7 +20,7 @@ export default async function ArtGalleryPage() {
     <div className="mx-auto max-w-5xl">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Your Bible Art</h1>
-        <Link href="/art" className="text-sm font-medium underline">
+        <Link href="/art" className="text-sm font-medium text-accent hover:underline">
           New generation
         </Link>
       </div>

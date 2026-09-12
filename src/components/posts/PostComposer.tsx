@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TemplatePicker } from "@/components/posts/TemplatePicker";
 import { PostCanvas } from "@/components/posts/PostCanvas";
+import { Input, Select } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 import type { SeasonalTemplate } from "@/lib/types/database.types";
 
 type Format = "feed" | "story" | "carousel";
@@ -82,48 +84,38 @@ export function PostComposer({
 
         <div>
           <label className="mb-1 block text-sm font-medium">Theme / occasion</label>
-          <input
+          <Input
             value={occasion}
             onChange={(e) => setOccasion(e.target.value)}
             placeholder="e.g. Easter Sunday"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
           />
         </div>
 
         <div>
           <label className="mb-1 block text-sm font-medium">Verse reference (optional)</label>
-          <input
+          <Input
             value={verseReference}
             onChange={(e) => setVerseReference(e.target.value)}
             placeholder="e.g. John 3:16"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
           />
         </div>
 
         <div>
           <label className="mb-1 block text-sm font-medium">Format</label>
-          <select
-            value={format}
-            onChange={(e) => setFormat(e.target.value as Format)}
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
-          >
+          <Select value={format} onChange={(e) => setFormat(e.target.value as Format)}>
             <option value="feed">Feed</option>
             <option value="story">Story</option>
             <option value="carousel" disabled={!allowCarouselExport}>
               Carousel {!allowCarouselExport && "(upgrade to unlock)"}
             </option>
-          </select>
+          </Select>
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-danger">{error}</p>}
 
-        <button
-          onClick={handleGenerate}
-          disabled={loading}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-neutral-900"
-        >
+        <Button onClick={handleGenerate} disabled={loading}>
           {loading ? "Writing caption…" : "Suggest caption"}
-        </button>
+        </Button>
       </div>
 
       <PostCanvas
