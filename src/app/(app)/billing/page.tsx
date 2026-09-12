@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { requireOnboardedUser, resolveCreditOwnerId } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { CreditMeter } from "@/components/billing/CreditMeter";
@@ -7,6 +8,7 @@ import { Card } from "@/components/ui/Card";
 
 export default async function BillingPage() {
   const { profile, subscription } = await requireOnboardedUser();
+  const t = await getTranslations("billing");
   const supabase = await createClient();
 
   const ownerId = resolveCreditOwnerId(profile);
@@ -17,20 +19,18 @@ export default async function BillingPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="mb-6 text-2xl font-semibold">Plan & Credits</h1>
+      <h1 className="mb-6 text-2xl font-semibold">{t("title")}</h1>
 
       <Card className="mb-6 flex items-center justify-between">
         <div>
           <PlanBadge planCode={subscription!.plan_code} status={subscription!.status} />
           <p className="mt-2 text-sm text-muted">
-            {subscription!.cancel_at_period_end
-              ? `Access ends on ${new Date(subscription!.current_period_end).toLocaleDateString()}`
-              : `Renews on ${new Date(subscription!.current_period_end).toLocaleDateString()}`}
+            {t(subscription!.cancel_at_period_end ? "accessEndsOn" : "renewsOn", {
+              date: new Date(subscription!.current_period_end).toLocaleDateString(),
+            })}
           </p>
           {subscription!.status === "past_due" && (
-            <p className="mt-1 text-sm text-warning">
-              Your last payment failed — please update your card to keep access.
-            </p>
+            <p className="mt-1 text-sm text-warning">{t("paymentFailed")}</p>
           )}
         </div>
         <ManageBillingButton />
@@ -39,12 +39,12 @@ export default async function BillingPage() {
       {credits && limits && (
         <Card className="flex flex-col gap-4">
           <CreditMeter
-            label="Image credits this cycle"
+            label={t("imageCreditsCycle")}
             remaining={credits.image_credits_remaining}
             total={limits.image_credits_per_cycle}
           />
           <CreditMeter
-            label="Text credits this cycle"
+            label={t("textCreditsCycle")}
             remaining={credits.text_credits_remaining}
             total={limits.text_credits_per_cycle}
           />

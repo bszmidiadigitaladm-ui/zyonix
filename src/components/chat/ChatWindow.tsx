@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { DisclaimerBanner } from "@/components/chat/DisclaimerBanner";
 import { MessageBubble } from "@/components/chat/MessageBubble";
 import { CrisisInterrupt } from "@/components/chat/CrisisInterrupt";
@@ -21,6 +22,8 @@ export function ChatWindow({
   initialMessages: DisplayMessage[];
   dailyLimitReached: boolean;
 }) {
+  const t = useTranslations("chat");
+  const tCommon = useTranslations("common");
   const [messages, setMessages] = useState<DisplayMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -51,7 +54,7 @@ export function ChatWindow({
       }
 
       if (!res.ok) {
-        setError(data.error ?? "Something went wrong.");
+        setError(data.error ?? tCommon("somethingWentWrong"));
         return;
       }
 
@@ -60,7 +63,7 @@ export function ChatWindow({
         { role: "assistant", content: data.message, crisis: data.type === "crisis_redirect" },
       ]);
     } catch {
-      setError("Something went wrong sending your message.");
+      setError(t("genericError"));
     } finally {
       setSending(false);
     }
@@ -79,27 +82,24 @@ export function ChatWindow({
           ),
         )}
         {messages.length === 0 && (
-          <p className="text-sm text-muted">Start a conversation whenever you&apos;re ready.</p>
+          <p className="text-sm text-muted">{t("startConversation")}</p>
         )}
       </div>
 
       {error && <p className="mb-2 text-sm text-danger">{error}</p>}
 
       {limitReached ? (
-        <Card className="text-sm text-muted">
-          You&apos;ve reached today&apos;s message limit on the Starter plan. Upgrade for unlimited spiritual
-          chat, or come back tomorrow.
-        </Card>
+        <Card className="text-sm text-muted">{t("limitReached")}</Card>
       ) : (
         <form onSubmit={handleSend} className="flex gap-2">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Share what's on your heart…"
+            placeholder={t("placeholder")}
             className="flex-1"
           />
           <Button type="submit" disabled={sending}>
-            Send
+            {t("send")}
           </Button>
         </form>
       )}

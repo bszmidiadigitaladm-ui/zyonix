@@ -1,12 +1,15 @@
+import { getLocale } from "next-intl/server";
 import type { Devotional } from "@/lib/types/database.types";
 import { parseDateOnly } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 
-export function DevotionalCard({ devotional }: { devotional: Devotional }) {
+export async function DevotionalCard({ devotional }: { devotional: Devotional }) {
+  const locale = await getLocale();
+
   return (
     <Card as="article">
       <p className="mb-1 text-xs text-muted">
-        {parseDateOnly(devotional.publish_date).toLocaleDateString(undefined, {
+        {parseDateOnly(devotional.publish_date).toLocaleDateString(locale, {
           weekday: "long",
           month: "long",
           day: "numeric",

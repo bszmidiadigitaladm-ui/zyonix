@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 
 export function InviteForm() {
+  const t = useTranslations("team.invite");
+  const tCommon = useTranslations("common");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +29,7 @@ export function InviteForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error ?? "Something went wrong.");
+        setError(data.error ?? tCommon("somethingWentWrong"));
         return;
       }
 
@@ -45,11 +48,11 @@ export function InviteForm() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="teammate@church.org"
+          placeholder={t("emailPlaceholder")}
           className="flex-1"
         />
         <Button type="submit" disabled={loading}>
-          {loading ? "Sending…" : "Create invite"}
+          {loading ? t("sending") : t("createInvite")}
         </Button>
       </form>
 
@@ -57,7 +60,7 @@ export function InviteForm() {
 
       {acceptUrl && (
         <Card className="mt-3 text-sm">
-          <p className="mb-1 text-muted">Share this link with your teammate:</p>
+          <p className="mb-1 text-muted">{t("shareLink")}</p>
           <code className="break-all text-accent">{acceptUrl}</code>
         </Card>
       )}

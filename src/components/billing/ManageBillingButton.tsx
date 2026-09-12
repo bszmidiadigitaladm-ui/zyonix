@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 
 export function ManageBillingButton() {
+  const t = useTranslations("billing");
   const [loading, setLoading] = useState(false);
 
   async function handleClick() {
@@ -19,7 +21,7 @@ export function ManageBillingButton() {
 
   return (
     <Button onClick={handleClick} disabled={loading}>
-      {loading ? "Opening…" : "Manage billing / upgrade"}
+      {loading ? t("opening") : t("manageBilling")}
     </Button>
   );
 }

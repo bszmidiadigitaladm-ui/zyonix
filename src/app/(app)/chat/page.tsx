@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { requireOnboardedUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getPlanLimits } from "@/lib/credits/config";
@@ -10,6 +11,7 @@ function startOfTodayUtc(): string {
 
 export default async function ChatPage() {
   const { user, subscription } = await requireOnboardedUser();
+  const t = await getTranslations("chat");
   const supabase = await createClient();
 
   const { data: conversation } = await supabase
@@ -56,7 +58,7 @@ export default async function ChatPage() {
 
   return (
     <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-2xl flex-col">
-      <h1 className="mb-4 text-2xl font-semibold">Spiritual Chat</h1>
+      <h1 className="mb-4 text-2xl font-semibold">{t("title")}</h1>
       <ChatWindow initialMessages={initialMessages} dailyLimitReached={dailyLimitReached} />
     </div>
   );

@@ -1,6 +1,7 @@
 import type { Profile, Subscription } from "@/lib/types/database.types";
 import { PlanBadge } from "@/components/billing/PlanBadge";
 import { SignOutButton } from "@/components/nav/SignOutButton";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 
 export function TopBar({
   profile,
@@ -14,6 +15,7 @@ export function TopBar({
       <div className="text-sm text-muted">{profile.email}</div>
       <div className="flex items-center gap-3">
         {subscription && <PlanBadge planCode={subscription.plan_code} status={subscription.status} />}
+        <LanguageSwitcher className="w-auto py-1 text-xs" />
         <SignOutButton />
       </div>
     </header>

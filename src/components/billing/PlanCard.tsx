@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -16,6 +17,8 @@ interface PlanCardProps {
 }
 
 export function PlanCard({ code, displayName, priceUsd, features, highlighted }: PlanCardProps) {
+  const t = useTranslations("onboarding.plan");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,13 +36,13 @@ export function PlanCard({ code, displayName, priceUsd, features, highlighted }:
       const data = await res.json();
 
       if (!res.ok || !data.url) {
-        throw new Error(data.error ?? "Something went wrong starting checkout.");
+        throw new Error(data.error ?? tCommon("somethingWentWrong"));
       }
 
       window.location.href = data.url;
     } catch (err) {
       setLoading(false);
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(err instanceof Error ? err.message : tCommon("somethingWentWrong"));
     }
   }
 
@@ -56,14 +59,14 @@ export function PlanCard({ code, displayName, priceUsd, features, highlighted }:
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error ?? "Something went wrong activating the dev plan.");
+        throw new Error(data.error ?? tCommon("somethingWentWrong"));
       }
 
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
       setLoading(false);
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(err instanceof Error ? err.message : tCommon("somethingWentWrong"));
     }
   }
 
@@ -76,15 +79,15 @@ export function PlanCard({ code, displayName, priceUsd, features, highlighted }:
     >
       {highlighted && (
         <span className="absolute -top-3 left-6 rounded-full bg-accent px-3 py-0.5 text-xs font-medium text-accent-foreground">
-          Most popular
+          {t("mostPopular")}
         </span>
       )}
       <h3 className="text-lg font-semibold">{displayName}</h3>
       <p className="mt-1 text-3xl font-bold">
         ${priceUsd.toFixed(2)}
-        <span className="text-sm font-normal text-muted">/mo</span>
+        <span className="text-sm font-normal text-muted">{t("perMonth")}</span>
       </p>
-      <p className="mt-1 text-xs text-muted">3-day free trial, cancel anytime</p>
+      <p className="mt-1 text-xs text-muted">{t("trialNote")}</p>
 
       <ul className="my-6 flex flex-1 flex-col gap-2 text-sm text-foreground/90">
         {features.map((f) => (
@@ -105,7 +108,7 @@ export function PlanCard({ code, displayName, priceUsd, features, highlighted }:
         variant={highlighted ? "primary" : "secondary"}
         className="w-full"
       >
-        {loading ? "Starting trial…" : "Start free trial"}
+        {loading ? t("startingTrial") : t("startTrial")}
       </Button>
 
       {process.env.NODE_ENV !== "production" && (
@@ -114,7 +117,7 @@ export function PlanCard({ code, displayName, priceUsd, features, highlighted }:
           disabled={loading}
           className="mt-2 rounded-full border border-dashed border-warning/50 px-3 py-2 text-xs font-medium text-warning disabled:opacity-50"
         >
-          🛠️ Dev: activate without payment
+          {t("devActivate")}
         </button>
       )}
     </Card>

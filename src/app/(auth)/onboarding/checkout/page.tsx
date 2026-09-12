@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { APP_NAME } from "@/lib/config";
 import { Button } from "@/components/ui/Button";
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 // Stripe redirects here right after Checkout. The webhook (source of truth)
 // may land a beat later, so we poll briefly before sending the user in.
 export default function OnboardingCheckoutStatusPage() {
+  const t = useTranslations("onboarding.checkout");
   const router = useRouter();
   const [attempts, setAttempts] = useState(0);
   const timedOut = attempts > 10;
@@ -35,16 +37,14 @@ export default function OnboardingCheckoutStatusPage() {
     <div className="mx-auto flex min-h-screen max-w-sm flex-col items-center justify-center px-6 text-center">
       {timedOut ? (
         <>
-          <h1 className="mb-2 text-xl font-semibold">Almost there</h1>
-          <p className="mb-6 text-sm text-muted">
-            Your payment went through, but activation is taking a little longer than usual.
-          </p>
-          <Button onClick={() => router.push("/dashboard")}>Go to dashboard</Button>
+          <h1 className="mb-2 text-xl font-semibold">{t("almostThereTitle")}</h1>
+          <p className="mb-6 text-sm text-muted">{t("almostThereBody")}</p>
+          <Button onClick={() => router.push("/dashboard")}>{t("goToDashboard")}</Button>
         </>
       ) : (
         <>
-          <h1 className="mb-2 text-xl font-semibold">Setting up your {APP_NAME} trial…</h1>
-          <p className="text-sm text-muted">This only takes a few seconds.</p>
+          <h1 className="mb-2 text-xl font-semibold">{t("settingUp", { appName: APP_NAME })}</h1>
+          <p className="text-sm text-muted">{t("settingUpSubtitle")}</p>
         </>
       )}
     </div>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { requireOnboardedUser } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -8,6 +9,7 @@ import { ArtGalleryGrid } from "@/components/art/ArtGalleryGrid";
 
 export default async function TeamPage() {
   const { profile } = await requireOnboardedUser();
+  const t = await getTranslations("team.workspace");
 
   if (!profile.team_id) {
     redirect("/dashboard");
@@ -33,14 +35,14 @@ export default async function TeamPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="mb-6 text-2xl font-semibold">Team Workspace</h1>
+      <h1 className="mb-6 text-2xl font-semibold">{t("title")}</h1>
 
       <div className="mb-8">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Members</h2>
+          <h2 className="text-lg font-semibold">{t("members")}</h2>
           {isOwner && (
             <Link href="/team/invite" className="text-sm font-medium text-accent hover:underline">
-              Invite teammate
+              {t("inviteTeammate")}
             </Link>
           )}
         </div>
@@ -48,7 +50,7 @@ export default async function TeamPage() {
       </div>
 
       <div>
-        <h2 className="mb-3 text-lg font-semibold">Shared library</h2>
+        <h2 className="mb-3 text-lg font-semibold">{t("sharedLibrary")}</h2>
         <ArtGalleryGrid generations={sharedArt ?? []} />
       </div>
     </div>

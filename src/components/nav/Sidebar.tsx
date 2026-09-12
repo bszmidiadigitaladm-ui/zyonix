@@ -2,22 +2,24 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { APP_NAME } from "@/lib/config";
 import { cn } from "@/lib/utils";
 
-const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/art", label: "Bible Art" },
-  { href: "/posts", label: "Social Posts" },
-  { href: "/devotionals", label: "Devotional" },
-  { href: "/chat", label: "Spiritual Chat" },
-  { href: "/templates", label: "Templates" },
-  { href: "/billing", label: "Plan & Credits" },
-];
+const NAV_KEYS = [
+  { href: "/dashboard", key: "dashboard" },
+  { href: "/art", key: "bibleArt" },
+  { href: "/posts", key: "socialPosts" },
+  { href: "/devotionals", key: "devotional" },
+  { href: "/chat", key: "spiritualChat" },
+  { href: "/templates", key: "templates" },
+  { href: "/billing", key: "planAndCredits" },
+] as const;
 
 export function Sidebar({ showTeam }: { showTeam: boolean }) {
+  const t = useTranslations("nav");
   const pathname = usePathname();
-  const items = showTeam ? [...NAV_ITEMS, { href: "/team", label: "Team" }] : NAV_ITEMS;
+  const items = showTeam ? [...NAV_KEYS, { href: "/team", key: "team" as const }] : NAV_KEYS;
 
   return (
     <nav className="flex w-56 shrink-0 flex-col gap-1 border-r border-border bg-surface/60 p-4">
@@ -38,7 +40,7 @@ export function Sidebar({ showTeam }: { showTeam: boolean }) {
                 : "text-muted hover:bg-surface-raised hover:text-foreground",
             )}
           >
-            {item.label}
+            {t(item.key)}
           </Link>
         );
       })}

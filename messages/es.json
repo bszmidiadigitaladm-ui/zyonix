@@ -1,0 +1,221 @@
+{
+  "common": {
+    "or": "o",
+    "continueWithGoogle": "Continuar con Google",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "signOut": "Cerrar sesión",
+    "somethingWentWrong": "Algo salió mal."
+  },
+  "nav": {
+    "dashboard": "Panel",
+    "bibleArt": "Arte Bíblico",
+    "socialPosts": "Publicaciones",
+    "devotional": "Devocional",
+    "spiritualChat": "Chat Espiritual",
+    "templates": "Plantillas",
+    "planAndCredits": "Plan y Créditos",
+    "team": "Equipo"
+  },
+  "landing": {
+    "eyebrow": "Tu fe. Infinitas posibilidades.",
+    "description": "Arte que conmueve, devocionales que te acompañan y un espacio de reflexión bíblica — todo en un solo lugar, hecho para creadores de contenido de fe.",
+    "getStarted": "Comenzar ahora",
+    "signIn": "Iniciar sesión"
+  },
+  "auth": {
+    "login": {
+      "title": "Bienvenido de nuevo a {appName}",
+      "subtitle": "Inicia sesión para seguir creando.",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "submit": "Iniciar sesión",
+      "submitting": "Iniciando sesión…",
+      "noAccount": "¿Aún no tienes cuenta?",
+      "signUp": "Regístrate"
+    },
+    "signup": {
+      "title": "Crea tu cuenta de {appName}",
+      "subtitle": "Empieza con 3 días de prueba gratis — sin cargo hasta que termine.",
+      "fullName": "Nombre completo",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "submit": "Crear cuenta",
+      "submitting": "Creando cuenta…",
+      "haveAccount": "¿Ya tienes una cuenta?",
+      "signIn": "Inicia sesión",
+      "checkInboxTitle": "Revisa tu correo",
+      "checkInboxBody": "Enviamos un enlace de confirmación a {email}. Haz clic en él para terminar de crear tu cuenta de {appName}."
+    }
+  },
+  "onboarding": {
+    "plan": {
+      "eyebrow": "3 días de prueba gratis",
+      "title": "Elige tu plan de {appName}",
+      "subtitle": "No se te cobrará hasta que termine la prueba.",
+      "mostPopular": "Más popular",
+      "perMonth": "/mes",
+      "trialNote": "3 días de prueba gratis, cancela cuando quieras",
+      "startTrial": "Comenzar prueba gratis",
+      "startingTrial": "Iniciando prueba…",
+      "devActivate": "🛠️ Dev: activar sin pago",
+      "features": {
+        "artWatermarked": "Arte y publicaciones bíblicas (con marca de agua)",
+        "artNoWatermark": "Arte y publicaciones bíblicas, sin marca de agua",
+        "dailyDevotional": "Devocional diario",
+        "chatLimited": "Chat espiritual (límite diario)",
+        "chatUnlimited": "Chat espiritual ilimitado",
+        "allFormats": "Todos los formatos: feed, historia, carrusel",
+        "templateLibrary": "Biblioteca de plantillas estacionales",
+        "teamWorkspace": "Espacio de equipo (hasta {seats} miembros)"
+      }
+    },
+    "checkout": {
+      "settingUp": "Configurando tu prueba de {appName}…",
+      "settingUpSubtitle": "Esto solo toma unos segundos.",
+      "almostThereTitle": "Ya casi",
+      "almostThereBody": "Tu pago se procesó, pero la activación está tardando un poco más de lo usual.",
+      "goToDashboard": "Ir al panel"
+    }
+  },
+  "team": {
+    "accept": {
+      "notFoundTitle": "Invitación no encontrada",
+      "notFoundBody": "Este enlace de invitación no es válido.",
+      "usedTitle": "Invitación ya utilizada",
+      "usedBody": "Esta invitación ya fue aceptada.",
+      "expiredTitle": "Invitación expirada",
+      "expiredBody": "Pide al dueño del equipo que envíe una nueva invitación.",
+      "joinTitle": "Únete a {teamName}",
+      "joinBody": "Has sido invitado a colaborar en este espacio de Church Pro.",
+      "theTeam": "el equipo",
+      "accept": "Aceptar y unirme al equipo",
+      "accepting": "Uniéndose…"
+    },
+    "workspace": {
+      "title": "Espacio de Equipo",
+      "members": "Miembros",
+      "inviteTeammate": "Invitar miembro",
+      "sharedLibrary": "Biblioteca compartida",
+      "remove": "Quitar"
+    },
+    "invite": {
+      "title": "Invitar a un miembro",
+      "emailPlaceholder": "miembro@iglesia.org",
+      "createInvite": "Crear invitación",
+      "sending": "Enviando…",
+      "shareLink": "Comparte este enlace con tu compañero de equipo:"
+    }
+  },
+  "dashboard": {
+    "title": "Panel",
+    "renews": "Se renueva {date}",
+    "managePlan": "Gestionar plan",
+    "imageCredits": "Créditos de imagen",
+    "textCredits": "Créditos de texto",
+    "newArt": "Nueva Arte",
+    "newPost": "Nueva Publicación",
+    "devotional": "Devocional",
+    "spiritualChat": "Chat Espiritual",
+    "recentActivity": "Actividad reciente",
+    "noActivity": "Aún no hay actividad.",
+    "generatedArt": "Arte generado: {label}",
+    "createdPost": "Publicación creada: {label}",
+    "wroteNote": "Escribió una nota de devocional",
+    "chatConversation": "Conversación de chat espiritual",
+    "untitled": "sin título"
+  },
+  "billing": {
+    "title": "Plan y Créditos",
+    "renewsOn": "Se renueva el {date}",
+    "accessEndsOn": "El acceso termina el {date}",
+    "paymentFailed": "Tu último pago falló — actualiza tu tarjeta para mantener el acceso.",
+    "manageBilling": "Gestionar facturación / mejorar plan",
+    "opening": "Abriendo…",
+    "imageCreditsCycle": "Créditos de imagen este ciclo",
+    "textCreditsCycle": "Créditos de texto este ciclo"
+  },
+  "art": {
+    "title": "Generador de Arte Bíblico",
+    "viewGallery": "Ver galería",
+    "newGeneration": "Nueva generación",
+    "yourArt": "Tu Arte Bíblico",
+    "verseReference": "Referencia del versículo",
+    "verseSamplePlaceholder": "ej. Salmo 23:1",
+    "or": "o",
+    "theme": "Tema",
+    "themePlaceholder": "ej. esperanza en tiempos difíciles",
+    "visualStyle": "Estilo visual",
+    "format": "Formato",
+    "generate": "Generar arte",
+    "generating": "Generando…",
+    "resultPlaceholder": "Tu arte generado aparecerá aquí",
+    "enterVerseOrTheme": "Ingresa una referencia de versículo o un tema.",
+    "outOfCredits": "Te quedaste sin créditos de imagen este ciclo. Mejora tu plan o espera a la renovación.",
+    "genericError": "Algo salió mal generando tu arte.",
+    "styleCinematic": "Cinematográfico",
+    "style3d": "Ilustración 3D",
+    "styleWatercolor": "Acuarela",
+    "styleMinimalist": "Minimalista",
+    "formatSquare": "Cuadrado (feed)",
+    "formatStory": "Historia (vertical)",
+    "galleryEmpty": "Aún no se ha generado ningún arte.",
+    "download": "Descargar",
+    "fallbackLabel": "Arte bíblico"
+  },
+  "posts": {
+    "title": "Generador de Publicaciones",
+    "post": "Publicación",
+    "template": "Plantilla",
+    "upgrade": "Mejorar plan",
+    "themeOccasion": "Tema / ocasión",
+    "themePlaceholder": "ej. Domingo de Pascua",
+    "verseReferenceOptional": "Referencia del versículo (opcional)",
+    "versePlaceholder": "ej. Juan 3:16",
+    "format": "Formato",
+    "formatFeed": "Feed",
+    "formatStory": "Historia",
+    "formatCarousel": "Carrusel",
+    "carouselLocked": "(mejora tu plan para desbloquear)",
+    "suggestCaption": "Sugerir descripción",
+    "writingCaption": "Escribiendo descripción…",
+    "enterOccasion": "Ingresa un tema u ocasión para la descripción.",
+    "outOfCredits": "Te quedaste sin créditos de texto este ciclo.",
+    "captionPlaceholder": "Tu descripción aparecerá aquí",
+    "downloadPng": "Descargar PNG",
+    "downloadImageError": "No se pudo cargar la imagen de la plantilla — descargando solo el texto.",
+    "downloadCorsError": "Esta imagen no se puede exportar debido a restricciones de origen cruzado."
+  },
+  "devotionals": {
+    "today": "Devocional de Hoy",
+    "history": "Historial",
+    "backToToday": "Hoy",
+    "historyTitle": "Historial de Devocionales",
+    "empty": "Aún no hay devocionales.",
+    "yourNotes": "Tus notas",
+    "notePlaceholder": "¿Qué te llamó la atención hoy?",
+    "saveNote": "Guardar nota",
+    "saving": "Guardando…",
+    "saved": "Guardado"
+  },
+  "chat": {
+    "title": "Chat Espiritual",
+    "disclaimer": "El chat espiritual de {appName} ofrece reflexión y apoyo de oración basados en la Biblia. No es terapia, consejería, ni un sustituto de la atención profesional de salud mental. Si estás en crisis, contacta al 988 (EE.UU.) o los servicios de emergencia de tu localidad.",
+    "startConversation": "Inicia una conversación cuando estés listo.",
+    "limitReached": "Alcanzaste el límite de mensajes de hoy en el plan Starter. Mejora tu plan para chat espiritual ilimitado, o vuelve mañana.",
+    "placeholder": "Comparte lo que tienes en el corazón…",
+    "send": "Enviar",
+    "genericError": "Algo salió mal al enviar tu mensaje."
+  },
+  "templates": {
+    "title": "Plantillas Estacionales",
+    "occasionVerseOfTheDay": "Versículo del Día",
+    "occasionEaster": "Pascua",
+    "occasionChristmas": "Navidad",
+    "occasionMothersDay": "Día de la Madre",
+    "locked": "Creator+"
+  },
+  "language": {
+    "label": "Idioma"
+  }
+}

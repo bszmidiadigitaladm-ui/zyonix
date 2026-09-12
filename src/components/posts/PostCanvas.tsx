@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 
 const CANVAS_SIZE: Record<"feed" | "story" | "carousel", { w: number; h: number }> = {
@@ -20,6 +21,7 @@ export function PostCanvas({
   verseReference?: string;
   format: "feed" | "story" | "carousel";
 }) {
+  const t = useTranslations("posts");
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const dims = CANVAS_SIZE[format as keyof typeof CANVAS_SIZE] ?? CANVAS_SIZE.feed;
   const aspect = dims.w / dims.h;
@@ -42,7 +44,7 @@ export function PostCanvas({
         ctx.fillStyle = "rgba(0,0,0,0.35)";
         ctx.fillRect(0, canvas.height * 0.6, canvas.width, canvas.height * 0.4);
       } catch {
-        setDownloadError("Couldn't load the template image for export — downloading text only.");
+        setDownloadError(t("downloadImageError"));
       }
     }
 
@@ -60,7 +62,7 @@ export function PostCanvas({
     try {
       dataUrl = canvas.toDataURL("image/png");
     } catch {
-      setDownloadError("This image can't be exported due to cross-origin restrictions.");
+      setDownloadError(t("downloadCorsError"));
       return;
     }
 
@@ -81,7 +83,7 @@ export function PostCanvas({
           <img src={imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
         )}
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 pt-10 text-center text-white">
-          <p className="text-sm font-semibold">{captionText || "Your caption will appear here"}</p>
+          <p className="text-sm font-semibold">{captionText || t("captionPlaceholder")}</p>
           {verseReference && <p className="mt-1 text-xs italic text-neutral-300">{verseReference}</p>}
         </div>
       </div>
@@ -89,7 +91,7 @@ export function PostCanvas({
       {downloadError && <p className="text-xs text-danger">{downloadError}</p>}
 
       <Button onClick={handleDownload} disabled={!captionText}>
-        Download PNG
+        {t("downloadPng")}
       </Button>
     </div>
   );

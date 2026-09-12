@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { TemplatePicker } from "@/components/posts/TemplatePicker";
 import { PostCanvas } from "@/components/posts/PostCanvas";
 import { Input, Select } from "@/components/ui/Input";
@@ -19,6 +20,8 @@ export function PostComposer({
   allowSeasonalTemplates: boolean;
   allowCarouselExport: boolean;
 }) {
+  const t = useTranslations("posts");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const [selectedTemplate, setSelectedTemplate] = useState<SeasonalTemplate | null>(
     templates[0] ?? null,
@@ -32,7 +35,7 @@ export function PostComposer({
 
   async function handleGenerate() {
     if (!occasion.trim()) {
-      setError("Enter a theme or occasion for the caption.");
+      setError(t("enterOccasion"));
       return;
     }
     setError(null);
@@ -54,8 +57,8 @@ export function PostComposer({
       if (!res.ok) {
         setError(
           data.error === "insufficient_credits"
-            ? "You're out of text credits for this cycle."
-            : (data.error ?? "Something went wrong."),
+            ? t("outOfCredits")
+            : (data.error ?? tCommon("somethingWentWrong")),
         );
         return;
       }
@@ -63,7 +66,7 @@ export function PostComposer({
       setCaptionText(data.generation.caption_text);
       router.refresh();
     } catch {
-      setError("Something went wrong generating the caption.");
+      setError(tCommon("somethingWentWrong"));
     } finally {
       setLoading(false);
     }
@@ -73,7 +76,7 @@ export function PostComposer({
     <div className="grid gap-8 md:grid-cols-2">
       <div className="flex flex-col gap-4">
         <div>
-          <label className="mb-1 block text-sm font-medium">Template</label>
+          <label className="mb-1 block text-sm font-medium">{t("template")}</label>
           <TemplatePicker
             templates={templates}
             allowExclusive={allowSeasonalTemplates}
@@ -83,30 +86,30 @@ export function PostComposer({
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium">Theme / occasion</label>
+          <label className="mb-1 block text-sm font-medium">{t("themeOccasion")}</label>
           <Input
             value={occasion}
             onChange={(e) => setOccasion(e.target.value)}
-            placeholder="e.g. Easter Sunday"
+            placeholder={t("themePlaceholder")}
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium">Verse reference (optional)</label>
+          <label className="mb-1 block text-sm font-medium">{t("verseReferenceOptional")}</label>
           <Input
             value={verseReference}
             onChange={(e) => setVerseReference(e.target.value)}
-            placeholder="e.g. John 3:16"
+            placeholder={t("versePlaceholder")}
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium">Format</label>
+          <label className="mb-1 block text-sm font-medium">{t("format")}</label>
           <Select value={format} onChange={(e) => setFormat(e.target.value as Format)}>
-            <option value="feed">Feed</option>
-            <option value="story">Story</option>
+            <option value="feed">{t("formatFeed")}</option>
+            <option value="story">{t("formatStory")}</option>
             <option value="carousel" disabled={!allowCarouselExport}>
-              Carousel {!allowCarouselExport && "(upgrade to unlock)"}
+              {t("formatCarousel")} {!allowCarouselExport && t("carouselLocked")}
             </option>
           </Select>
         </div>
@@ -114,7 +117,7 @@ export function PostComposer({
         {error && <p className="text-sm text-danger">{error}</p>}
 
         <Button onClick={handleGenerate} disabled={loading}>
-          {loading ? "Writing caption…" : "Suggest caption"}
+          {loading ? t("writingCaption") : t("suggestCaption")}
         </Button>
       </div>
 

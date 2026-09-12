@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { requireOnboardedUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { ArtGalleryGrid } from "@/components/art/ArtGalleryGrid";
 
 export default async function ArtGalleryPage() {
   const { profile } = await requireOnboardedUser();
+  const t = await getTranslations("art");
   const supabase = await createClient();
 
   const query = supabase
@@ -19,9 +21,9 @@ export default async function ArtGalleryPage() {
   return (
     <div className="mx-auto max-w-5xl">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Your Bible Art</h1>
+        <h1 className="text-2xl font-semibold">{t("yourArt")}</h1>
         <Link href="/art" className="text-sm font-medium text-accent hover:underline">
-          New generation
+          {t("newGeneration")}
         </Link>
       </div>
       <ArtGalleryGrid generations={generations ?? []} />

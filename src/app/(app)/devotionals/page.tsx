@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { requireOnboardedUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { ensureTodaysDevotional } from "@/lib/devotional/generate";
@@ -7,6 +8,7 @@ import { NoteEditor } from "@/components/devotional/NoteEditor";
 
 export default async function DevotionalPage() {
   const { user } = await requireOnboardedUser();
+  const t = await getTranslations("devotionals");
   const devotional = await ensureTodaysDevotional();
 
   const supabase = await createClient();
@@ -20,9 +22,9 @@ export default async function DevotionalPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Today&apos;s Devotional</h1>
+        <h1 className="text-2xl font-semibold">{t("today")}</h1>
         <Link href="/devotionals/history" className="text-sm font-medium text-accent hover:underline">
-          History
+          {t("history")}
         </Link>
       </div>
       <DevotionalCard devotional={devotional} />

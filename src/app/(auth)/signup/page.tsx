@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { APP_NAME } from "@/lib/config";
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { GlowBackdrop } from "@/components/ui/GlowBackdrop";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 
 export default function SignupPage() {
   return (
@@ -19,6 +21,8 @@ export default function SignupPage() {
 }
 
 function SignupForm() {
+  const t = useTranslations("auth.signup");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const searchParams = useSearchParams();
   // A team invite link forwards ?next=/team/accept/<token> so a brand-new
@@ -77,11 +81,8 @@ function SignupForm() {
       <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-6">
         <GlowBackdrop />
         <Card className="relative z-10 w-full max-w-sm text-center">
-          <h1 className="mb-2 text-2xl font-semibold">Check your inbox</h1>
-          <p className="text-sm text-muted">
-            We sent a confirmation link to {email}. Click it to finish creating your {APP_NAME}{" "}
-            account.
-          </p>
+          <h1 className="mb-2 text-2xl font-semibold">{t("checkInboxTitle")}</h1>
+          <p className="text-sm text-muted">{t("checkInboxBody", { email, appName: APP_NAME })}</p>
         </Card>
       </div>
     );
@@ -90,24 +91,25 @@ function SignupForm() {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-6">
       <GlowBackdrop />
+      <div className="absolute right-6 top-6 z-10">
+        <LanguageSwitcher />
+      </div>
       <Card className="relative z-10 w-full max-w-sm">
-        <h1 className="mb-1 text-2xl font-semibold">Create your {APP_NAME} account</h1>
-        <p className="mb-6 text-sm text-muted">
-          Start with a 3-day free trial — no charge until it ends.
-        </p>
+        <h1 className="mb-1 text-2xl font-semibold">{t("title", { appName: APP_NAME })}</h1>
+        <p className="mb-6 text-sm text-muted">{t("subtitle")}</p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <Input
             type="text"
             required
-            placeholder="Full name"
+            placeholder={t("fullName")}
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
           />
           <Input
             type="email"
             required
-            placeholder="Email"
+            placeholder={t("email")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -115,30 +117,30 @@ function SignupForm() {
             type="password"
             required
             minLength={8}
-            placeholder="Password"
+            placeholder={t("password")}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
           {error && <p className="text-sm text-danger">{error}</p>}
           <Button type="submit" disabled={loading} className="w-full">
-            {loading ? "Creating account…" : "Create account"}
+            {loading ? t("submitting") : t("submit")}
           </Button>
         </form>
 
         <div className="my-5 flex items-center gap-3 text-xs text-muted">
           <div className="h-px flex-1 bg-border" />
-          or
+          {tCommon("or")}
           <div className="h-px flex-1 bg-border" />
         </div>
 
         <Button variant="secondary" onClick={handleGoogle} className="w-full">
-          Continue with Google
+          {tCommon("continueWithGoogle")}
         </Button>
 
         <p className="mt-6 text-center text-sm text-muted">
-          Already have an account?{" "}
+          {t("haveAccount")}{" "}
           <Link href="/login" className="font-medium text-accent hover:underline">
-            Sign in
+            {t("signIn")}
           </Link>
         </p>
       </Card>

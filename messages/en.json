@@ -1,0 +1,221 @@
+{
+  "common": {
+    "or": "or",
+    "continueWithGoogle": "Continue with Google",
+    "save": "Save",
+    "cancel": "Cancel",
+    "signOut": "Sign out",
+    "somethingWentWrong": "Something went wrong."
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "bibleArt": "Bible Art",
+    "socialPosts": "Social Posts",
+    "devotional": "Devotional",
+    "spiritualChat": "Spiritual Chat",
+    "templates": "Templates",
+    "planAndCredits": "Plan & Credits",
+    "team": "Team"
+  },
+  "landing": {
+    "eyebrow": "Your faith. Infinite possibilities.",
+    "description": "Art that moves, devotionals that walk with you, and a space for biblical reflection — all in one place, built for faith content creators.",
+    "getStarted": "Get started",
+    "signIn": "Sign in"
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back to {appName}",
+      "subtitle": "Sign in to keep creating.",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "noAccount": "No account yet?",
+      "signUp": "Sign up"
+    },
+    "signup": {
+      "title": "Create your {appName} account",
+      "subtitle": "Start with a 3-day free trial — no charge until it ends.",
+      "fullName": "Full name",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Create account",
+      "submitting": "Creating account…",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "checkInboxTitle": "Check your inbox",
+      "checkInboxBody": "We sent a confirmation link to {email}. Click it to finish creating your {appName} account."
+    }
+  },
+  "onboarding": {
+    "plan": {
+      "eyebrow": "3-day free trial",
+      "title": "Choose your {appName} plan",
+      "subtitle": "Your card won't be charged until the trial ends.",
+      "mostPopular": "Most popular",
+      "perMonth": "/mo",
+      "trialNote": "3-day free trial, cancel anytime",
+      "startTrial": "Start free trial",
+      "startingTrial": "Starting trial…",
+      "devActivate": "🛠️ Dev: activate without payment",
+      "features": {
+        "artWatermarked": "Bible art & posts (watermarked)",
+        "artNoWatermark": "Bible art & posts, no watermark",
+        "dailyDevotional": "Daily devotional",
+        "chatLimited": "Spiritual chat (daily limit)",
+        "chatUnlimited": "Unlimited spiritual chat",
+        "allFormats": "All formats: feed, story, carousel",
+        "templateLibrary": "Seasonal template library",
+        "teamWorkspace": "Team workspace (up to {seats} seats)"
+      }
+    },
+    "checkout": {
+      "settingUp": "Setting up your {appName} trial…",
+      "settingUpSubtitle": "This only takes a few seconds.",
+      "almostThereTitle": "Almost there",
+      "almostThereBody": "Your payment went through, but activation is taking a little longer than usual.",
+      "goToDashboard": "Go to dashboard"
+    }
+  },
+  "team": {
+    "accept": {
+      "notFoundTitle": "Invite not found",
+      "notFoundBody": "This invite link is invalid.",
+      "usedTitle": "Invite already used",
+      "usedBody": "This invite has already been accepted.",
+      "expiredTitle": "Invite expired",
+      "expiredBody": "Ask the team owner to send a new invite.",
+      "joinTitle": "Join {teamName}",
+      "joinBody": "You've been invited to collaborate on this Church Pro workspace.",
+      "theTeam": "the team",
+      "accept": "Accept and join team",
+      "accepting": "Joining…"
+    },
+    "workspace": {
+      "title": "Team Workspace",
+      "members": "Members",
+      "inviteTeammate": "Invite teammate",
+      "sharedLibrary": "Shared library",
+      "remove": "Remove"
+    },
+    "invite": {
+      "title": "Invite a teammate",
+      "emailPlaceholder": "teammate@church.org",
+      "createInvite": "Create invite",
+      "sending": "Sending…",
+      "shareLink": "Share this link with your teammate:"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "renews": "Renews {date}",
+    "managePlan": "Manage plan",
+    "imageCredits": "Image credits",
+    "textCredits": "Text credits",
+    "newArt": "New Art",
+    "newPost": "New Post",
+    "devotional": "Devotional",
+    "spiritualChat": "Spiritual Chat",
+    "recentActivity": "Recent activity",
+    "noActivity": "No activity yet.",
+    "generatedArt": "Generated art: {label}",
+    "createdPost": "Created post: {label}",
+    "wroteNote": "Wrote a devotional note",
+    "chatConversation": "Spiritual chat conversation",
+    "untitled": "untitled"
+  },
+  "billing": {
+    "title": "Plan & Credits",
+    "renewsOn": "Renews on {date}",
+    "accessEndsOn": "Access ends on {date}",
+    "paymentFailed": "Your last payment failed — please update your card to keep access.",
+    "manageBilling": "Manage billing / upgrade",
+    "opening": "Opening…",
+    "imageCreditsCycle": "Image credits this cycle",
+    "textCreditsCycle": "Text credits this cycle"
+  },
+  "art": {
+    "title": "Bible Art Generator",
+    "viewGallery": "View gallery",
+    "newGeneration": "New generation",
+    "yourArt": "Your Bible Art",
+    "verseReference": "Verse reference",
+    "verseSamplePlaceholder": "e.g. Psalm 23:1",
+    "or": "or",
+    "theme": "Theme",
+    "themePlaceholder": "e.g. hope in hard times",
+    "visualStyle": "Visual style",
+    "format": "Format",
+    "generate": "Generate art",
+    "generating": "Generating…",
+    "resultPlaceholder": "Your generated art will appear here",
+    "enterVerseOrTheme": "Enter a verse reference or a theme.",
+    "outOfCredits": "You're out of image credits for this cycle. Upgrade your plan or wait for renewal.",
+    "genericError": "Something went wrong generating your art.",
+    "styleCinematic": "Cinematic",
+    "style3d": "3D Illustration",
+    "styleWatercolor": "Watercolor",
+    "styleMinimalist": "Minimalist",
+    "formatSquare": "Square (feed)",
+    "formatStory": "Story (vertical)",
+    "galleryEmpty": "No art generated yet.",
+    "download": "Download",
+    "fallbackLabel": "Bible art"
+  },
+  "posts": {
+    "title": "Social Post Generator",
+    "post": "Post",
+    "template": "Template",
+    "upgrade": "Upgrade",
+    "themeOccasion": "Theme / occasion",
+    "themePlaceholder": "e.g. Easter Sunday",
+    "verseReferenceOptional": "Verse reference (optional)",
+    "versePlaceholder": "e.g. John 3:16",
+    "format": "Format",
+    "formatFeed": "Feed",
+    "formatStory": "Story",
+    "formatCarousel": "Carousel",
+    "carouselLocked": "(upgrade to unlock)",
+    "suggestCaption": "Suggest caption",
+    "writingCaption": "Writing caption…",
+    "enterOccasion": "Enter a theme or occasion for the caption.",
+    "outOfCredits": "You're out of text credits for this cycle.",
+    "captionPlaceholder": "Your caption will appear here",
+    "downloadPng": "Download PNG",
+    "downloadImageError": "Couldn't load the template image for export — downloading text only.",
+    "downloadCorsError": "This image can't be exported due to cross-origin restrictions."
+  },
+  "devotionals": {
+    "today": "Today's Devotional",
+    "history": "History",
+    "backToToday": "Today",
+    "historyTitle": "Devotional History",
+    "empty": "No devotionals yet.",
+    "yourNotes": "Your notes",
+    "notePlaceholder": "What stood out to you today?",
+    "saveNote": "Save note",
+    "saving": "Saving…",
+    "saved": "Saved"
+  },
+  "chat": {
+    "title": "Spiritual Chat",
+    "disclaimer": "{appName}'s spiritual chat offers Bible-based reflection and prayer support. It is not therapy, counseling, or a substitute for professional mental health care. If you are in crisis, contact 988 (US) or your local emergency services.",
+    "startConversation": "Start a conversation whenever you're ready.",
+    "limitReached": "You've reached today's message limit on the Starter plan. Upgrade for unlimited spiritual chat, or come back tomorrow.",
+    "placeholder": "Share what's on your heart…",
+    "send": "Send",
+    "genericError": "Something went wrong sending your message."
+  },
+  "templates": {
+    "title": "Seasonal Templates",
+    "occasionVerseOfTheDay": "Verse of the Day",
+    "occasionEaster": "Easter",
+    "occasionChristmas": "Christmas",
+    "occasionMothersDay": "Mother's Day",
+    "locked": "Creator+"
+  },
+  "language": {
+    "label": "Language"
+  }
+}

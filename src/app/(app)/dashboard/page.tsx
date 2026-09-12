@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { requireOnboardedUser, resolveCreditOwnerId } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { PlanBadge } from "@/components/billing/PlanBadge";
@@ -15,6 +16,7 @@ interface ActivityItem {
 
 export default async function DashboardPage() {
   const { profile, subscription } = await requireOnboardedUser();
+  const t = await getTranslations("dashboard");
   const supabase = await createClient();
   const ownerId = resolveCreditOwnerId(profile);
 
@@ -52,28 +54,28 @@ export default async function DashboardPage() {
     ...(art ?? []).map((a) => ({
       id: a.id,
       type: "art" as const,
-      label: `Generated art: ${a.verse_reference ?? a.theme ?? "untitled"}`,
+      label: t("generatedArt", { label: a.verse_reference ?? a.theme ?? t("untitled") }),
       href: "/art/gallery",
       createdAt: a.created_at,
     })),
     ...(posts ?? []).map((p) => ({
       id: p.id,
       type: "post" as const,
-      label: `Created post: ${(p.caption_text ?? "").slice(0, 40) || "untitled"}`,
+      label: t("createdPost", { label: (p.caption_text ?? "").slice(0, 40) || t("untitled") }),
       href: `/posts/${p.id}`,
       createdAt: p.created_at,
     })),
     ...(notes ?? []).map((n) => ({
       id: n.id,
       type: "devotional_note" as const,
-      label: "Wrote a devotional note",
+      label: t("wroteNote"),
       href: "/devotionals/history",
       createdAt: n.created_at,
     })),
     ...(chats ?? []).map((c) => ({
       id: c.id,
       type: "chat" as const,
-      label: c.title ?? "Spiritual chat conversation",
+      label: c.title ?? t("chatConversation"),
       href: "/chat",
       createdAt: c.created_at,
     })),
@@ -83,29 +85,29 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="mb-6 text-2xl font-semibold">Dashboard</h1>
+      <h1 className="mb-6 text-2xl font-semibold">{t("title")}</h1>
 
       <Card className="mb-8 flex items-center justify-between">
         <div>
           <PlanBadge planCode={subscription!.plan_code} status={subscription!.status} />
           <p className="mt-2 text-sm text-muted">
-            Renews {new Date(subscription!.current_period_end).toLocaleDateString()}
+            {t("renews", { date: new Date(subscription!.current_period_end).toLocaleDateString() })}
           </p>
         </div>
         <Link href="/billing" className="text-sm font-medium text-accent hover:underline">
-          Manage plan
+          {t("managePlan")}
         </Link>
       </Card>
 
       {credits && limits && (
         <Card className="mb-8 flex flex-col gap-4">
           <CreditMeter
-            label="Image credits"
+            label={t("imageCredits")}
             remaining={credits.image_credits_remaining}
             total={limits.image_credits_per_cycle}
           />
           <CreditMeter
-            label="Text credits"
+            label={t("textCredits")}
             remaining={credits.text_credits_remaining}
             total={limits.text_credits_per_cycle}
           />
@@ -113,13 +115,13 @@ export default async function DashboardPage() {
       )}
 
       <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <QuickLink href="/art" label="New Art" />
-        <QuickLink href="/posts" label="New Post" />
-        <QuickLink href="/devotionals" label="Devotional" />
-        <QuickLink href="/chat" label="Spiritual Chat" />
+        <QuickLink href="/art" label={t("newArt")} />
+        <QuickLink href="/posts" label={t("newPost")} />
+        <QuickLink href="/devotionals" label={t("devotional")} />
+        <QuickLink href="/chat" label={t("spiritualChat")} />
       </div>
 
-      <h2 className="mb-3 mt-8 text-lg font-semibold">Recent activity</h2>
+      <h2 className="mb-3 mt-8 text-lg font-semibold">{t("recentActivity")}</h2>
       <ul className="flex flex-col divide-y divide-border">
         {activity.map((item) => (
           <li key={`${item.type}-${item.id}`} className="py-2 text-sm">
@@ -131,7 +133,7 @@ export default async function DashboardPage() {
             </span>
           </li>
         ))}
-        {activity.length === 0 && <li className="py-2 text-sm text-muted">No activity yet.</li>}
+        {activity.length === 0 && <li className="py-2 text-sm text-muted">{t("noActivity")}</li>}
       </ul>
     </div>
   );

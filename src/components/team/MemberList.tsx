@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
 interface Member {
@@ -11,6 +12,7 @@ interface Member {
 }
 
 export function MemberList({ members, isOwner }: { members: Member[]; isOwner: boolean }) {
+  const t = useTranslations("team.workspace");
   const router = useRouter();
   const [removingId, setRemovingId] = useState<string | null>(null);
 
@@ -42,7 +44,7 @@ export function MemberList({ members, isOwner }: { members: Member[]; isOwner: b
               disabled={removingId === m.id}
               className="text-xs font-medium text-danger hover:underline disabled:opacity-50"
             >
-              Remove
+              {t("remove")}
             </button>
           )}
         </li>
