@@ -1,0 +1,631 @@
+// Hand-written until `supabase gen types typescript` is run against a real
+// project (see README.md) — keep in sync with supabase/migrations/*.sql.
+//
+// IMPORTANT: every table's Row/Insert/Update below must stay a fully inlined
+// object literal, never a reference to a named interface/type alias. Supabase's
+// query builder resolves column types through deeply nested conditional types
+// keyed off the *literal* shape at each Tables[table] position; routing a Row
+// through an indirection (`Row: SomeInterface`) makes that resolution collapse
+// to `never` on every `.select()`/`.eq()`/etc. This matches what the real
+// codegen output always does — inline everything, never share a Row interface.
+
+export type PlanCode = "starter" | "creator" | "church_pro";
+export type SubscriptionStatus =
+  | "trialing"
+  | "active"
+  | "past_due"
+  | "canceled"
+  | "unpaid";
+export type TeamRole = "owner" | "member";
+export type CreditType = "image" | "text";
+export type ChatRole = "user" | "assistant" | "system";
+export type ChatMessageType = "normal" | "crisis_redirect";
+export type ConversationStatus = "active" | "crisis_flagged" | "closed";
+
+export interface Database {
+  public: {
+    Tables: {
+      profiles: {
+        Row: {
+          id: string;
+          email: string;
+          full_name: string | null;
+          avatar_url: string | null;
+          stripe_customer_id: string | null;
+          team_id: string | null;
+          team_role: TeamRole | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          email: string;
+          full_name?: string | null;
+          avatar_url?: string | null;
+          stripe_customer_id?: string | null;
+          team_id?: string | null;
+          team_role?: TeamRole | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          full_name?: string | null;
+          avatar_url?: string | null;
+          stripe_customer_id?: string | null;
+          team_id?: string | null;
+          team_role?: TeamRole | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      plans: {
+        Row: {
+          code: PlanCode;
+          display_name: string;
+          stripe_price_id: string;
+          monthly_price_usd: number;
+          is_team_plan: boolean;
+          sort_order: number;
+        };
+        Insert: {
+          code: PlanCode;
+          display_name: string;
+          stripe_price_id: string;
+          monthly_price_usd: number;
+          is_team_plan?: boolean;
+          sort_order: number;
+        };
+        Update: {
+          code?: PlanCode;
+          display_name?: string;
+          stripe_price_id?: string;
+          monthly_price_usd?: number;
+          is_team_plan?: boolean;
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
+      plan_limits: {
+        Row: {
+          plan_code: PlanCode;
+          image_credits_per_cycle: number;
+          text_credits_per_cycle: number;
+          spiritual_chat_daily_cap: number | null;
+          max_output_resolution: string;
+          watermark: boolean;
+          allow_carousel_export: boolean;
+          allow_seasonal_templates: boolean;
+          max_team_seats: number | null;
+          updated_at: string;
+        };
+        Insert: {
+          plan_code: PlanCode;
+          image_credits_per_cycle: number;
+          text_credits_per_cycle: number;
+          spiritual_chat_daily_cap?: number | null;
+          max_output_resolution: string;
+          watermark?: boolean;
+          allow_carousel_export?: boolean;
+          allow_seasonal_templates?: boolean;
+          max_team_seats?: number | null;
+          updated_at?: string;
+        };
+        Update: {
+          plan_code?: PlanCode;
+          image_credits_per_cycle?: number;
+          text_credits_per_cycle?: number;
+          spiritual_chat_daily_cap?: number | null;
+          max_output_resolution?: string;
+          watermark?: boolean;
+          allow_carousel_export?: boolean;
+          allow_seasonal_templates?: boolean;
+          max_team_seats?: number | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      subscriptions: {
+        Row: {
+          id: string;
+          owner_id: string;
+          team_id: string | null;
+          stripe_subscription_id: string;
+          stripe_customer_id: string;
+          plan_code: PlanCode;
+          status: SubscriptionStatus;
+          trial_end: string | null;
+          current_period_start: string;
+          current_period_end: string;
+          cancel_at_period_end: boolean;
+          canceled_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          team_id?: string | null;
+          stripe_subscription_id: string;
+          stripe_customer_id: string;
+          plan_code: PlanCode;
+          status: SubscriptionStatus;
+          trial_end?: string | null;
+          current_period_start: string;
+          current_period_end: string;
+          cancel_at_period_end?: boolean;
+          canceled_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          owner_id?: string;
+          team_id?: string | null;
+          stripe_subscription_id?: string;
+          stripe_customer_id?: string;
+          plan_code?: PlanCode;
+          status?: SubscriptionStatus;
+          trial_end?: string | null;
+          current_period_start?: string;
+          current_period_end?: string;
+          cancel_at_period_end?: boolean;
+          canceled_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      credits_balance: {
+        Row: {
+          id: string;
+          owner_id: string;
+          is_team: boolean;
+          subscription_id: string;
+          image_credits_remaining: number;
+          text_credits_remaining: number;
+          cycle_start: string;
+          cycle_end: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          is_team?: boolean;
+          subscription_id: string;
+          image_credits_remaining?: number;
+          text_credits_remaining?: number;
+          cycle_start: string;
+          cycle_end: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          owner_id?: string;
+          is_team?: boolean;
+          subscription_id?: string;
+          image_credits_remaining?: number;
+          text_credits_remaining?: number;
+          cycle_start?: string;
+          cycle_end?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      ai_usage_log: {
+        Row: {
+          id: number;
+          user_id: string;
+          team_id: string | null;
+          plan_code: PlanCode;
+          feature: "bible_art" | "post_caption" | "devotional" | "spiritual_chat";
+          provider: string;
+          model: string;
+          input_tokens: number | null;
+          output_tokens: number | null;
+          image_count: number | null;
+          estimated_cost_usd: number | null;
+          request_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          user_id: string;
+          team_id?: string | null;
+          plan_code: PlanCode;
+          feature: "bible_art" | "post_caption" | "devotional" | "spiritual_chat";
+          provider?: string;
+          model: string;
+          input_tokens?: number | null;
+          output_tokens?: number | null;
+          image_count?: number | null;
+          estimated_cost_usd?: number | null;
+          request_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          user_id?: string;
+          team_id?: string | null;
+          plan_code?: PlanCode;
+          feature?: "bible_art" | "post_caption" | "devotional" | "spiritual_chat";
+          provider?: string;
+          model?: string;
+          input_tokens?: number | null;
+          output_tokens?: number | null;
+          image_count?: number | null;
+          estimated_cost_usd?: number | null;
+          request_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      bible_art_generations: {
+        Row: {
+          id: string;
+          user_id: string;
+          team_id: string | null;
+          verse_reference: string | null;
+          theme: string | null;
+          style: string;
+          output_format: "square" | "story";
+          prompt_used: string;
+          image_url: string;
+          thumbnail_url: string | null;
+          resolution: string;
+          watermarked: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          team_id?: string | null;
+          verse_reference?: string | null;
+          theme?: string | null;
+          style: string;
+          output_format: "square" | "story";
+          prompt_used: string;
+          image_url: string;
+          thumbnail_url?: string | null;
+          resolution: string;
+          watermarked?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          team_id?: string | null;
+          verse_reference?: string | null;
+          theme?: string | null;
+          style?: string;
+          output_format?: "square" | "story";
+          prompt_used?: string;
+          image_url?: string;
+          thumbnail_url?: string | null;
+          resolution?: string;
+          watermarked?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      social_post_generations: {
+        Row: {
+          id: string;
+          user_id: string;
+          team_id: string | null;
+          template_id: string | null;
+          format: "feed" | "story" | "carousel";
+          caption_text: string | null;
+          verse_reference: string | null;
+          export_url: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          team_id?: string | null;
+          template_id?: string | null;
+          format: "feed" | "story" | "carousel";
+          caption_text?: string | null;
+          verse_reference?: string | null;
+          export_url?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          team_id?: string | null;
+          template_id?: string | null;
+          format?: "feed" | "story" | "carousel";
+          caption_text?: string | null;
+          verse_reference?: string | null;
+          export_url?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      seasonal_templates: {
+        Row: {
+          id: string;
+          occasion: string;
+          name: string;
+          preview_url: string;
+          asset_url: string;
+          is_exclusive: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          occasion: string;
+          name: string;
+          preview_url: string;
+          asset_url: string;
+          is_exclusive?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          occasion?: string;
+          name?: string;
+          preview_url?: string;
+          asset_url?: string;
+          is_exclusive?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      devotionals: {
+        Row: {
+          id: string;
+          publish_date: string;
+          title: string;
+          body: string;
+          scripture_reference: string | null;
+          audio_url: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          publish_date: string;
+          title: string;
+          body: string;
+          scripture_reference?: string | null;
+          audio_url?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          publish_date?: string;
+          title?: string;
+          body?: string;
+          scripture_reference?: string | null;
+          audio_url?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      devotional_notes: {
+        Row: {
+          id: string;
+          user_id: string;
+          devotional_id: string;
+          note: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          devotional_id: string;
+          note: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          devotional_id?: string;
+          note?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      spiritual_chat_conversations: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string | null;
+          status: ConversationStatus;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title?: string | null;
+          status?: ConversationStatus;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string | null;
+          status?: ConversationStatus;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      spiritual_chat_messages: {
+        Row: {
+          id: number;
+          conversation_id: string;
+          user_id: string;
+          role: ChatRole;
+          content: string;
+          is_crisis_flagged: boolean;
+          moderation_categories: Record<string, unknown> | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          conversation_id: string;
+          user_id: string;
+          role: ChatRole;
+          content: string;
+          is_crisis_flagged?: boolean;
+          moderation_categories?: Record<string, unknown> | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          conversation_id?: string;
+          user_id?: string;
+          role?: ChatRole;
+          content?: string;
+          is_crisis_flagged?: boolean;
+          moderation_categories?: Record<string, unknown> | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      crisis_flags: {
+        Row: {
+          id: string;
+          user_id: string;
+          conversation_id: string;
+          message_id: number;
+          detection_source: "openai_moderation" | "keyword_fallback" | "both";
+          severity: "high" | "medium";
+          reviewed: boolean;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          conversation_id: string;
+          message_id: number;
+          detection_source: "openai_moderation" | "keyword_fallback" | "both";
+          severity: "high" | "medium";
+          reviewed?: boolean;
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          conversation_id?: string;
+          message_id?: number;
+          detection_source?: "openai_moderation" | "keyword_fallback" | "both";
+          severity?: "high" | "medium";
+          reviewed?: boolean;
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      teams: {
+        Row: {
+          id: string;
+          name: string;
+          owner_id: string;
+          subscription_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          owner_id: string;
+          subscription_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          owner_id?: string;
+          subscription_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      team_invites: {
+        Row: {
+          id: string;
+          team_id: string;
+          email: string;
+          invited_by: string;
+          token: string;
+          status: "pending" | "accepted" | "expired";
+          created_at: string;
+          expires_at: string;
+        };
+        Insert: {
+          id?: string;
+          team_id: string;
+          email: string;
+          invited_by: string;
+          token: string;
+          status?: "pending" | "accepted" | "expired";
+          created_at?: string;
+          expires_at: string;
+        };
+        Update: {
+          id?: string;
+          team_id?: string;
+          email?: string;
+          invited_by?: string;
+          token?: string;
+          status?: "pending" | "accepted" | "expired";
+          created_at?: string;
+          expires_at?: string;
+        };
+        Relationships: [];
+      };
+    };
+    Views: Record<string, never>;
+    Functions: {
+      consume_credit: {
+        Args: { p_owner_id: string; p_credit_type: string; p_amount?: number };
+        Returns: { success: boolean; remaining: number }[];
+      };
+      refund_credit: {
+        Args: { p_owner_id: string; p_credit_type: string; p_amount?: number };
+        Returns: undefined;
+      };
+      reset_credits: {
+        Args: { p_subscription_id: string; p_cycle_start: string; p_cycle_end: string };
+        Returns: undefined;
+      };
+    };
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
+  };
+}
+
+// Convenience aliases for use throughout the app — derived from Database via
+// indexed access (safe), never fed back into it (see note at top of file).
+export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+export type Plan = Database["public"]["Tables"]["plans"]["Row"];
+export type PlanLimits = Database["public"]["Tables"]["plan_limits"]["Row"];
+export type Subscription = Database["public"]["Tables"]["subscriptions"]["Row"];
+export type CreditsBalance = Database["public"]["Tables"]["credits_balance"]["Row"];
+export type AiUsageLog = Database["public"]["Tables"]["ai_usage_log"]["Row"];
+export type BibleArtGeneration = Database["public"]["Tables"]["bible_art_generations"]["Row"];
+export type SocialPostGeneration = Database["public"]["Tables"]["social_post_generations"]["Row"];
+export type SeasonalTemplate = Database["public"]["Tables"]["seasonal_templates"]["Row"];
+export type Devotional = Database["public"]["Tables"]["devotionals"]["Row"];
+export type DevotionalNote = Database["public"]["Tables"]["devotional_notes"]["Row"];
+export type SpiritualChatConversation =
+  Database["public"]["Tables"]["spiritual_chat_conversations"]["Row"];
+export type SpiritualChatMessage = Database["public"]["Tables"]["spiritual_chat_messages"]["Row"];
+export type CrisisFlag = Database["public"]["Tables"]["crisis_flags"]["Row"];
+export type Team = Database["public"]["Tables"]["teams"]["Row"];
+export type TeamInvite = Database["public"]["Tables"]["team_invites"]["Row"];

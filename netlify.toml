@@ -1,0 +1,12 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Netlify's native Scheduled Functions feature targets standalone Netlify Functions,
+# not Next.js API routes served through the Next runtime plugin. To run the daily
+# devotional job (src/app/api/cron/daily-devotional/route.ts), point an external
+# scheduler (GitHub Actions cron workflow, cron-job.org, or Supabase pg_cron + pg_net)
+# at that URL once a day with header "Authorization: Bearer $CRON_SECRET" — see README.md.
