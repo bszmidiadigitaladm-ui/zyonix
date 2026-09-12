@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import type { PlanCode } from "@/lib/config";
 
@@ -13,6 +14,7 @@ interface PlanCardProps {
 }
 
 export function PlanCard({ code, displayName, priceUsd, features, highlighted }: PlanCardProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,6 +35,30 @@ export function PlanCard({ code, displayName, priceUsd, features, highlighted }:
       }
 
       window.location.href = data.url;
+    } catch (err) {
+      setLoading(false);
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+    }
+  }
+
+  async function handleDevActivate() {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/dev/fake-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan_code: code }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error ?? "Something went wrong activating the dev plan.");
+      }
+
+      router.push("/dashboard");
+      router.refresh();
     } catch (err) {
       setLoading(false);
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -78,6 +104,16 @@ export function PlanCard({ code, displayName, priceUsd, features, highlighted }:
       >
         {loading ? "Starting trial…" : "Start free trial"}
       </button>
+
+      {process.env.NODE_ENV !== "production" && (
+        <button
+          onClick={handleDevActivate}
+          disabled={loading}
+          className="mt-2 rounded-md border border-dashed border-amber-500 px-3 py-2 text-xs font-medium text-amber-700 disabled:opacity-50 dark:text-amber-400"
+        >
+          🛠️ Dev: activate without payment
+        </button>
+      )}
     </div>
   );
 }
