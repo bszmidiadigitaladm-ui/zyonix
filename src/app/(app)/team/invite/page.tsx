@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { UserPlus } from "lucide-react";
 import { requireOnboardedUser } from "@/lib/auth/session";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { InviteForm } from "@/components/team/InviteForm";
 
 export default async function TeamInvitePage() {
@@ -13,7 +15,7 @@ export default async function TeamInvitePage() {
 
   return (
     <div className="mx-auto max-w-md">
-      <h1 className="mb-6 text-2xl font-semibold">{t("title")}</h1>
+      <PageHeader icon={UserPlus} title={t("title")} />
       <InviteForm />
     </div>
   );

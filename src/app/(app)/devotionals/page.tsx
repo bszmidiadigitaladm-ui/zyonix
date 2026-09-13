@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { Sunrise } from "lucide-react";
 import { requireOnboardedUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { ensureTodaysDevotional } from "@/lib/devotional/generate";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { DevotionalCard } from "@/components/devotional/DevotionalCard";
 import { NoteEditor } from "@/components/devotional/NoteEditor";
 
@@ -21,12 +23,15 @@ export default async function DevotionalPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">{t("today")}</h1>
-        <Link href="/devotionals/history" className="text-sm font-medium text-accent hover:underline">
-          {t("history")}
-        </Link>
-      </div>
+      <PageHeader
+        icon={Sunrise}
+        title={t("today")}
+        actions={
+          <Link href="/devotionals/history" className="text-sm font-medium text-accent hover:underline">
+            {t("history")}
+          </Link>
+        }
+      />
       <DevotionalCard devotional={devotional} />
       <NoteEditor devotionalId={devotional.id} initialNote={existingNote?.note ?? ""} />
     </div>

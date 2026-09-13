@@ -1,6 +1,8 @@
 import { getTranslations } from "next-intl/server";
+import { Layers } from "lucide-react";
 import { requireOnboardedUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { PostComposer } from "@/components/posts/PostComposer";
 
 export default async function PostsPage() {
@@ -15,7 +17,7 @@ export default async function PostsPage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <h1 className="mb-6 text-2xl font-semibold">{t("title")}</h1>
+      <PageHeader icon={Layers} title={t("title")} />
       <PostComposer
         templates={templates ?? []}
         allowSeasonalTemplates={limits?.allow_seasonal_templates ?? false}

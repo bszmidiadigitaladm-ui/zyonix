@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { Layers } from "lucide-react";
 import { requireOnboardedUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { PostCanvas } from "@/components/posts/PostCanvas";
 
 export default async function PostDetailPage({ params }: PageProps<"/posts/[id]">) {
@@ -30,7 +32,7 @@ export default async function PostDetailPage({ params }: PageProps<"/posts/[id]"
 
   return (
     <div className="mx-auto max-w-md">
-      <h1 className="mb-6 text-2xl font-semibold">{t("post")}</h1>
+      <PageHeader icon={Layers} title={t("post")} />
       <PostCanvas
         imageUrl={imageUrl}
         captionText={post.caption_text ?? ""}

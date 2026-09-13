@@ -1,7 +1,9 @@
 import { getTranslations } from "next-intl/server";
+import { MessageCircle } from "lucide-react";
 import { requireOnboardedUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getPlanLimits } from "@/lib/credits/config";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { ChatWindow } from "@/components/chat/ChatWindow";
 
 function startOfTodayUtc(): string {
@@ -58,7 +60,7 @@ export default async function ChatPage() {
 
   return (
     <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-2xl flex-col">
-      <h1 className="mb-4 text-2xl font-semibold">{t("title")}</h1>
+      <PageHeader icon={MessageCircle} title={t("title")} />
       <ChatWindow initialMessages={initialMessages} dailyLimitReached={dailyLimitReached} />
     </div>
   );

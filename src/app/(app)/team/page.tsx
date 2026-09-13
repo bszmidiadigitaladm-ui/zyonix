@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { Users } from "lucide-react";
 import { requireOnboardedUser } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { MemberList } from "@/components/team/MemberList";
 import { ArtGalleryGrid } from "@/components/art/ArtGalleryGrid";
 
@@ -35,7 +37,7 @@ export default async function TeamPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="mb-6 text-2xl font-semibold">{t("title")}</h1>
+      <PageHeader icon={Users} title={t("title")} />
 
       <div className="mb-8">
         <div className="mb-3 flex items-center justify-between">

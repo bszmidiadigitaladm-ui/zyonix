@@ -1,6 +1,9 @@
 import { getTranslations } from "next-intl/server";
+import { Clapperboard } from "lucide-react";
 import { requireOnboardedUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { VideoForm } from "@/components/video/VideoForm";
 
 export default async function VideoPage() {
@@ -20,7 +23,7 @@ export default async function VideoPage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <h1 className="mb-6 text-2xl font-semibold">{t("title")}</h1>
+      <PageHeader icon={Clapperboard} title={t("title")} />
       <VideoForm />
 
       <div className="mt-12">
@@ -28,7 +31,10 @@ export default async function VideoPage() {
         {history && history.length > 0 ? (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             {history.map((item) => (
-              <div key={item.id} className="overflow-hidden rounded-lg border border-border bg-surface">
+              <div
+                key={item.id}
+                className="overflow-hidden rounded-xl border border-border bg-surface transition hover:border-accent/40"
+              >
                 {item.status === "succeeded" && item.video_url ? (
                   <video src={item.video_url} controls className="aspect-video w-full object-cover" />
                 ) : (
@@ -41,7 +47,7 @@ export default async function VideoPage() {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-muted">{t("noHistory")}</p>
+          <EmptyState icon={Clapperboard} title={t("noHistory")} />
         )}
       </div>
     </div>

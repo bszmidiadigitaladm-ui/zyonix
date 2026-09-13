@@ -1,6 +1,9 @@
 import { getTranslations } from "next-intl/server";
+import { BookOpen, Flame, BookMarked, Star } from "lucide-react";
 import { requireOnboardedUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { StatCard } from "@/components/ui/StatCard";
 import { BibleTabNav } from "@/components/bible/BibleTabNav";
 import { Card } from "@/components/ui/Card";
 import { BIBLE_BOOKS } from "@/lib/bible/books";
@@ -58,29 +61,24 @@ export default async function BibleProgressPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="mb-2 text-2xl font-semibold">{t("progressTitle")}</h1>
+      <PageHeader icon={BookOpen} title={t("hubTitle")} subtitle={t("hubSubtitle")} />
       <BibleTabNav />
+      <h2 className="mb-1 text-lg font-semibold">{t("progressTitle")}</h2>
       <p className="mb-6 text-sm text-muted">{t("progressSubtitle")}</p>
 
       <div className="mb-6 grid grid-cols-2 gap-4">
-        <Card>
-          <p className="text-2xl font-bold">
-            {streak} <span className="text-sm font-normal text-muted">{t("days")}</span>
-          </p>
-          <p className="text-xs text-muted">{t("streak")}</p>
-        </Card>
-        <Card>
-          <p className="text-2xl font-bold">{rows.length}</p>
-          <p className="text-xs text-muted">{t("chaptersRead")}</p>
-        </Card>
-        <Card>
-          <p className="text-2xl font-bold">{booksCompleted}</p>
-          <p className="text-xs text-muted">{t("booksCompleted")}</p>
-        </Card>
-        <Card>
-          <p className="text-2xl font-bold">{favorites ?? 0}</p>
-          <p className="text-xs text-muted">{t("favoritesCount")}</p>
-        </Card>
+        <StatCard
+          icon={Flame}
+          value={
+            <>
+              {streak} <span className="text-sm font-normal text-muted">{t("days")}</span>
+            </>
+          }
+          label={t("streak")}
+        />
+        <StatCard icon={BookOpen} value={rows.length} label={t("chaptersRead")} />
+        <StatCard icon={BookMarked} value={booksCompleted} label={t("booksCompleted")} />
+        <StatCard icon={Star} value={favorites ?? 0} label={t("favoritesCount")} />
       </div>
 
       <Card className="mb-4">

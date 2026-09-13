@@ -1,6 +1,8 @@
 import { getTranslations } from "next-intl/server";
+import { BookOpen } from "lucide-react";
 import { requireOnboardedUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { BibleTabNav } from "@/components/bible/BibleTabNav";
 import { PlanStartButton } from "@/components/bible/PlanStartButton";
 import { Card } from "@/components/ui/Card";
@@ -19,8 +21,9 @@ export default async function BiblePlansPage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <h1 className="mb-2 text-2xl font-semibold">{t("plansTitle")}</h1>
+      <PageHeader icon={BookOpen} title={t("hubTitle")} subtitle={t("hubSubtitle")} />
       <BibleTabNav />
+      <h2 className="mb-1 text-lg font-semibold">{t("plansTitle")}</h2>
       <p className="mb-6 text-sm text-muted">{t("plansSubtitle")}</p>
 
       <div className="flex flex-col gap-4">

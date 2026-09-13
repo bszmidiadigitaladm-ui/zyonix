@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { Sunrise } from "lucide-react";
 import { requireOnboardedUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { DevotionalCard } from "@/components/devotional/DevotionalCard";
 
 export default async function DevotionalHistoryPage() {
@@ -17,18 +20,21 @@ export default async function DevotionalHistoryPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">{t("historyTitle")}</h1>
-        <Link href="/devotionals" className="text-sm font-medium text-accent hover:underline">
-          {t("backToToday")}
-        </Link>
-      </div>
+      <PageHeader
+        icon={Sunrise}
+        title={t("historyTitle")}
+        actions={
+          <Link href="/devotionals" className="text-sm font-medium text-accent hover:underline">
+            {t("backToToday")}
+          </Link>
+        }
+      />
 
       <div className="flex flex-col gap-4">
         {(devotionals ?? []).map((d) => (
           <DevotionalCard key={d.id} devotional={d} />
         ))}
-        {devotionals?.length === 0 && <p className="text-sm text-muted">{t("empty")}</p>}
+        {devotionals?.length === 0 && <EmptyState icon={Sunrise} title={t("empty")} />}
       </div>
     </div>
   );

@@ -1,6 +1,8 @@
 import { getTranslations } from "next-intl/server";
+import { Mic } from "lucide-react";
 import { requireOnboardedUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { MessageForm } from "@/components/message/MessageForm";
 import { OutlineDisplay } from "@/components/message/OutlineDisplay";
 import type { MessageOutline } from "@/lib/openai/text";
@@ -22,7 +24,7 @@ export default async function MessagePage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <h1 className="mb-6 text-2xl font-semibold">{t("title")}</h1>
+      <PageHeader icon={Mic} title={t("title")} />
       <MessageForm />
 
       {history && history.length > 0 && (

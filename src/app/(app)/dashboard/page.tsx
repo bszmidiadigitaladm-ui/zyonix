@@ -1,10 +1,23 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import {
+  Palette,
+  Layers,
+  Sunrise,
+  MessageCircle,
+  BookOpen,
+  Mic,
+  Clapperboard,
+  Gamepad2,
+  type LucideIcon,
+} from "lucide-react";
 import { requireOnboardedUser, resolveCreditOwnerId } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { PlanBadge } from "@/components/billing/PlanBadge";
 import { CreditMeter } from "@/components/billing/CreditMeter";
 import { Card } from "@/components/ui/Card";
+import { IconTile } from "@/components/ui/IconTile";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 interface ActivityItem {
   id: string;
@@ -14,9 +27,17 @@ interface ActivityItem {
   createdAt: string;
 }
 
+const ACTIVITY_ICON: Record<ActivityItem["type"], LucideIcon> = {
+  art: Palette,
+  post: Layers,
+  devotional_note: Sunrise,
+  chat: MessageCircle,
+};
+
 export default async function DashboardPage() {
   const { profile, subscription } = await requireOnboardedUser();
   const t = await getTranslations("dashboard");
+  const tNav = await getTranslations("nav");
   const supabase = await createClient();
   const ownerId = resolveCreditOwnerId(profile);
 
@@ -83,9 +104,16 @@ export default async function DashboardPage() {
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 10);
 
+  const hour = new Date().getHours();
+  const greetingKey = hour < 12 ? "greetingMorning" : hour < 18 ? "greetingAfternoon" : "greetingEvening";
+  const displayName = profile.full_name?.split(" ")[0] ?? profile.email.split("@")[0];
+
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="mb-6 text-2xl font-semibold">{t("title")}</h1>
+      <h1 className="text-2xl font-semibold">
+        {t(greetingKey, { name: displayName })} <span aria-hidden>👋</span>
+      </h1>
+      <p className="mb-6 text-sm text-muted">{t("greetingSubtitle")}</p>
 
       <Card className="mb-8 flex items-center justify-between">
         <div>
@@ -114,38 +142,41 @@ export default async function DashboardPage() {
         </Card>
       )}
 
-      <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <QuickLink href="/art" label={t("newArt")} />
-        <QuickLink href="/posts" label={t("newPost")} />
-        <QuickLink href="/devotionals" label={t("devotional")} />
-        <QuickLink href="/chat" label={t("spiritualChat")} />
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">{t("quickTools")}</h2>
+      <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <IconTile href="/bible" icon={BookOpen} label={tNav("bible")} />
+        <IconTile href="/art" icon={Palette} label={t("newArt")} />
+        <IconTile href="/posts" icon={Layers} label={t("newPost")} />
+        <IconTile href="/message" icon={Mic} label={t("newMessage")} />
+        <IconTile href="/video" icon={Clapperboard} label={t("newVideo")} />
+        <IconTile href="/devotionals" icon={Sunrise} label={t("devotional")} />
+        <IconTile href="/chat" icon={MessageCircle} label={t("spiritualChat")} />
+        <IconTile href="/games" icon={Gamepad2} label={t("playQuiz")} />
       </div>
 
-      <h2 className="mb-3 mt-8 text-lg font-semibold">{t("recentActivity")}</h2>
-      <ul className="flex flex-col divide-y divide-border">
-        {activity.map((item) => (
-          <li key={`${item.type}-${item.id}`} className="py-2 text-sm">
-            <Link href={item.href} className="hover:text-accent">
-              {item.label}
-            </Link>
-            <span className="ml-2 text-xs text-muted">
-              {new Date(item.createdAt).toLocaleDateString()}
-            </span>
-          </li>
-        ))}
-        {activity.length === 0 && <li className="py-2 text-sm text-muted">{t("noActivity")}</li>}
-      </ul>
+      <h2 className="mb-3 text-lg font-semibold">{t("recentActivity")}</h2>
+      {activity.length === 0 ? (
+        <EmptyState icon={Layers} title={t("noActivity")} />
+      ) : (
+        <Card className="flex flex-col divide-y divide-border p-0">
+          {activity.map((item) => {
+            const Icon = ACTIVITY_ICON[item.type];
+            return (
+              <Link
+                key={`${item.type}-${item.id}`}
+                href={item.href}
+                className="flex items-center gap-3 px-5 py-3 text-sm transition hover:bg-surface-raised/60"
+              >
+                <Icon size={16} className="shrink-0 text-accent" />
+                <span className="flex-1 truncate">{item.label}</span>
+                <span className="shrink-0 text-xs text-muted">
+                  {new Date(item.createdAt).toLocaleDateString()}
+                </span>
+              </Link>
+            );
+          })}
+        </Card>
+      )}
     </div>
-  );
-}
-
-function QuickLink({ href, label }: { href: string; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="rounded-lg border border-border px-3 py-2 text-center text-sm font-medium transition hover:border-accent/50 hover:bg-surface-raised"
-    >
-      {label}
-    </Link>
   );
 }

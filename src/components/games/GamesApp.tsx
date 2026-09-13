@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Gamepad2, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { cn } from "@/lib/utils";
 
 interface ClientQuestion {
@@ -99,15 +102,15 @@ export function GamesApp() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="mb-6 text-2xl font-semibold">{t("title")}</h1>
+      <PageHeader icon={Gamepad2} title={t("title")} />
 
-      <div className="mb-6 flex gap-2 border-b border-border">
+      <div className="mb-6 inline-flex flex-wrap gap-1 rounded-full border border-border bg-surface p-1">
         <button
           type="button"
           onClick={() => setTab("play")}
           className={cn(
-            "border-b-2 px-3 py-2 text-sm font-medium transition",
-            tab === "play" ? "border-accent text-accent" : "border-transparent text-muted hover:text-foreground",
+            "rounded-full px-4 py-1.5 text-sm font-medium transition",
+            tab === "play" ? "bg-accent text-accent-foreground" : "text-muted hover:text-foreground",
           )}
         >
           {t("tabPlay")}
@@ -116,10 +119,8 @@ export function GamesApp() {
           type="button"
           onClick={loadLeaderboard}
           className={cn(
-            "border-b-2 px-3 py-2 text-sm font-medium transition",
-            tab === "leaderboard"
-              ? "border-accent text-accent"
-              : "border-transparent text-muted hover:text-foreground",
+            "rounded-full px-4 py-1.5 text-sm font-medium transition",
+            tab === "leaderboard" ? "bg-accent text-accent-foreground" : "text-muted hover:text-foreground",
           )}
         >
           {t("tabLeaderboard")}
@@ -132,6 +133,9 @@ export function GamesApp() {
 
           {phase === "start" && (
             <Card className="flex flex-col items-center gap-4 py-12 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-accent-soft text-accent shadow-[0_0_24px_-10px_var(--accent)]">
+                <Gamepad2 size={26} strokeWidth={2} />
+              </div>
               <p className="text-sm text-muted">{t("startSubtitle")}</p>
               <Button onClick={startQuiz}>{t("start")}</Button>
             </Card>
@@ -165,6 +169,7 @@ export function GamesApp() {
 
           {phase === "results" && result && (
             <Card className="flex flex-col items-center gap-4 py-12 text-center">
+              <Trophy size={28} className="text-accent" strokeWidth={2} />
               <p className="text-3xl font-bold text-accent">
                 {result.score}/{result.total_questions}
               </p>
@@ -185,16 +190,30 @@ export function GamesApp() {
           {leaderboard === null ? (
             <p className="py-8 text-center text-sm text-muted">{t("loadingLeaderboard")}</p>
           ) : leaderboard.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted">{t("noLeaderboardEntries")}</p>
+            <EmptyState icon={Trophy} title={t("noLeaderboardEntries")} />
           ) : (
             <ol className="flex flex-col gap-2">
               {leaderboard.map((entry, i) => (
                 <li
                   key={`${entry.display_name}-${i}`}
-                  className="flex items-center justify-between rounded-lg border border-border px-4 py-2 text-sm"
+                  className={cn(
+                    "flex items-center justify-between rounded-lg border px-4 py-2 text-sm",
+                    i === 0
+                      ? "border-accent/40 bg-accent-soft/40"
+                      : "border-border",
+                  )}
                 >
-                  <span>
-                    <span className="mr-2 font-semibold text-accent">#{i + 1}</span>
+                  <span className="flex items-center gap-2">
+                    <span
+                      className={cn(
+                        "flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold",
+                        i === 0
+                          ? "bg-accent text-accent-foreground"
+                          : "bg-surface-raised text-muted",
+                      )}
+                    >
+                      {i + 1}
+                    </span>
                     {entry.display_name}
                   </span>
                   <span className="font-medium">{entry.best_score}</span>

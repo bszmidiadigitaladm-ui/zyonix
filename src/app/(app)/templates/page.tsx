@@ -1,7 +1,9 @@
 import { getTranslations } from "next-intl/server";
+import { LayoutTemplate } from "lucide-react";
 import { requireOnboardedUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const OCCASION_KEY: Record<string, string> = {
   verse_of_the_day: "occasionVerseOfTheDay",
@@ -29,7 +31,7 @@ export default async function TemplatesPage() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <h1 className="mb-6 text-2xl font-semibold">{t("title")}</h1>
+      <PageHeader icon={LayoutTemplate} title={t("title")} />
 
       {[...byOccasion.entries()].map(([occasion, items]) => (
         <section key={occasion} className="mb-8">
@@ -43,7 +45,7 @@ export default async function TemplatesPage() {
                 <div
                   key={template.id}
                   className={cn(
-                    "relative overflow-hidden rounded-lg border border-border bg-surface",
+                    "relative overflow-hidden rounded-xl border border-border bg-surface transition hover:border-accent/40",
                     locked && "opacity-50",
                   )}
                 >

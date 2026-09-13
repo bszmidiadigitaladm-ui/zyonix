@@ -1,6 +1,8 @@
 import { getLocale, getTranslations } from "next-intl/server";
+import { BookOpen } from "lucide-react";
 import { requireOnboardedUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { BibleTabNav } from "@/components/bible/BibleTabNav";
 import { BookGrid } from "@/components/bible/BookGrid";
 
@@ -14,7 +16,7 @@ export default async function BiblePage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <h1 className="mb-2 text-2xl font-semibold">{t("tabRead")}</h1>
+      <PageHeader icon={BookOpen} title={t("hubTitle")} subtitle={t("hubSubtitle")} />
       <BibleTabNav />
       <BookGrid books={books ?? []} locale={locale} />
     </div>

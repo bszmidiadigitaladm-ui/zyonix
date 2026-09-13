@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { Palette } from "lucide-react";
 import { requireOnboardedUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { ArtGalleryGrid } from "@/components/art/ArtGalleryGrid";
 
 export default async function ArtGalleryPage() {
@@ -20,12 +22,15 @@ export default async function ArtGalleryPage() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">{t("yourArt")}</h1>
-        <Link href="/art" className="text-sm font-medium text-accent hover:underline">
-          {t("newGeneration")}
-        </Link>
-      </div>
+      <PageHeader
+        icon={Palette}
+        title={t("yourArt")}
+        actions={
+          <Link href="/art" className="text-sm font-medium text-accent hover:underline">
+            {t("newGeneration")}
+          </Link>
+        }
+      />
       <ArtGalleryGrid generations={generations ?? []} />
     </div>
   );

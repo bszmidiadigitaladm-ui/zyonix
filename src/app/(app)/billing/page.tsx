@@ -1,10 +1,12 @@
 import { getTranslations } from "next-intl/server";
+import { CreditCard } from "lucide-react";
 import { requireOnboardedUser, resolveCreditOwnerId } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { CreditMeter } from "@/components/billing/CreditMeter";
 import { ManageBillingButton } from "@/components/billing/ManageBillingButton";
 import { PlanBadge } from "@/components/billing/PlanBadge";
 import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 export default async function BillingPage() {
   const { profile, subscription } = await requireOnboardedUser();
@@ -19,7 +21,7 @@ export default async function BillingPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="mb-6 text-2xl font-semibold">{t("title")}</h1>
+      <PageHeader icon={CreditCard} title={t("title")} />
 
       <Card className="mb-6 flex items-center justify-between">
         <div>
