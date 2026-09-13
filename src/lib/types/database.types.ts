@@ -93,6 +93,7 @@ export interface Database {
           plan_code: PlanCode;
           image_credits_per_cycle: number;
           text_credits_per_cycle: number;
+          video_credits_per_cycle: number;
           spiritual_chat_daily_cap: number | null;
           max_output_resolution: string;
           watermark: boolean;
@@ -105,6 +106,7 @@ export interface Database {
           plan_code: PlanCode;
           image_credits_per_cycle: number;
           text_credits_per_cycle: number;
+          video_credits_per_cycle?: number;
           spiritual_chat_daily_cap?: number | null;
           max_output_resolution: string;
           watermark?: boolean;
@@ -117,6 +119,7 @@ export interface Database {
           plan_code?: PlanCode;
           image_credits_per_cycle?: number;
           text_credits_per_cycle?: number;
+          video_credits_per_cycle?: number;
           spiritual_chat_daily_cap?: number | null;
           max_output_resolution?: string;
           watermark?: boolean;
@@ -186,6 +189,7 @@ export interface Database {
           subscription_id: string;
           image_credits_remaining: number;
           text_credits_remaining: number;
+          video_credits_remaining: number;
           cycle_start: string;
           cycle_end: string;
           updated_at: string;
@@ -197,6 +201,7 @@ export interface Database {
           subscription_id: string;
           image_credits_remaining?: number;
           text_credits_remaining?: number;
+          video_credits_remaining?: number;
           cycle_start: string;
           cycle_end: string;
           updated_at?: string;
@@ -208,6 +213,7 @@ export interface Database {
           subscription_id?: string;
           image_credits_remaining?: number;
           text_credits_remaining?: number;
+          video_credits_remaining?: number;
           cycle_start?: string;
           cycle_end?: string;
           updated_at?: string;

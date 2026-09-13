@@ -28,6 +28,7 @@ Rule enforced throughout the codebase: any variable **without** the
 | `STRIPE_PRICE_STARTER` / `STRIPE_PRICE_CREATOR` / `STRIPE_PRICE_CHURCH_PRO` | Not read directly by the app (the `plans` table is the source of truth) — used only to fill in `supabase/seed.sql` per environment | Stripe Dashboard → Products |
 | `OPENAI_API_KEY` | GPT text, GPT Image, and Moderation endpoint calls | OpenAI Platform → API keys |
 | `OPENAI_ORG_ID` | Optional — org-scoped billing/usage attribution | OpenAI Platform → Organization settings |
+| `RUNWAY_API_KEY` | Video Studio module — AI video generation (Gen-4 Turbo) | [dev.runwayml.com](https://dev.runwayml.com) → API Keys |
 | `CRON_SECRET` | Shared secret checked by `/api/cron/daily-devotional` | Generate any random string yourself |
 
 ## Setting up the accounts
@@ -46,3 +47,6 @@ Rule enforced throughout the codebase: any variable **without** the
    `stripe listen --forward-to localhost:3000/api/stripe/webhook` instead.
 3. **OpenAI**: create an API key with access to `gpt-image-1` and a GPT chat
    model.
+4. **Runway** (Video Studio only): create an account at
+   [dev.runwayml.com](https://dev.runwayml.com), generate an API key, and add
+   credit to the account — generations are billed per second of output.

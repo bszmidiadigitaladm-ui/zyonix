@@ -19,16 +19,17 @@ on conflict (code) do update set
   sort_order = excluded.sort_order;
 
 insert into public.plan_limits (
-  plan_code, image_credits_per_cycle, text_credits_per_cycle, spiritual_chat_daily_cap,
+  plan_code, image_credits_per_cycle, text_credits_per_cycle, video_credits_per_cycle, spiritual_chat_daily_cap,
   max_output_resolution, watermark, allow_carousel_export, allow_seasonal_templates, max_team_seats
 )
 values
-  ('starter', 15, 30, 10, 'standard', true, false, false, null),
-  ('creator', 60, 120, null, 'high', false, true, true, null),
-  ('church_pro', 150, 300, null, 'high', false, true, true, 10)
+  ('starter', 15, 30, 0, 10, 'standard', true, false, false, null),
+  ('creator', 60, 120, 2, null, 'high', false, true, true, null),
+  ('church_pro', 150, 300, 5, null, 'high', false, true, true, 10)
 on conflict (plan_code) do update set
   image_credits_per_cycle = excluded.image_credits_per_cycle,
   text_credits_per_cycle = excluded.text_credits_per_cycle,
+  video_credits_per_cycle = excluded.video_credits_per_cycle,
   spiritual_chat_daily_cap = excluded.spiritual_chat_daily_cap,
   max_output_resolution = excluded.max_output_resolution,
   watermark = excluded.watermark,
