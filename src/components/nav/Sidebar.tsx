@@ -8,8 +8,10 @@ import { cn } from "@/lib/utils";
 
 const NAV_KEYS = [
   { href: "/dashboard", key: "dashboard" },
+  { href: "/bible", key: "bible" },
   { href: "/art", key: "bibleArt" },
   { href: "/posts", key: "socialPosts" },
+  { href: "/message", key: "messagePrep" },
   { href: "/devotionals", key: "devotional" },
   { href: "/chat", key: "spiritualChat" },
   { href: "/templates", key: "templates" },

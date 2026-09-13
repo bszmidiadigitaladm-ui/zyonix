@@ -73,3 +73,68 @@ export async function generateDevotional(params: {
     scriptureReference: parsed.scripture_reference,
   };
 }
+
+export interface MessageOutline {
+  title: string;
+  introduction: string;
+  points: { heading: string; content: string; verses: string[] }[];
+  closing: string;
+  suggestedVerses: string[];
+}
+
+export async function generateMessageOutline(params: {
+  topic: string;
+  audience: string;
+  durationMinutes: number;
+  style: string;
+  tone: string;
+}): Promise<MessageOutline> {
+  const openai = getOpenAI();
+
+  const response = await openai.chat.completions.create({
+    model: CAPTION_MODEL,
+    messages: [
+      {
+        role: "system",
+        content:
+          "You help pastors and Christian speakers structure a sermon/message outline from a " +
+          "topic and direction they provide. Produce a clear, well-organized outline with 3-5 " +
+          "main points, grounded in specific Bible verses. Match the requested audience, " +
+          "duration, style, and tone. Reply as strict JSON: " +
+          '{"title": string, "introduction": string, ' +
+          '"points": [{"heading": string, "content": string, "verses": string[]}], ' +
+          '"closing": string, "suggested_verses": string[]}. No markdown fences.',
+      },
+      {
+        role: "user",
+        content:
+          `Topic: ${params.topic}\n` +
+          `Audience: ${params.audience}\n` +
+          `Duration: ${params.durationMinutes} minutes\n` +
+          `Style: ${params.style}\n` +
+          `Tone: ${params.tone}`,
+      },
+    ],
+    max_tokens: 1400,
+    response_format: { type: "json_object" },
+  });
+
+  const raw = response.choices[0]?.message?.content;
+  if (!raw) throw new Error("OpenAI did not return an outline");
+
+  const parsed = JSON.parse(raw) as {
+    title: string;
+    introduction: string;
+    points: { heading: string; content: string; verses: string[] }[];
+    closing: string;
+    suggested_verses: string[];
+  };
+
+  return {
+    title: parsed.title,
+    introduction: parsed.introduction,
+    points: parsed.points,
+    closing: parsed.closing,
+    suggestedVerses: parsed.suggested_verses,
+  };
+}

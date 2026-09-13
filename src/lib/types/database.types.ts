@@ -17,7 +17,7 @@ export type SubscriptionStatus =
   | "canceled"
   | "unpaid";
 export type TeamRole = "owner" | "member";
-export type CreditType = "image" | "text";
+export type CreditType = "image" | "text" | "video";
 export type ChatRole = "user" | "assistant" | "system";
 export type ChatMessageType = "normal" | "crisis_redirect";
 export type ConversationStatus = "active" | "crisis_flagged" | "closed";
@@ -226,7 +226,7 @@ export interface Database {
           user_id: string;
           team_id: string | null;
           plan_code: PlanCode;
-          feature: "bible_art" | "post_caption" | "devotional" | "spiritual_chat";
+          feature: "bible_art" | "post_caption" | "devotional" | "spiritual_chat" | "message_outline" | "video";
           provider: string;
           model: string;
           input_tokens: number | null;
@@ -241,7 +241,7 @@ export interface Database {
           user_id: string;
           team_id?: string | null;
           plan_code: PlanCode;
-          feature: "bible_art" | "post_caption" | "devotional" | "spiritual_chat";
+          feature: "bible_art" | "post_caption" | "devotional" | "spiritual_chat" | "message_outline" | "video";
           provider?: string;
           model: string;
           input_tokens?: number | null;
@@ -256,7 +256,7 @@ export interface Database {
           user_id?: string;
           team_id?: string | null;
           plan_code?: PlanCode;
-          feature?: "bible_art" | "post_caption" | "devotional" | "spiritual_chat";
+          feature?: "bible_art" | "post_caption" | "devotional" | "spiritual_chat" | "message_outline" | "video";
           provider?: string;
           model?: string;
           input_tokens?: number | null;
@@ -439,6 +439,45 @@ export interface Database {
         };
         Relationships: [];
       };
+      message_outlines: {
+        Row: {
+          id: string;
+          user_id: string;
+          team_id: string | null;
+          topic: string;
+          audience: string;
+          duration_minutes: number;
+          style: string;
+          tone: string;
+          outline: Record<string, unknown>;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          team_id?: string | null;
+          topic: string;
+          audience: string;
+          duration_minutes: number;
+          style: string;
+          tone: string;
+          outline: Record<string, unknown>;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          team_id?: string | null;
+          topic?: string;
+          audience?: string;
+          duration_minutes?: number;
+          style?: string;
+          tone?: string;
+          outline?: Record<string, unknown>;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       spiritual_chat_conversations: {
         Row: {
           id: string;
@@ -595,6 +634,141 @@ export interface Database {
         };
         Relationships: [];
       };
+      bible_translations: {
+        Row: { code: string; language: "en" | "es"; name: string; license: string };
+        Insert: { code: string; language: "en" | "es"; name: string; license?: string };
+        Update: { code?: string; language?: "en" | "es"; name?: string; license?: string };
+        Relationships: [];
+      };
+      bible_books: {
+        Row: { code: string; testament: "ot" | "nt"; sort_order: number; chapter_count: number };
+        Insert: { code: string; testament: "ot" | "nt"; sort_order: number; chapter_count: number };
+        Update: { code?: string; testament?: "ot" | "nt"; sort_order?: number; chapter_count?: number };
+        Relationships: [];
+      };
+      bible_verses: {
+        Row: {
+          id: number;
+          translation_code: string;
+          book_code: string;
+          chapter: number;
+          verse: number;
+          text: string;
+        };
+        Insert: {
+          id?: number;
+          translation_code: string;
+          book_code: string;
+          chapter: number;
+          verse: number;
+          text: string;
+        };
+        Update: {
+          id?: number;
+          translation_code?: string;
+          book_code?: string;
+          chapter?: number;
+          verse?: number;
+          text?: string;
+        };
+        Relationships: [];
+      };
+      reading_plans: {
+        Row: { id: string; duration_days: number; sort_order: number };
+        Insert: { id: string; duration_days: number; sort_order: number };
+        Update: { id?: string; duration_days?: number; sort_order?: number };
+        Relationships: [];
+      };
+      reading_plan_days: {
+        Row: { id: number; plan_id: string; day_number: number; readings: Record<string, unknown>[] };
+        Insert: { id?: number; plan_id: string; day_number: number; readings: Record<string, unknown>[] };
+        Update: { id?: number; plan_id?: string; day_number?: number; readings?: Record<string, unknown>[] };
+        Relationships: [];
+      };
+      user_reading_plans: {
+        Row: {
+          id: string;
+          user_id: string;
+          plan_id: string;
+          current_day: number;
+          started_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          plan_id: string;
+          current_day?: number;
+          started_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          plan_id?: string;
+          current_day?: number;
+          started_at?: string;
+        };
+        Relationships: [];
+      };
+      reading_progress: {
+        Row: { id: number; user_id: string; book_code: string; chapter: number; completed_at: string };
+        Insert: { id?: number; user_id: string; book_code: string; chapter: number; completed_at?: string };
+        Update: { id?: number; user_id?: string; book_code?: string; chapter?: number; completed_at?: string };
+        Relationships: [];
+      };
+      bible_favorites: {
+        Row: {
+          id: string;
+          user_id: string;
+          book_code: string;
+          chapter: number;
+          verse: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          book_code: string;
+          chapter: number;
+          verse?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          book_code?: string;
+          chapter?: number;
+          verse?: number | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      bible_study_resources: {
+        Row: {
+          id: string;
+          category: "map" | "timeline" | "context";
+          title: string;
+          body: string;
+          image_url: string | null;
+          sort_order: number;
+        };
+        Insert: {
+          id?: string;
+          category: "map" | "timeline" | "context";
+          title: string;
+          body: string;
+          image_url?: string | null;
+          sort_order?: number;
+        };
+        Update: {
+          id?: string;
+          category?: "map" | "timeline" | "context";
+          title?: string;
+          body?: string;
+          image_url?: string | null;
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -629,6 +803,16 @@ export type SocialPostGeneration = Database["public"]["Tables"]["social_post_gen
 export type SeasonalTemplate = Database["public"]["Tables"]["seasonal_templates"]["Row"];
 export type Devotional = Database["public"]["Tables"]["devotionals"]["Row"];
 export type DevotionalNote = Database["public"]["Tables"]["devotional_notes"]["Row"];
+export type MessageOutlineRow = Database["public"]["Tables"]["message_outlines"]["Row"];
+export type BibleTranslation = Database["public"]["Tables"]["bible_translations"]["Row"];
+export type BibleBookRow = Database["public"]["Tables"]["bible_books"]["Row"];
+export type BibleVerseRow = Database["public"]["Tables"]["bible_verses"]["Row"];
+export type ReadingPlan = Database["public"]["Tables"]["reading_plans"]["Row"];
+export type ReadingPlanDay = Database["public"]["Tables"]["reading_plan_days"]["Row"];
+export type UserReadingPlan = Database["public"]["Tables"]["user_reading_plans"]["Row"];
+export type ReadingProgress = Database["public"]["Tables"]["reading_progress"]["Row"];
+export type BibleFavorite = Database["public"]["Tables"]["bible_favorites"]["Row"];
+export type BibleStudyResource = Database["public"]["Tables"]["bible_study_resources"]["Row"];
 export type SpiritualChatConversation =
   Database["public"]["Tables"]["spiritual_chat_conversations"]["Row"];
 export type SpiritualChatMessage = Database["public"]["Tables"]["spiritual_chat_messages"]["Row"];
