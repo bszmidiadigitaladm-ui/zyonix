@@ -360,6 +360,7 @@ export interface Database {
           preview_url: string;
           asset_url: string;
           is_exclusive: boolean;
+          media_type: "image" | "video";
           created_at: string;
         };
         Insert: {
@@ -369,6 +370,7 @@ export interface Database {
           preview_url: string;
           asset_url: string;
           is_exclusive?: boolean;
+          media_type?: "image" | "video";
           created_at?: string;
         };
         Update: {
@@ -378,7 +380,53 @@ export interface Database {
           preview_url?: string;
           asset_url?: string;
           is_exclusive?: boolean;
+          media_type?: "image" | "video";
           created_at?: string;
+        };
+        Relationships: [];
+      };
+      video_generations: {
+        Row: {
+          id: string;
+          user_id: string;
+          team_id: string | null;
+          prompt: string;
+          duration_seconds: number;
+          status: "pending" | "processing" | "succeeded" | "failed";
+          video_url: string | null;
+          thumbnail_url: string | null;
+          runway_job_id: string | null;
+          error_message: string | null;
+          created_at: string;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          team_id?: string | null;
+          prompt: string;
+          duration_seconds: number;
+          status?: "pending" | "processing" | "succeeded" | "failed";
+          video_url?: string | null;
+          thumbnail_url?: string | null;
+          runway_job_id?: string | null;
+          error_message?: string | null;
+          created_at?: string;
+          completed_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          team_id?: string | null;
+          prompt?: string;
+          duration_seconds?: number;
+          status?: "pending" | "processing" | "succeeded" | "failed";
+          video_url?: string | null;
+          thumbnail_url?: string | null;
+          runway_job_id?: string | null;
+          error_message?: string | null;
+          created_at?: string;
+          completed_at?: string | null;
         };
         Relationships: [];
       };
@@ -769,6 +817,63 @@ export interface Database {
         };
         Relationships: [];
       };
+      quiz_questions: {
+        Row: {
+          id: string;
+          category: "old_testament" | "new_testament" | "people" | "miracles" | "general";
+          difficulty: "easy" | "medium" | "hard";
+          question: string;
+          options: string[];
+          correct_index: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          category: "old_testament" | "new_testament" | "people" | "miracles" | "general";
+          difficulty: "easy" | "medium" | "hard";
+          question: string;
+          options: string[];
+          correct_index: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          category?: "old_testament" | "new_testament" | "people" | "miracles" | "general";
+          difficulty?: "easy" | "medium" | "hard";
+          question?: string;
+          options?: string[];
+          correct_index?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      quiz_sessions: {
+        Row: {
+          id: string;
+          user_id: string;
+          score: number;
+          total_questions: number;
+          display_name: string;
+          completed_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          score: number;
+          total_questions: number;
+          display_name: string;
+          completed_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          score?: number;
+          total_questions?: number;
+          display_name?: string;
+          completed_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -783,6 +888,22 @@ export interface Database {
       reset_credits: {
         Args: { p_subscription_id: string; p_cycle_start: string; p_cycle_end: string };
         Returns: undefined;
+      };
+      get_leaderboard: {
+        Args: { p_limit?: number };
+        Returns: { display_name: string; best_score: number }[];
+      };
+      get_random_quiz_questions: {
+        Args: { p_count?: number };
+        Returns: {
+          id: string;
+          category: "old_testament" | "new_testament" | "people" | "miracles" | "general";
+          difficulty: "easy" | "medium" | "hard";
+          question: string;
+          options: string[];
+          correct_index: number;
+          created_at: string;
+        }[];
       };
     };
     Enums: Record<string, never>;
@@ -804,6 +925,9 @@ export type SeasonalTemplate = Database["public"]["Tables"]["seasonal_templates"
 export type Devotional = Database["public"]["Tables"]["devotionals"]["Row"];
 export type DevotionalNote = Database["public"]["Tables"]["devotional_notes"]["Row"];
 export type MessageOutlineRow = Database["public"]["Tables"]["message_outlines"]["Row"];
+export type VideoGeneration = Database["public"]["Tables"]["video_generations"]["Row"];
+export type QuizQuestion = Database["public"]["Tables"]["quiz_questions"]["Row"];
+export type QuizSession = Database["public"]["Tables"]["quiz_sessions"]["Row"];
 export type BibleTranslation = Database["public"]["Tables"]["bible_translations"]["Row"];
 export type BibleBookRow = Database["public"]["Tables"]["bible_books"]["Row"];
 export type BibleVerseRow = Database["public"]["Tables"]["bible_verses"]["Row"];

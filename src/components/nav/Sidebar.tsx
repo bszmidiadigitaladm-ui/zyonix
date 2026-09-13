@@ -12,6 +12,8 @@ const NAV_KEYS = [
   { href: "/art", key: "bibleArt" },
   { href: "/posts", key: "socialPosts" },
   { href: "/message", key: "messagePrep" },
+  { href: "/video", key: "video" },
+  { href: "/games", key: "games" },
   { href: "/devotionals", key: "devotional" },
   { href: "/chat", key: "spiritualChat" },
   { href: "/templates", key: "templates" },

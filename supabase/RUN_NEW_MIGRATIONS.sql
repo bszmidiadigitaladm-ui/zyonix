@@ -1,60 +1,475 @@
--- Seed data for local dev / initial deploy. Re-run safe (upserts on conflict).
+-- ============================================================
+-- Consolidated migration bundle for Faith Studio's 4 new modules
+-- (Bible Reader, Message Prep, Video Studio, Quiz/Games).
 --
--- IMPORTANT: replace the stripe_price_id placeholders below with the real
--- Price IDs from your Stripe Dashboard (Products) before going live — see
--- docs/ENV_VARS.md. The credit quantities in plan_limits are explicit
--- placeholders per the brief ("definir número após medir custo real de API");
--- tune them after measuring actual OpenAI cost per generation.
+-- Run this ONCE in the Supabase SQL Editor, after your original
+-- 17-migration + seed.sql setup. It only includes what's new since
+-- then: migrations 0018-0022 (schema) plus the Bible reader and
+-- Quiz/Games seed data (trivia questions, book list, reading
+-- plans, study resources) — NOT a re-run of the original seed.sql,
+-- which would duplicate your seasonal_templates/devotionals rows.
+-- ============================================================
 
-insert into public.plans (code, display_name, stripe_price_id, monthly_price_usd, is_team_plan, sort_order)
-values
-  ('starter', 'Starter', 'price_starter_REPLACE_ME', 9.90, false, 1),
-  ('creator', 'Creator', 'price_creator_REPLACE_ME', 19.90, false, 2),
-  ('church_pro', 'Church Pro', 'price_church_pro_REPLACE_ME', 29.90, true, 3)
-on conflict (code) do update set
-  display_name = excluded.display_name,
-  stripe_price_id = excluded.stripe_price_id,
-  monthly_price_usd = excluded.monthly_price_usd,
-  is_team_plan = excluded.is_team_plan,
-  sort_order = excluded.sort_order;
+-- ---- migrations/0018_video_credits.sql ----
+-- Extends the credit system to a third type, `video`, for the AI video
+-- generation module. Same shape as the existing image/text columns.
+alter table public.credits_balance
+  add column video_credits_remaining int not null default 0;
 
-insert into public.plan_limits (
-  plan_code, image_credits_per_cycle, text_credits_per_cycle, video_credits_per_cycle, spiritual_chat_daily_cap,
-  max_output_resolution, watermark, allow_carousel_export, allow_seasonal_templates, max_team_seats
-)
-values
-  ('starter', 15, 30, 0, 10, 'standard', true, false, false, null),
-  ('creator', 60, 120, 2, null, 'high', false, true, true, null),
-  ('church_pro', 150, 300, 5, null, 'high', false, true, true, 10)
-on conflict (plan_code) do update set
-  image_credits_per_cycle = excluded.image_credits_per_cycle,
-  text_credits_per_cycle = excluded.text_credits_per_cycle,
-  video_credits_per_cycle = excluded.video_credits_per_cycle,
-  spiritual_chat_daily_cap = excluded.spiritual_chat_daily_cap,
-  max_output_resolution = excluded.max_output_resolution,
-  watermark = excluded.watermark,
-  allow_carousel_export = excluded.allow_carousel_export,
-  allow_seasonal_templates = excluded.allow_seasonal_templates,
-  max_team_seats = excluded.max_team_seats;
+alter table public.plan_limits
+  add column video_credits_per_cycle int not null default 0;
 
-insert into public.seasonal_templates (occasion, name, preview_url, asset_url, is_exclusive)
-values
-  ('verse_of_the_day', 'Verse of the Day — Classic', 'https://placehold.co/600x600?text=Verse+of+the+Day', 'https://placehold.co/1080x1080?text=Verse+of+the+Day', false),
-  ('easter', 'Easter — He Is Risen', 'https://placehold.co/600x600?text=Easter', 'https://placehold.co/1080x1080?text=Easter', true),
-  ('christmas', 'Christmas — Emmanuel', 'https://placehold.co/600x600?text=Christmas', 'https://placehold.co/1080x1080?text=Christmas', true),
-  ('mothers_day', 'Mother''s Day Blessing', 'https://placehold.co/600x600?text=Mothers+Day', 'https://placehold.co/1080x1080?text=Mothers+Day', true)
-on conflict do nothing;
+-- Re-create the three credit RPCs (defined in 0016_credit_rpc_functions.sql)
+-- with a `video` branch alongside the existing `image`/`text` ones.
+create or replace function public.consume_credit(
+  p_owner_id uuid,
+  p_credit_type text,
+  p_amount int default 1
+) returns table (success boolean, remaining int)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_row public.credits_balance%rowtype;
+begin
+  if p_credit_type not in ('image', 'text', 'video') then
+    raise exception 'invalid credit type: %', p_credit_type;
+  end if;
 
-insert into public.devotionals (publish_date, title, body, scripture_reference)
-values (
-  current_date,
-  'Walking in Faith Today',
-  'Sample devotional body for local development — replace with real generated/curated content. '
-  || 'Trust in the Lord with all your heart, and lean not on your own understanding.',
-  'Proverbs 3:5'
-)
-on conflict (publish_date) do nothing;
+  select * into v_row
+  from public.credits_balance
+  where owner_id = p_owner_id
+  for update;
 
+  if not found then
+    return query select false, 0;
+    return;
+  end if;
+
+  if p_credit_type = 'image' then
+    if v_row.image_credits_remaining < p_amount then
+      return query select false, v_row.image_credits_remaining;
+      return;
+    end if;
+
+    update public.credits_balance
+      set image_credits_remaining = image_credits_remaining - p_amount,
+          updated_at = now()
+      where id = v_row.id;
+
+    return query select true, v_row.image_credits_remaining - p_amount;
+  elsif p_credit_type = 'text' then
+    if v_row.text_credits_remaining < p_amount then
+      return query select false, v_row.text_credits_remaining;
+      return;
+    end if;
+
+    update public.credits_balance
+      set text_credits_remaining = text_credits_remaining - p_amount,
+          updated_at = now()
+      where id = v_row.id;
+
+    return query select true, v_row.text_credits_remaining - p_amount;
+  else
+    if v_row.video_credits_remaining < p_amount then
+      return query select false, v_row.video_credits_remaining;
+      return;
+    end if;
+
+    update public.credits_balance
+      set video_credits_remaining = video_credits_remaining - p_amount,
+          updated_at = now()
+      where id = v_row.id;
+
+    return query select true, v_row.video_credits_remaining - p_amount;
+  end if;
+end;
+$$;
+
+grant execute on function public.consume_credit(uuid, text, int) to authenticated, service_role;
+
+create or replace function public.refund_credit(
+  p_owner_id uuid,
+  p_credit_type text,
+  p_amount int default 1
+) returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if p_credit_type not in ('image', 'text', 'video') then
+    raise exception 'invalid credit type: %', p_credit_type;
+  end if;
+
+  if p_credit_type = 'image' then
+    update public.credits_balance
+      set image_credits_remaining = image_credits_remaining + p_amount,
+          updated_at = now()
+      where owner_id = p_owner_id;
+  elsif p_credit_type = 'text' then
+    update public.credits_balance
+      set text_credits_remaining = text_credits_remaining + p_amount,
+          updated_at = now()
+      where owner_id = p_owner_id;
+  else
+    update public.credits_balance
+      set video_credits_remaining = video_credits_remaining + p_amount,
+          updated_at = now()
+      where owner_id = p_owner_id;
+  end if;
+end;
+$$;
+
+grant execute on function public.refund_credit(uuid, text, int) to authenticated, service_role;
+
+create or replace function public.reset_credits(
+  p_subscription_id uuid,
+  p_cycle_start timestamptz,
+  p_cycle_end timestamptz
+) returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_sub public.subscriptions%rowtype;
+  v_limits public.plan_limits%rowtype;
+  v_owner uuid;
+  v_is_team boolean;
+begin
+  select * into v_sub from public.subscriptions where id = p_subscription_id;
+  if not found then
+    raise exception 'subscription % not found', p_subscription_id;
+  end if;
+
+  select * into v_limits from public.plan_limits where plan_code = v_sub.plan_code;
+  if not found then
+    raise exception 'plan_limits for % not found', v_sub.plan_code;
+  end if;
+
+  v_owner := coalesce(v_sub.team_id, v_sub.owner_id);
+  v_is_team := v_sub.team_id is not null;
+
+  insert into public.credits_balance (
+    owner_id, is_team, subscription_id,
+    image_credits_remaining, text_credits_remaining, video_credits_remaining,
+    cycle_start, cycle_end
+  ) values (
+    v_owner, v_is_team, p_subscription_id,
+    v_limits.image_credits_per_cycle, v_limits.text_credits_per_cycle, v_limits.video_credits_per_cycle,
+    p_cycle_start, p_cycle_end
+  )
+  on conflict (subscription_id) do update set
+    owner_id = excluded.owner_id,
+    is_team = excluded.is_team,
+    image_credits_remaining = excluded.image_credits_remaining,
+    text_credits_remaining = excluded.text_credits_remaining,
+    video_credits_remaining = excluded.video_credits_remaining,
+    cycle_start = excluded.cycle_start,
+    cycle_end = excluded.cycle_end,
+    updated_at = now();
+end;
+$$;
+
+grant execute on function public.reset_credits(uuid, timestamptz, timestamptz) to service_role;
+
+-- ---- migrations/0019_message_outlines.sql ----
+-- Message/sermon prep tool. Consumes the existing `text` credit pool (see
+-- ai_usage_log.feature = 'message_outline') — no new credit type needed.
+create table public.message_outlines (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  team_id uuid references public.teams(id) on delete set null,
+  topic text not null,
+  audience text not null,
+  duration_minutes int not null,
+  style text not null,
+  tone text not null,
+  outline jsonb not null,
+  created_at timestamptz not null default now()
+);
+
+create index message_outlines_user_id_idx on public.message_outlines(user_id, created_at desc);
+create index message_outlines_team_id_idx on public.message_outlines(team_id, created_at desc);
+
+alter table public.message_outlines enable row level security;
+
+create policy "message_outlines_select_own_or_team" on public.message_outlines
+  for select using (
+    user_id = auth.uid() or (team_id is not null and team_id = public.current_team_id())
+  );
+
+create policy "message_outlines_insert_own" on public.message_outlines
+  for insert with check (user_id = auth.uid());
+
+create policy "message_outlines_delete_own" on public.message_outlines
+  for delete using (user_id = auth.uid());
+
+-- ai_usage_log.feature is constrained by a check — widen it to include the
+-- two new AI features added in this pass (message outlines, video).
+alter table public.ai_usage_log drop constraint ai_usage_log_feature_check;
+alter table public.ai_usage_log add constraint ai_usage_log_feature_check
+  check (feature in ('bible_art', 'post_caption', 'devotional', 'spiritual_chat', 'message_outline', 'video'));
+
+-- ---- migrations/0020_bible_schema.sql ----
+-- Bible reader module. Book names/order/chapter counts are objective canonical
+-- facts (seeded in supabase/seed.sql), not copyrighted. Verse *text* is a lazy
+-- cache (see bible_verses below) fetched from a free public-domain translation
+-- API on first request per chapter — never pre-seeded in full, to avoid a
+-- massive upfront import and to keep licensing clean (WEB/KJV in English,
+-- Reina-Valera 1909 in Spanish — all public domain).
+
+create table public.bible_translations (
+  code text primary key,
+  language text not null check (language in ('en', 'es')),
+  name text not null,
+  license text not null default 'Public Domain'
+);
+
+create table public.bible_books (
+  code text primary key,
+  testament text not null check (testament in ('ot', 'nt')),
+  sort_order int not null,
+  chapter_count int not null
+);
+
+-- The verse-text cache. Populated by the admin client the first time a
+-- chapter is requested (src/app/api/bible/chapter/route.ts), never seeded.
+create table public.bible_verses (
+  id bigint generated always as identity primary key,
+  translation_code text not null references public.bible_translations(code),
+  book_code text not null references public.bible_books(code),
+  chapter int not null,
+  verse int not null,
+  text text not null,
+  unique (translation_code, book_code, chapter, verse)
+);
+
+create index bible_verses_lookup_idx on public.bible_verses(translation_code, book_code, chapter);
+
+create table public.reading_plans (
+  id text primary key, -- 'thirty-day' | 'ninety-day' | 'year'
+  duration_days int not null,
+  sort_order int not null
+);
+
+-- `readings` is a jsonb array of {"book": code, "chapter": n} for that day —
+-- named to avoid colliding with the `references` SQL keyword.
+create table public.reading_plan_days (
+  id bigint generated always as identity primary key,
+  plan_id text not null references public.reading_plans(id) on delete cascade,
+  day_number int not null,
+  readings jsonb not null,
+  unique (plan_id, day_number)
+);
+
+create table public.user_reading_plans (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  plan_id text not null references public.reading_plans(id),
+  current_day int not null default 1,
+  started_at timestamptz not null default now(),
+  unique (user_id, plan_id)
+);
+
+create table public.reading_progress (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  book_code text not null references public.bible_books(code),
+  chapter int not null,
+  completed_at timestamptz not null default now(),
+  unique (user_id, book_code, chapter)
+);
+
+create index reading_progress_user_id_idx on public.reading_progress(user_id);
+
+create table public.bible_favorites (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  book_code text not null references public.bible_books(code),
+  chapter int not null,
+  verse int, -- null = whole-chapter favorite
+  created_at timestamptz not null default now(),
+  unique (user_id, book_code, chapter, verse)
+);
+
+create index bible_favorites_user_id_idx on public.bible_favorites(user_id);
+
+create table public.bible_study_resources (
+  id uuid primary key default gen_random_uuid(),
+  category text not null check (category in ('map', 'timeline', 'context')),
+  title text not null,
+  body text not null,
+  image_url text,
+  sort_order int not null default 0
+);
+
+-- RLS: translations/books/verses/plans/plan_days/study_resources are shared,
+-- non-sensitive reference content — read-only for authenticated, writes only
+-- via the admin client (seed data, or the lazy-cache route for bible_verses).
+alter table public.bible_translations enable row level security;
+create policy "bible_translations_select_all" on public.bible_translations for select using (true);
+
+alter table public.bible_books enable row level security;
+create policy "bible_books_select_all" on public.bible_books for select using (true);
+
+alter table public.bible_verses enable row level security;
+create policy "bible_verses_select_all" on public.bible_verses for select using (true);
+
+alter table public.reading_plans enable row level security;
+create policy "reading_plans_select_all" on public.reading_plans for select using (true);
+
+alter table public.reading_plan_days enable row level security;
+create policy "reading_plan_days_select_all" on public.reading_plan_days for select using (true);
+
+alter table public.bible_study_resources enable row level security;
+create policy "bible_study_resources_select_all" on public.bible_study_resources for select using (true);
+
+-- Own-row RLS for user-generated Bible data.
+alter table public.user_reading_plans enable row level security;
+create policy "user_reading_plans_all_own" on public.user_reading_plans
+  for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+alter table public.reading_progress enable row level security;
+create policy "reading_progress_all_own" on public.reading_progress
+  for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+alter table public.bible_favorites enable row level security;
+create policy "bible_favorites_all_own" on public.bible_favorites
+  for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- ---- migrations/0021_video_generations.sql ----
+-- Video Studio module: AI video generation jobs (Runway) plus a media_type
+-- column on seasonal_templates so the curated loop library ("Zeal Lab") can
+-- serve video loops through the same table used for image templates.
+create table public.video_generations (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  team_id uuid references public.teams(id) on delete set null,
+  prompt text not null,
+  duration_seconds int not null,
+  status text not null default 'pending' check (status in ('pending', 'processing', 'succeeded', 'failed')),
+  video_url text,
+  thumbnail_url text,
+  runway_job_id text,
+  error_message text,
+  created_at timestamptz not null default now(),
+  completed_at timestamptz
+);
+
+create index video_generations_user_id_idx on public.video_generations(user_id, created_at desc);
+create index video_generations_team_id_idx on public.video_generations(team_id, created_at desc);
+
+alter table public.video_generations enable row level security;
+
+create policy "video_generations_select_own_or_team" on public.video_generations
+  for select using (
+    user_id = auth.uid() or (team_id is not null and team_id = public.current_team_id())
+  );
+
+create policy "video_generations_insert_own" on public.video_generations
+  for insert with check (user_id = auth.uid());
+
+create policy "video_generations_delete_own" on public.video_generations
+  for delete using (user_id = auth.uid());
+
+alter table public.seasonal_templates
+  add column media_type text not null default 'image' check (media_type in ('image', 'video'));
+
+-- ---- migrations/0022_quiz_schema.sql ----
+-- Bible trivia quiz with a global leaderboard.
+create table public.quiz_questions (
+  id uuid primary key default gen_random_uuid(),
+  category text not null check (category in ('old_testament', 'new_testament', 'people', 'miracles', 'general')),
+  difficulty text not null check (difficulty in ('easy', 'medium', 'hard')),
+  question text not null,
+  options jsonb not null, -- exactly 4 strings, e.g. '["A", "B", "C", "D"]'
+  correct_index int not null check (correct_index between 0 and 3),
+  created_at timestamptz not null default now()
+);
+
+-- No select policy: quiz_questions.correct_index must never be readable by an
+-- authenticated client directly. RLS is enabled with a default-deny stance —
+-- only the service-role admin client (which bypasses RLS entirely) reads this
+-- table, stripping correct_index before the questions ever reach the browser
+-- (see /api/quiz/questions) and using it server-side to grade submissions
+-- (see /api/quiz/submit). This is the same "server never trusts the client"
+-- posture the plan calls for, enforced at the data layer instead of just the
+-- API layer.
+alter table public.quiz_questions enable row level security;
+
+create table public.quiz_sessions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  score int not null,
+  total_questions int not null,
+  -- Snapshotted at submit time (from profiles, server-side) rather than
+  -- joined live, so the leaderboard is stable even if the user later renames
+  -- themselves, and so a client can never spoof another display name.
+  display_name text not null,
+  completed_at timestamptz not null default now()
+);
+
+create index quiz_sessions_user_id_idx on public.quiz_sessions(user_id, completed_at desc);
+create index quiz_sessions_score_idx on public.quiz_sessions(score desc);
+
+alter table public.quiz_sessions enable row level security;
+
+create policy "quiz_sessions_select_own" on public.quiz_sessions
+  for select using (user_id = auth.uid());
+
+-- No insert/update/delete policy for authenticated users: sessions are only
+-- ever written by the admin client from /api/quiz/submit, which computes the
+-- score itself from quiz_questions.correct_index instead of trusting a
+-- client-supplied score.
+
+-- Draws a random batch of full question rows (correct_index included) for the
+-- service-role admin client to use when building a quiz round — the API
+-- route (GET /api/quiz/questions) strips correct_index before responding.
+-- Only granted to service_role, never authenticated, so this function can't
+-- be called directly from the browser to leak answers.
+create or replace function public.get_random_quiz_questions(p_count int default 10)
+returns setof public.quiz_questions
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select * from public.quiz_questions order by random() limit p_count;
+$$;
+
+grant execute on function public.get_random_quiz_questions(int) to service_role;
+
+-- Public leaderboard: the one deliberately public-read surface in the app.
+-- Exposes only (display_name, best_score) per user — never user_id, email, or
+-- any other profile data — via the same security-definer pattern already
+-- used by current_team_id(), so quiz_sessions itself never needs a broad
+-- read policy.
+create or replace function public.get_leaderboard(p_limit int default 20)
+returns table (display_name text, best_score int)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select display_name, score as best_score
+  from (
+    select
+      display_name,
+      score,
+      row_number() over (partition by user_id order by score desc, completed_at desc) as rn
+    from public.quiz_sessions
+  ) ranked
+  where rn = 1
+  order by best_score desc
+  limit p_limit;
+$$;
+
+grant execute on function public.get_leaderboard(int) to authenticated;
+
+-- ---- seed.sql: new sections only (Bible reader + Quiz/Games) ----
 -- ============================================================
 -- Bible reader module seed data
 -- ============================================================

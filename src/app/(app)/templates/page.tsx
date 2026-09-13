@@ -47,12 +47,23 @@ export default async function TemplatesPage() {
                     locked && "opacity-50",
                   )}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={template.preview_url}
-                    alt={template.name}
-                    className="aspect-square w-full object-cover"
-                  />
+                  {template.media_type === "video" ? (
+                    <video
+                      src={template.preview_url}
+                      className="aspect-square w-full object-cover"
+                      muted
+                      loop
+                      autoPlay
+                      playsInline
+                    />
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={template.preview_url}
+                      alt={template.name}
+                      className="aspect-square w-full object-cover"
+                    />
+                  )}
                   <p className="p-2 text-xs">{template.name}</p>
                   {locked && (
                     <span className="absolute right-1 top-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] text-white">
