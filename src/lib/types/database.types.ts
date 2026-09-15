@@ -881,6 +881,78 @@ export interface Database {
         };
         Relationships: [];
       };
+      church_contacts: {
+        Row: { id: string; team_id: string; name: string; email: string; created_at: string };
+        Insert: { id?: string; team_id: string; name: string; email: string; created_at?: string };
+        Update: { id?: string; team_id?: string; name?: string; email?: string; created_at?: string };
+        Relationships: [];
+      };
+      church_events: {
+        Row: {
+          id: string;
+          team_id: string;
+          title: string;
+          description: string | null;
+          event_date: string;
+          reminder_days_before: number;
+          reminder_sent: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          team_id: string;
+          title: string;
+          description?: string | null;
+          event_date: string;
+          reminder_days_before?: number;
+          reminder_sent?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          team_id?: string;
+          title?: string;
+          description?: string | null;
+          event_date?: string;
+          reminder_days_before?: number;
+          reminder_sent?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      communications: {
+        Row: {
+          id: string;
+          team_id: string;
+          sent_by: string;
+          subject: string;
+          body: string;
+          template_type: "custom" | "sunday_bulletin" | "event_reminder";
+          recipient_count: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          team_id: string;
+          sent_by: string;
+          subject: string;
+          body: string;
+          template_type?: "custom" | "sunday_bulletin" | "event_reminder";
+          recipient_count?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          team_id?: string;
+          sent_by?: string;
+          subject?: string;
+          body?: string;
+          template_type?: "custom" | "sunday_bulletin" | "event_reminder";
+          recipient_count?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       prayer_requests: {
         Row: {
           id: string;
@@ -963,6 +1035,9 @@ export type VideoGeneration = Database["public"]["Tables"]["video_generations"][
 export type QuizQuestion = Database["public"]["Tables"]["quiz_questions"]["Row"];
 export type QuizSession = Database["public"]["Tables"]["quiz_sessions"]["Row"];
 export type PrayerRequest = Database["public"]["Tables"]["prayer_requests"]["Row"];
+export type ChurchContact = Database["public"]["Tables"]["church_contacts"]["Row"];
+export type ChurchEvent = Database["public"]["Tables"]["church_events"]["Row"];
+export type Communication = Database["public"]["Tables"]["communications"]["Row"];
 export type BibleTranslation = Database["public"]["Tables"]["bible_translations"]["Row"];
 export type BibleBookRow = Database["public"]["Tables"]["bible_books"]["Row"];
 export type BibleVerseRow = Database["public"]["Tables"]["bible_verses"]["Row"];

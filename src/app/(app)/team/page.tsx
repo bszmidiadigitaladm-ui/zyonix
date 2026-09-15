@@ -6,6 +6,7 @@ import { requireOnboardedUser } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { TeamTabNav } from "@/components/team/TeamTabNav";
 import { MemberList } from "@/components/team/MemberList";
 import { ArtGalleryGrid } from "@/components/art/ArtGalleryGrid";
 
@@ -38,6 +39,7 @@ export default async function TeamPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader icon={Users} title={t("title")} />
+      <TeamTabNav />
 
       <div className="mb-8">
         <div className="mb-3 flex items-center justify-between">

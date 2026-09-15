@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import type { Profile, Subscription } from "@/lib/types/database.types";
+import type { Database, Profile, Subscription } from "@/lib/types/database.types";
 
 export async function getUser() {
   const supabase = await createClient();
@@ -53,6 +54,26 @@ export function isBillable(subscription: Subscription | null): boolean {
     return new Date(subscription.current_period_end).getTime() > Date.now();
   }
   return false;
+}
+
+/**
+ * Shared owner-check for Church Admin routes (contacts/events/communications/
+ * finances) — mirrors the check already inlined in
+ * src/app/api/team/invite/route.ts. Returns the caller's team_id if they're
+ * the team owner, otherwise null.
+ */
+export async function requireTeamOwnerId(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+): Promise<string | null> {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("team_id, team_role")
+    .eq("id", userId)
+    .single();
+
+  if (!profile?.team_id || profile.team_role !== "owner") return null;
+  return profile.team_id;
 }
 
 export async function requireOnboardedUser() {

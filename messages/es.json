@@ -104,7 +104,11 @@
       "members": "Miembros",
       "inviteTeammate": "Invitar miembro",
       "sharedLibrary": "Biblioteca compartida",
-      "remove": "Quitar"
+      "remove": "Quitar",
+      "tabWorkspace": "Espacio",
+      "tabContacts": "Contactos",
+      "tabEvents": "Eventos",
+      "tabCommunications": "Comunicaciones"
     },
     "invite": {
       "title": "Invitar a un miembro",
@@ -112,6 +116,42 @@
       "createInvite": "Crear invitación",
       "sending": "Enviando…",
       "shareLink": "Comparte este enlace con tu compañero de equipo:"
+    },
+    "contacts": {
+      "name": "Nombre",
+      "namePlaceholder": "ej. Jane Smith",
+      "email": "Correo",
+      "emailPlaceholder": "jane@ejemplo.com",
+      "add": "Agregar contacto",
+      "noContacts": "Aún no hay contactos.",
+      "alreadyExists": "Ese correo ya está en tu lista de contactos.",
+      "genericError": "Algo salió mal. Inténtalo de nuevo."
+    },
+    "events": {
+      "eventTitle": "Título del evento",
+      "eventTitlePlaceholder": "ej. Culto dominical, Noche de jóvenes",
+      "description": "Descripción",
+      "date": "Fecha",
+      "reminderDaysBefore": "Recordar (días antes)",
+      "add": "Agregar evento",
+      "noEvents": "Aún no hay eventos próximos."
+    },
+    "communications": {
+      "templateType": "Tipo",
+      "templateType_custom": "Mensaje personalizado",
+      "templateType_sunday_bulletin": "Boletín dominical",
+      "templateType_event_reminder": "Recordatorio de evento",
+      "subject": "Asunto",
+      "subjectPlaceholder": "ej. Boletín de este domingo",
+      "body": "Mensaje",
+      "bodyPlaceholder": "Escribe tu mensaje aquí…",
+      "send": "Enviar a contactos",
+      "sending": "Enviando…",
+      "history": "Historial de envíos",
+      "noHistory": "Aún no se han enviado comunicaciones.",
+      "recipientCount": "{count} destinatarios",
+      "noContactsError": "Agrega al menos un contacto antes de enviar.",
+      "genericError": "Algo salió mal. Inténtalo de nuevo."
     }
   },
   "message": {

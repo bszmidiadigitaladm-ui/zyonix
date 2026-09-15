@@ -104,7 +104,11 @@
       "members": "Members",
       "inviteTeammate": "Invite teammate",
       "sharedLibrary": "Shared library",
-      "remove": "Remove"
+      "remove": "Remove",
+      "tabWorkspace": "Workspace",
+      "tabContacts": "Contacts",
+      "tabEvents": "Events",
+      "tabCommunications": "Communications"
     },
     "invite": {
       "title": "Invite a teammate",
@@ -112,6 +116,42 @@
       "createInvite": "Create invite",
       "sending": "Sending…",
       "shareLink": "Share this link with your teammate:"
+    },
+    "contacts": {
+      "name": "Name",
+      "namePlaceholder": "e.g. Jane Smith",
+      "email": "Email",
+      "emailPlaceholder": "jane@example.com",
+      "add": "Add contact",
+      "noContacts": "No contacts yet.",
+      "alreadyExists": "That email is already on your contact list.",
+      "genericError": "Something went wrong. Please try again."
+    },
+    "events": {
+      "eventTitle": "Event title",
+      "eventTitlePlaceholder": "e.g. Sunday service, Youth night",
+      "description": "Description",
+      "date": "Date",
+      "reminderDaysBefore": "Remind (days before)",
+      "add": "Add event",
+      "noEvents": "No upcoming events yet."
+    },
+    "communications": {
+      "templateType": "Type",
+      "templateType_custom": "Custom message",
+      "templateType_sunday_bulletin": "Sunday bulletin",
+      "templateType_event_reminder": "Event reminder",
+      "subject": "Subject",
+      "subjectPlaceholder": "e.g. This Sunday's bulletin",
+      "body": "Message",
+      "bodyPlaceholder": "Write your message here…",
+      "send": "Send to contacts",
+      "sending": "Sending…",
+      "history": "Send history",
+      "noHistory": "No communications sent yet.",
+      "recipientCount": "{count} recipients",
+      "noContactsError": "Add at least one contact before sending.",
+      "genericError": "Something went wrong. Please try again."
     }
   },
   "message": {
