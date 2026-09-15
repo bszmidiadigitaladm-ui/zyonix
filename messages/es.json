@@ -363,6 +363,11 @@
     "saving": "Guardando…",
     "saved": "Guardado"
   },
+  "badges": {
+    "title": "Insignias",
+    "subtitle": "{earned} de {total} obtenidas",
+    "earnedOn": "Obtenida el {date}"
+  },
   "games": {
     "title": "Trivia y Juegos",
     "tabPlay": "Jugar",
@@ -392,6 +397,8 @@
     "managePlan": "Gestionar plan",
     "imageCredits": "Créditos de imagen",
     "textCredits": "Créditos de texto",
+    "badgesTeaser": "Tus insignias",
+    "badgesEarnedCount": "{earned} de {total} obtenidas",
     "quickTools": "Herramientas rápidas",
     "newArt": "Nueva Arte",
     "newPost": "Nueva Publicación",

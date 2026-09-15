@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { refundCredit } from "@/lib/credits/consume";
 import { getVideoGenerationStatus } from "@/lib/video/runway";
 import { uploadGeneratedFile } from "@/lib/supabase/storage";
+import { awardBadge } from "@/lib/badges/award";
 
 export async function GET(_request: Request, { params }: RouteContext<"/api/ai/video/[id]/status">) {
   const { id } = await params;
@@ -88,6 +89,8 @@ export async function GET(_request: Request, { params }: RouteContext<"/api/ai/v
       feature: "video",
       model: "runway-gen4.5",
     });
+
+    await awardBadge(row.user_id, "first_video");
 
     return NextResponse.json({ generation: updated });
   } catch (err) {

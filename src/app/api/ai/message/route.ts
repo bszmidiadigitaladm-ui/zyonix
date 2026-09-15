@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getProfile, getSubscription, resolveCreditOwnerId, isBillable } from "@/lib/auth/session";
 import { consumeCredit, refundCredit } from "@/lib/credits/consume";
 import { generateMessageOutline } from "@/lib/openai/text";
+import { awardBadge } from "@/lib/badges/award";
 
 const bodySchema = z.object({
   topic: z.string().trim().min(1).max(300),
@@ -84,6 +85,8 @@ export async function POST(request: Request) {
       feature: "message_outline",
       model: "gpt-4.1-mini",
     });
+
+    await awardBadge(user.id, "first_message_outline");
 
     return NextResponse.json({ outline: row, credits_remaining: remaining });
   } catch (err) {

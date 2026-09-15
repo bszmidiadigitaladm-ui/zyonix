@@ -730,4 +730,19 @@ values
   ('general', 'hard', 'What is the traditional term for the first five books of the Bible, attributed to Moses?', '["The Pentateuch", "The Prophets", "The Gospels", "The Wisdom Books"]'::jsonb, 0)
 on conflict do nothing;
 
+-- Conquistas/Badges catalog — icon_key maps to a lucide-react icon name.
+insert into public.badges (code, name, description, icon_key)
+values
+  ('first_art', 'First Art', 'Generated your first piece of Bible art.', 'Palette'),
+  ('first_post', 'First Post', 'Created your first social post.', 'Layers'),
+  ('first_devotional_note', 'Reflective Heart', 'Wrote your first devotional note.', 'Sunrise'),
+  ('first_message_outline', 'First Message', 'Generated your first sermon outline.', 'Mic'),
+  ('first_video', 'First Video', 'Generated your first AI video.', 'Clapperboard'),
+  ('streak_7', '7-Day Streak', 'Read the Bible 7 days in a row.', 'Flame'),
+  ('streak_30', '30-Day Streak', 'Read the Bible 30 days in a row.', 'Zap'),
+  ('ten_chapters_read', 'Ten Chapters', 'Read 10 chapters of the Bible.', 'BookOpen'),
+  ('book_complete', 'Book Complete', 'Finished reading an entire book of the Bible.', 'BookMarked'),
+  ('quiz_champion', 'Perfect Score', 'Got a perfect score on a Bible trivia quiz.', 'Trophy')
+on conflict (code) do update set name = excluded.name, description = excluded.description, icon_key = excluded.icon_key;
+
 

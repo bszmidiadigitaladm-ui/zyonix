@@ -7,6 +7,7 @@ import { getPlanLimits } from "@/lib/credits/config";
 import { consumeCredit, refundCredit } from "@/lib/credits/consume";
 import { ART_STYLES, OUTPUT_FORMATS, buildArtPrompt, generateBibleArt } from "@/lib/openai/art";
 import { uploadGeneratedImage } from "@/lib/supabase/storage";
+import { awardBadge } from "@/lib/badges/award";
 
 const bodySchema = z
   .object({
@@ -91,6 +92,8 @@ export async function POST(request: Request) {
       model: "gpt-image-1",
       image_count: 1,
     });
+
+    await awardBadge(user.id, "first_art");
 
     return NextResponse.json({ generation: row, credits_remaining: remaining });
   } catch (err) {

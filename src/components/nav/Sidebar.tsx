@@ -18,6 +18,7 @@ import {
   Users,
   HandHeart,
   Settings,
+  Award,
   type LucideIcon,
 } from "lucide-react";
 import { APP_NAME } from "@/lib/config";
@@ -32,6 +33,7 @@ const NAV_KEYS = [
   { href: "/video", key: "video", icon: Clapperboard },
   { href: "/games", key: "games", icon: Gamepad2 },
   { href: "/prayer", key: "prayer", icon: HandHeart },
+  { href: "/badges", key: "badges", icon: Award },
   { href: "/devotionals", key: "devotional", icon: Sunrise },
   { href: "/chat", key: "spiritualChat", icon: MessageCircle },
   { href: "/templates", key: "templates", icon: LayoutTemplate },

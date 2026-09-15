@@ -9,6 +9,7 @@ import {
   Mic,
   Clapperboard,
   Gamepad2,
+  Award,
   type LucideIcon,
 } from "lucide-react";
 import { requireOnboardedUser, resolveCreditOwnerId } from "@/lib/auth/session";
@@ -41,35 +42,45 @@ export default async function DashboardPage() {
   const supabase = await createClient();
   const ownerId = resolveCreditOwnerId(profile);
 
-  const [{ data: credits }, { data: limits }, { data: art }, { data: posts }, { data: notes }, { data: chats }] =
-    await Promise.all([
-      supabase.from("credits_balance").select("*").eq("owner_id", ownerId).maybeSingle(),
-      supabase.from("plan_limits").select("*").eq("plan_code", subscription!.plan_code).single(),
-      supabase
-        .from("bible_art_generations")
-        .select("id, verse_reference, theme, created_at")
-        .eq("user_id", profile.id)
-        .order("created_at", { ascending: false })
-        .limit(5),
-      supabase
-        .from("social_post_generations")
-        .select("id, caption_text, created_at")
-        .eq("user_id", profile.id)
-        .order("created_at", { ascending: false })
-        .limit(5),
-      supabase
-        .from("devotional_notes")
-        .select("id, note, created_at")
-        .eq("user_id", profile.id)
-        .order("created_at", { ascending: false })
-        .limit(5),
-      supabase
-        .from("spiritual_chat_conversations")
-        .select("id, title, created_at")
-        .eq("user_id", profile.id)
-        .order("created_at", { ascending: false })
-        .limit(5),
-    ]);
+  const [
+    { data: credits },
+    { data: limits },
+    { data: art },
+    { data: posts },
+    { data: notes },
+    { data: chats },
+    { count: badgesEarned },
+    { count: badgesTotal },
+  ] = await Promise.all([
+    supabase.from("credits_balance").select("*").eq("owner_id", ownerId).maybeSingle(),
+    supabase.from("plan_limits").select("*").eq("plan_code", subscription!.plan_code).single(),
+    supabase
+      .from("bible_art_generations")
+      .select("id, verse_reference, theme, created_at")
+      .eq("user_id", profile.id)
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("social_post_generations")
+      .select("id, caption_text, created_at")
+      .eq("user_id", profile.id)
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("devotional_notes")
+      .select("id, note, created_at")
+      .eq("user_id", profile.id)
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("spiritual_chat_conversations")
+      .select("id, title, created_at")
+      .eq("user_id", profile.id)
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase.from("user_badges").select("id", { count: "exact", head: true }).eq("user_id", profile.id),
+    supabase.from("badges").select("code", { count: "exact", head: true }),
+  ]);
 
   const activity: ActivityItem[] = [
     ...(art ?? []).map((a) => ({
@@ -141,6 +152,22 @@ export default async function DashboardPage() {
           />
         </Card>
       )}
+
+      {badgesTotal ? (
+        <Link href="/badges">
+          <Card className="mb-8 flex items-center gap-4 transition hover:border-accent/40">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
+              <Award size={20} />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium">{t("badgesTeaser")}</p>
+              <p className="text-xs text-muted">
+                {t("badgesEarnedCount", { earned: badgesEarned ?? 0, total: badgesTotal })}
+              </p>
+            </div>
+          </Card>
+        </Link>
+      ) : null}
 
       <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">{t("quickTools")}</h2>
       <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">

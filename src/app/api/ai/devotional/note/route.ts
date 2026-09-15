@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { awardBadge } from "@/lib/badges/award";
 
 const bodySchema = z.object({
   devotional_id: z.string().uuid(),
@@ -36,6 +37,8 @@ export async function POST(request: Request) {
   if (error) {
     return NextResponse.json({ error: "save_failed" }, { status: 500 });
   }
+
+  await awardBadge(user.id, "first_devotional_note");
 
   return NextResponse.json({ note: data });
 }

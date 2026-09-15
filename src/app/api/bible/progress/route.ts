@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { checkBibleBadges } from "@/lib/badges/award";
 
 const bodySchema = z.object({
   book: z.string().min(1),
@@ -37,6 +38,8 @@ export async function POST(request: Request) {
   if (error) {
     return NextResponse.json({ error: "save_failed" }, { status: 500 });
   }
+
+  await checkBibleBadges(user.id);
 
   // If this reading was part of an active plan's current day, and every
   // reading for that day is now complete, advance the plan to the next day.

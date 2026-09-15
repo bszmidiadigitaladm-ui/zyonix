@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getProfile } from "@/lib/auth/session";
+import { awardBadge } from "@/lib/badges/award";
 
 const bodySchema = z.object({
   answers: z
@@ -77,6 +78,10 @@ export async function POST(request: Request) {
 
   if (insertError) {
     return NextResponse.json({ error: "save_failed" }, { status: 500 });
+  }
+
+  if (score === answers.length && answers.length >= 5) {
+    await awardBadge(user.id, "quiz_champion");
   }
 
   return NextResponse.json({ session });

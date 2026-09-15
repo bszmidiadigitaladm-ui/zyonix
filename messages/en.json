@@ -363,6 +363,11 @@
     "saving": "Saving…",
     "saved": "Saved"
   },
+  "badges": {
+    "title": "Badges",
+    "subtitle": "{earned} of {total} earned",
+    "earnedOn": "Earned {date}"
+  },
   "games": {
     "title": "Quiz & Games",
     "tabPlay": "Play",
@@ -392,6 +397,8 @@
     "managePlan": "Manage plan",
     "imageCredits": "Image credits",
     "textCredits": "Text credits",
+    "badgesTeaser": "Your badges",
+    "badgesEarnedCount": "{earned} of {total} earned",
     "quickTools": "Quick tools",
     "newArt": "New Art",
     "newPost": "New Post",

@@ -6,6 +6,7 @@ import { getProfile, getSubscription, resolveCreditOwnerId, isBillable } from "@
 import { getPlanLimits } from "@/lib/credits/config";
 import { consumeCredit, refundCredit } from "@/lib/credits/consume";
 import { generateCaption } from "@/lib/openai/text";
+import { awardBadge } from "@/lib/badges/award";
 
 const bodySchema = z.object({
   template_id: z.string().uuid().optional(),
@@ -94,6 +95,8 @@ export async function POST(request: Request) {
       feature: "post_caption",
       model: "gpt-4.1-mini",
     });
+
+    await awardBadge(user.id, "first_post");
 
     return NextResponse.json({ generation: row, credits_remaining: remaining });
   } catch (err) {
