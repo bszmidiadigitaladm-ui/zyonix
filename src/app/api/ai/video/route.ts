@@ -41,7 +41,10 @@ export async function POST(request: Request) {
   }
 
   const ownerId = resolveCreditOwnerId(profile);
-  const { success, remaining } = await consumeCredit(ownerId, "video", 1);
+  // Credits are charged 1-per-second so cost scales with what's actually
+  // billed by Runway (gen4.5 is $0.12/sec) instead of a flat rate that lets
+  // someone pick the max 10s duration for the same price as 2s.
+  const { success, remaining } = await consumeCredit(ownerId, "video", duration_seconds);
   if (!success) {
     return NextResponse.json({ error: "insufficient_credits", remaining }, { status: 402 });
   }
@@ -69,7 +72,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ generation: row, credits_remaining: remaining });
   } catch (err) {
     console.error("Video generation job creation failed", err);
-    await refundCredit(ownerId, "video", 1);
+    await refundCredit(ownerId, "video", duration_seconds);
     return NextResponse.json({ error: "generation_failed" }, { status: 500 });
   }
 }

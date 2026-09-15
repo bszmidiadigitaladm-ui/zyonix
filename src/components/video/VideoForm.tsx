@@ -91,10 +91,11 @@ export function VideoForm() {
           <Select value={duration} onChange={(e) => setDuration(Number(e.target.value))}>
             {DURATIONS.map((d) => (
               <option key={d} value={d}>
-                {d} {t("seconds")}
+                {d} {t("seconds")} · {t("creditsCost", { count: d })}
               </option>
             ))}
           </Select>
+          <p className="mt-1 text-xs text-muted">{t("creditsExplainer")}</p>
         </div>
 
         {error && <p className="text-sm text-danger">{error}</p>}

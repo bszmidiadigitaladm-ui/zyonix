@@ -327,6 +327,8 @@
     "promptPlaceholder": "Describe the video you want to generate, e.g. a sunrise over a quiet mountain lake with soft golden light",
     "duration": "Duration",
     "seconds": "sec",
+    "creditsCost": "{count, plural, one {# credit} other {# credits}}",
+    "creditsExplainer": "Video credits are charged 1 per second generated.",
     "generate": "Generate video",
     "generating": "Starting generation…",
     "resultPlaceholder": "Your video will appear here",

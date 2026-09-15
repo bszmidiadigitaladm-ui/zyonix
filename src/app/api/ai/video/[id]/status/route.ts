@@ -48,7 +48,7 @@ export async function GET(_request: Request, { params }: RouteContext<"/api/ai/v
         .select()
         .single();
 
-      await refundCredit(ownerId, "video", 1);
+      await refundCredit(ownerId, "video", row.duration_seconds);
       return NextResponse.json({ generation: updated ?? row });
     }
 

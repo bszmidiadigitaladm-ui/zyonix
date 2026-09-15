@@ -2,9 +2,14 @@
 --
 -- IMPORTANT: replace the stripe_price_id placeholders below with the real
 -- Price IDs from your Stripe Dashboard (Products) before going live — see
--- docs/ENV_VARS.md. The credit quantities in plan_limits are explicit
--- placeholders per the brief ("definir número após medir custo real de API");
--- tune them after measuring actual OpenAI cost per generation.
+-- docs/ENV_VARS.md. The image/text credit quantities in plan_limits are
+-- explicit placeholders per the brief ("definir número após medir custo real
+-- de API"); tune them after measuring actual OpenAI cost per generation.
+-- video_credits_per_cycle is NOT a placeholder — it's credits-as-seconds
+-- (1 credit = 1 second of Runway gen4.5 output, billed at $0.12/sec), sized
+-- to keep video cost under ~15-20% of each plan's monthly price. Starter
+-- gets none, matching the existing no-watermark/no-seasonal-templates
+-- gating pattern for premium features.
 
 insert into public.plans (code, display_name, stripe_price_id, monthly_price_usd, is_team_plan, sort_order)
 values
@@ -24,8 +29,8 @@ insert into public.plan_limits (
 )
 values
   ('starter', 15, 30, 0, 10, 'standard', true, false, false, null),
-  ('creator', 60, 120, 2, null, 'high', false, true, true, null),
-  ('church_pro', 150, 300, 5, null, 'high', false, true, true, 10)
+  ('creator', 60, 120, 24, null, 'high', false, true, true, null),
+  ('church_pro', 150, 300, 50, null, 'high', false, true, true, 10)
 on conflict (plan_code) do update set
   image_credits_per_cycle = excluded.image_credits_per_cycle,
   text_credits_per_cycle = excluded.text_credits_per_cycle,
