@@ -1,4 +1,4 @@
-export const APP_NAME = "Faith Studio";
+export const APP_NAME = "Zyonix";
 
 export const PLAN_CODES = ["starter", "creator", "church_pro"] as const;
 export type PlanCode = (typeof PLAN_CODES)[number];

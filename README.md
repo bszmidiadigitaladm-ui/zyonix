@@ -1,10 +1,10 @@
-# Faith Studio
+# Zyonix
 
 A recurring-subscription SaaS for Christian content creators: an AI Bible art
 generator, a social post/caption generator with seasonal templates, a daily
 devotional, and a Bible-principle spiritual chat with crisis detection.
 
-"Faith Studio" is a working name (`APP_NAME` in [`src/lib/config.ts`](src/lib/config.ts)) — rename it there before launch.
+The product name lives in one place — `APP_NAME` in [`src/lib/config.ts`](src/lib/config.ts) — and is interpolated everywhere else (emails, UI copy) rather than hardcoded.
 
 ## Stack
 
