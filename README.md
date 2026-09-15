@@ -86,6 +86,16 @@ Both require `RESEND_API_KEY` and `RESEND_FROM_EMAIL` to actually send;
 without them the routes still run but every send fails (and is logged, not
 thrown — one bad address never aborts the whole batch).
 
+## Church Admin
+
+Church Pro teams get a 4-tab `/team` hub (Workspace/Contacts/Events/
+Communications) plus `/team/finances`. Any team member can view; only the
+`team_role = 'owner'` can add/remove contacts, events, transactions, or send
+a communication — enforced both in each route handler
+(`requireTeamOwnerId`, `src/lib/auth/session.ts`) and in RLS. Communications
+are sent as a single Resend call with every contact in `bcc`, so contacts
+never see each other's addresses; each send is logged in `communications`.
+
 ## Project structure
 
 ```
