@@ -32,6 +32,7 @@ Rule enforced throughout the codebase: any variable **without** the
 | `RESEND_API_KEY` | Sends Church Admin communications, event reminders, and daily devotional reminder emails | [resend.com](https://resend.com) → API Keys |
 | `RESEND_FROM_EMAIL` | The verified "from" address used for all outgoing email | [resend.com](https://resend.com) → Domains (must be on a verified domain) |
 | `CRON_SECRET` | Shared secret checked by `/api/cron/*` routes | Generate any random string yourself |
+| `HOTMART_HOTTOK` | Verifies the `X-HOTMART-HOTTOK` header on `/api/hotmart/webhook` | Hotmart Dashboard → Ferramentas → Webhook (HOTTOK is shown when you configure the webhook) |
 
 ## Setting up the accounts
 
@@ -39,10 +40,12 @@ Rule enforced throughout the codebase: any variable **without** the
    (in order) via the SQL editor or `supabase db push`, then run
    `supabase/seed.sql`. Create a **public** Storage bucket named `generations`
    (Storage → New bucket) for AI-generated art/post assets.
-2. **Stripe**: create 3 recurring monthly Products/Prices ($9.90, $19.90,
-   $29.90), copy their Price IDs into `supabase/seed.sql`'s `plans` insert
-   (replacing the `price_..._REPLACE_ME` placeholders) and re-run that seed.
-   Create a webhook endpoint pointing at `/api/stripe/webhook` subscribed to:
+2. **Stripe** (legacy — Hotmart is the active processor, see step 6 below;
+   these vars/routes are kept for reference but are no longer wired into the
+   onboarding UI): create recurring monthly Products/Prices, copy their Price
+   IDs into `supabase/seed.sql`'s `plans` insert (replacing the
+   `price_..._REPLACE_ME` placeholders) and re-run that seed. Create a
+   webhook endpoint pointing at `/api/stripe/webhook` subscribed to:
    `checkout.session.completed`, `customer.subscription.updated`,
    `invoice.payment_succeeded`, `invoice.payment_failed`,
    `customer.subscription.deleted`. For local testing, use
@@ -55,3 +58,14 @@ Rule enforced throughout the codebase: any variable **without** the
 5. **Resend** (Church Admin communications + daily reminder emails): create an
    account at [resend.com](https://resend.com), verify a sending domain, and
    generate an API key.
+6. **Hotmart** (active payment processor): create the product and one offer
+   per plan (Starter, Pro, Pro Annual). For each offer, add a tracking key
+   named `plan_code` with the value `starter` or `church_pro` — this is how
+   the webhook knows which plan was purchased. Copy each offer's checkout URL
+   and offer code (the `off=` query param) into the `plans` table
+   (`hotmart_checkout_url`/`hotmart_offer_code` and the `_annual` variants —
+   see `supabase/migrations/0030_hotmart_integration.sql`); this is a plain
+   SQL update, so changing an offer later needs no redeploy. Configure a
+   webhook pointing at `/api/hotmart/webhook`, subscribed at least to
+   purchase-approved and cancellation/refund/chargeback events, and copy the
+   HOTTOK it shows into `HOTMART_HOTTOK`.

@@ -76,6 +76,11 @@ export interface Database {
           monthly_price_usd: number;
           is_team_plan: boolean;
           sort_order: number;
+          hotmart_checkout_url: string | null;
+          hotmart_offer_code: string | null;
+          hotmart_checkout_url_annual: string | null;
+          hotmart_offer_code_annual: string | null;
+          annual_monthly_equivalent_usd: number | null;
         };
         Insert: {
           code: PlanCode;
@@ -84,6 +89,11 @@ export interface Database {
           monthly_price_usd: number;
           is_team_plan?: boolean;
           sort_order: number;
+          hotmart_checkout_url?: string | null;
+          hotmart_offer_code?: string | null;
+          hotmart_checkout_url_annual?: string | null;
+          hotmart_offer_code_annual?: string | null;
+          annual_monthly_equivalent_usd?: number | null;
         };
         Update: {
           code?: PlanCode;
@@ -92,6 +102,11 @@ export interface Database {
           monthly_price_usd?: number;
           is_team_plan?: boolean;
           sort_order?: number;
+          hotmart_checkout_url?: string | null;
+          hotmart_offer_code?: string | null;
+          hotmart_checkout_url_annual?: string | null;
+          hotmart_offer_code_annual?: string | null;
+          annual_monthly_equivalent_usd?: number | null;
         };
         Relationships: [];
       };
@@ -142,8 +157,12 @@ export interface Database {
           id: string;
           owner_id: string;
           team_id: string | null;
-          stripe_subscription_id: string;
-          stripe_customer_id: string;
+          stripe_subscription_id: string | null;
+          stripe_customer_id: string | null;
+          hotmart_transaction_code: string | null;
+          hotmart_subscriber_code: string | null;
+          billing_cycle: "monthly" | "annual";
+          credits_cycle_end: string | null;
           plan_code: PlanCode;
           status: SubscriptionStatus;
           trial_end: string | null;
@@ -158,8 +177,12 @@ export interface Database {
           id?: string;
           owner_id: string;
           team_id?: string | null;
-          stripe_subscription_id: string;
-          stripe_customer_id: string;
+          stripe_subscription_id?: string | null;
+          stripe_customer_id?: string | null;
+          hotmart_transaction_code?: string | null;
+          hotmart_subscriber_code?: string | null;
+          billing_cycle?: "monthly" | "annual";
+          credits_cycle_end?: string | null;
           plan_code: PlanCode;
           status: SubscriptionStatus;
           trial_end?: string | null;
@@ -174,8 +197,12 @@ export interface Database {
           id?: string;
           owner_id?: string;
           team_id?: string | null;
-          stripe_subscription_id?: string;
-          stripe_customer_id?: string;
+          stripe_subscription_id?: string | null;
+          stripe_customer_id?: string | null;
+          hotmart_transaction_code?: string | null;
+          hotmart_subscriber_code?: string | null;
+          billing_cycle?: "monthly" | "annual";
+          credits_cycle_end?: string | null;
           plan_code?: PlanCode;
           status?: SubscriptionStatus;
           trial_end?: string | null;

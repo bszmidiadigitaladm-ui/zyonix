@@ -38,7 +38,9 @@ export default async function OnboardingPlanPage() {
   const supabase = await createClient();
   const { data: plans } = await supabase
     .from("plans")
-    .select("code, display_name, monthly_price_usd, sort_order")
+    .select(
+      "code, display_name, monthly_price_usd, sort_order, hotmart_checkout_url, hotmart_checkout_url_annual, annual_monthly_equivalent_usd",
+    )
     .order("sort_order");
 
   const { data: limits } = await supabase.from("plan_limits").select("*");
@@ -55,7 +57,7 @@ export default async function OnboardingPlanPage() {
         <p className="text-sm text-muted">{t("subtitle")}</p>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-3">
+      <div className="mx-auto grid max-w-2xl gap-6 sm:grid-cols-2">
         {plans.map((plan) => {
           const planLimits = limits.find((l) => l.plan_code === plan.code);
           if (!planLimits) return null;
@@ -67,6 +69,9 @@ export default async function OnboardingPlanPage() {
               priceUsd={plan.monthly_price_usd}
               features={featuresFor(plan.code as PlanCode, planLimits, tFeatures)}
               highlighted={plan.code === "church_pro"}
+              checkoutUrl={plan.hotmart_checkout_url}
+              checkoutUrlAnnual={plan.hotmart_checkout_url_annual}
+              annualPriceUsd={plan.annual_monthly_equivalent_usd}
             />
           );
         })}

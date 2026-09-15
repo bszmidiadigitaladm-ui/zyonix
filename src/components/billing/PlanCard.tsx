@@ -14,37 +14,31 @@ interface PlanCardProps {
   priceUsd: number;
   features: string[];
   highlighted?: boolean;
+  checkoutUrl: string | null;
+  checkoutUrlAnnual: string | null;
+  annualPriceUsd: number | null;
 }
 
-export function PlanCard({ code, displayName, priceUsd, features, highlighted }: PlanCardProps) {
+export function PlanCard({
+  code,
+  displayName,
+  priceUsd,
+  features,
+  highlighted,
+  checkoutUrl,
+  checkoutUrlAnnual,
+  annualPriceUsd,
+}: PlanCardProps) {
   const t = useTranslations("onboarding.plan");
-  const tCommon = useTranslations("common");
   const router = useRouter();
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSelect() {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan_code: code }),
-      });
-      const data = await res.json();
-
-      if (!res.ok || !data.url) {
-        throw new Error(data.error ?? tCommon("somethingWentWrong"));
-      }
-
-      window.location.href = data.url;
-    } catch (err) {
-      setLoading(false);
-      setError(err instanceof Error ? err.message : tCommon("somethingWentWrong"));
-    }
-  }
+  const hasAnnual = Boolean(checkoutUrlAnnual && annualPriceUsd);
+  const isAnnual = hasAnnual && billingCycle === "annual";
+  const activeUrl = isAnnual ? checkoutUrlAnnual : checkoutUrl;
+  const activePrice = isAnnual && annualPriceUsd ? annualPriceUsd : priceUsd;
 
   async function handleDevActivate() {
     setLoading(true);
@@ -59,14 +53,14 @@ export function PlanCard({ code, displayName, priceUsd, features, highlighted }:
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error ?? tCommon("somethingWentWrong"));
+        throw new Error(data.error ?? t("startTrial"));
       }
 
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
       setLoading(false);
-      setError(err instanceof Error ? err.message : tCommon("somethingWentWrong"));
+      setError(err instanceof Error ? err.message : t("startTrial"));
     }
   }
 
@@ -83,11 +77,37 @@ export function PlanCard({ code, displayName, priceUsd, features, highlighted }:
         </span>
       )}
       <h3 className="text-lg font-semibold">{displayName}</h3>
-      <p className="mt-1 text-3xl font-bold">
-        ${priceUsd.toFixed(2)}
+
+      {hasAnnual && (
+        <div className="mt-3 inline-flex w-fit gap-1 rounded-full border border-border bg-surface p-1 text-xs">
+          <button
+            type="button"
+            onClick={() => setBillingCycle("monthly")}
+            className={cn(
+              "rounded-full px-3 py-1 font-medium transition",
+              !isAnnual ? "bg-accent text-accent-foreground" : "text-muted hover:text-foreground",
+            )}
+          >
+            {t("monthly")}
+          </button>
+          <button
+            type="button"
+            onClick={() => setBillingCycle("annual")}
+            className={cn(
+              "rounded-full px-3 py-1 font-medium transition",
+              isAnnual ? "bg-accent text-accent-foreground" : "text-muted hover:text-foreground",
+            )}
+          >
+            {t("annual")}
+          </button>
+        </div>
+      )}
+
+      <p className="mt-3 text-3xl font-bold">
+        ${activePrice.toFixed(2)}
         <span className="text-sm font-normal text-muted">{t("perMonth")}</span>
       </p>
-      <p className="mt-1 text-xs text-muted">{t("trialNote")}</p>
+      <p className="mt-1 text-xs text-muted">{isAnnual ? t("billedAnnually") : t("trialNote")}</p>
 
       <ul className="my-6 flex flex-1 flex-col gap-2 text-sm text-foreground/90">
         {features.map((f) => (
@@ -102,14 +122,23 @@ export function PlanCard({ code, displayName, priceUsd, features, highlighted }:
 
       {error && <p className="mb-2 text-sm text-danger">{error}</p>}
 
-      <Button
-        onClick={handleSelect}
-        disabled={loading}
-        variant={highlighted ? "primary" : "secondary"}
-        className="w-full"
-      >
-        {loading ? t("startingTrial") : t("startTrial")}
-      </Button>
+      {activeUrl ? (
+        <a
+          href={activeUrl}
+          className={cn(
+            "inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition",
+            highlighted
+              ? "bg-accent text-accent-foreground hover:brightness-110 shadow-[0_0_24px_-8px_var(--accent)]"
+              : "border border-border bg-surface text-foreground hover:border-accent/50 hover:bg-surface-raised",
+          )}
+        >
+          {t("startTrial")}
+        </a>
+      ) : (
+        <Button disabled className="w-full">
+          {t("startTrial")}
+        </Button>
+      )}
 
       {process.env.NODE_ENV !== "production" && (
         <button

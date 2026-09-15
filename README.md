@@ -86,6 +86,39 @@ Both require `RESEND_API_KEY` and `RESEND_FROM_EMAIL` to actually send;
 without them the routes still run but every send fails (and is logged, not
 thrown — one bad address never aborts the whole batch).
 
+A fourth job, `POST /api/cron/monthly-credit-refresh`, uses the same
+scheduler + `CRON_SECRET` pattern but runs once a day rather than on a fixed
+slot: it refreshes credits for any subscription whose `credits_cycle_end` has
+arrived. See "Hotmart payments" below for why this is a separate cycle from
+the billing period.
+
+## Hotmart payments
+
+Hotmart is the active payment processor (Stripe's checkout/portal routes are
+kept for reference but are no longer linked from onboarding). Each `plans`
+row carries its own checkout URL(s) and offer code(s)
+(`hotmart_checkout_url[_annual]`, `hotmart_offer_code[_annual]`,
+`supabase/migrations/0030_hotmart_integration.sql`) — the pricing page just
+links straight to Hotmart's checkout, no API call.
+
+`src/app/api/hotmart/webhook` verifies the `X-HOTMART-HOTTOK` header,
+resolves which plan was purchased (primarily via a `plan_code` tracking key
+sent on the offer, falling back to matching Hotmart's own `offer.code`
+against the `plans` table), and activates/cancels the buyer's subscription by
+email. Point Hotmart's webhook config at
+`https://<your-site>/api/hotmart/webhook`.
+
+Billing period and credit refresh are intentionally decoupled: an annual
+subscriber is charged once a year (`subscriptions.current_period_end`), but
+their credits still refresh monthly (`subscriptions.credits_cycle_end`,
+advanced by the `monthly-credit-refresh` cron above) so a full year of usage
+never accrues on one cycle.
+
+The exact JSON field paths for `purchase.transaction`/`subscription.subscriber.code`
+are best-effort from Hotmart's public docs, not yet confirmed against a real
+payload — the handler logs every payload in full so this can be corrected
+after the first real (or sandbox) purchase.
+
 ## Church Admin
 
 Church Pro teams get a 4-tab `/team` hub (Workspace/Contacts/Events/
@@ -99,9 +132,9 @@ never see each other's addresses; each send is logged in `communications`.
 ## Project structure
 
 ```
-src/app/(auth)/       signup, login, onboarding (plan selection + Stripe handoff), team invite acceptance
+src/app/(auth)/       signup, login, onboarding (plan selection + Hotmart checkout links), team invite acceptance
 src/app/(app)/        the authenticated shell: dashboard, art, posts, devotionals, chat, templates, billing, team
-src/app/api/          Stripe (checkout/portal/webhook), AI (art/posts/devotional/chat), credits, team, cron
+src/app/api/          Hotmart webhook, Stripe (legacy), AI (art/posts/devotional/chat), credits, team, cron
 src/lib/supabase/     server/browser/admin Supabase clients + the middleware session-refresh helper
 src/lib/stripe/       lazily-constructed Stripe client
 src/lib/openai/       lazily-constructed OpenAI client + art/text/chat/moderation prompt logic

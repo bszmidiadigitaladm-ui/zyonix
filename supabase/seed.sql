@@ -17,16 +17,28 @@
 -- option ($22/mo, billed ~$264/year) configured entirely on the payment
 -- processor's side — it sends the same plan_code, so no extra row here.
 
-insert into public.plans (code, display_name, stripe_price_id, monthly_price_usd, is_team_plan, sort_order)
+insert into public.plans (
+  code, display_name, stripe_price_id, monthly_price_usd, is_team_plan, sort_order,
+  hotmart_checkout_url, hotmart_offer_code, hotmart_checkout_url_annual, hotmart_offer_code_annual,
+  annual_monthly_equivalent_usd
+)
 values
-  ('starter', 'Starter', 'price_starter_REPLACE_ME', 19.90, false, 1),
-  ('church_pro', 'Pro', 'price_church_pro_REPLACE_ME', 29.90, true, 2)
+  ('starter', 'Starter', 'price_starter_REPLACE_ME', 19.90, false, 1,
+    'https://pay.hotmart.com/R107627031E?off=z7asq0l3&checkoutMode=10', 'z7asq0l3', null, null, null),
+  ('church_pro', 'Pro', 'price_church_pro_REPLACE_ME', 29.90, true, 2,
+    'https://pay.hotmart.com/R107627031E?off=mx2ms7hv&checkoutMode=10', 'mx2ms7hv',
+    'https://pay.hotmart.com/R107627031E?off=6z7z0oxh&checkoutMode=10', '6z7z0oxh', 22.00)
 on conflict (code) do update set
   display_name = excluded.display_name,
   stripe_price_id = excluded.stripe_price_id,
   monthly_price_usd = excluded.monthly_price_usd,
   is_team_plan = excluded.is_team_plan,
-  sort_order = excluded.sort_order;
+  sort_order = excluded.sort_order,
+  hotmart_checkout_url = excluded.hotmart_checkout_url,
+  hotmart_offer_code = excluded.hotmart_offer_code,
+  hotmart_checkout_url_annual = excluded.hotmart_checkout_url_annual,
+  hotmart_offer_code_annual = excluded.hotmart_offer_code_annual,
+  annual_monthly_equivalent_usd = excluded.annual_monthly_equivalent_usd;
 
 insert into public.plan_limits (
   plan_code, image_credits_per_cycle, text_credits_per_cycle, video_credits_per_cycle, spiritual_chat_daily_cap,

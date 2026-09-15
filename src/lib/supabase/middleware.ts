@@ -8,6 +8,7 @@ function isPublicPath(pathname: string) {
     PUBLIC_PATHS.some((p) => pathname.startsWith(p)) ||
     pathname === "/" ||
     pathname.startsWith("/api/stripe/webhook") ||
+    pathname.startsWith("/api/hotmart/webhook") ||
     pathname.startsWith("/api/cron") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon")
