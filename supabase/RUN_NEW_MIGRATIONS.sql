@@ -1,249 +1,1149 @@
 -- ============================================================
--- Consolidated migration bundle: everything not yet applied to
--- your database (migrations 0023-0028 + the badges seed data).
+-- Consolidated migration bundle: the actual remaining gap.
 --
--- Run this ONCE in the Supabase SQL Editor. This replaces the
--- version you just tried — that one wrongly assumed 0023-0027
--- were already applied, which is why church_events didn't exist.
+-- An audit against your live database (via the service-role key)
+-- found that migrations 0018-0022 were NEVER applied, even though
+-- they were handed to you earlier — Message Prep, Bible Reader,
+-- Video Studio, and Quiz/Games have all been running with no
+-- backing tables this whole time (silently, since every page
+-- degrades gracefully to an empty state instead of crashing).
+-- Migrations 0023-0028 ARE already applied — confirmed, not
+-- included again here.
+--
+-- Run this ONCE in the Supabase SQL Editor.
 -- ============================================================
 
--- ---- migrations/0023_church_admin.sql ----
--- Church Admin: member contact list, a lightweight event calendar with
--- reminders, and an email-broadcast log — the "Comunicação" module from the
--- original brief. Church Pro only, gated the same way the rest of the team
--- workspace already is (a subscription's team_id is only ever set for
--- church_pro plans).
-create table public.church_contacts (
-  id uuid primary key default gen_random_uuid(),
-  team_id uuid not null references public.teams(id) on delete cascade,
-  name text not null,
-  email text not null,
-  created_at timestamptz not null default now(),
-  unique (team_id, email)
-);
+-- ---- migrations/0018_video_credits.sql ----
+-- Extends the credit system to a third type, `video`, for the AI video
+-- generation module. Same shape as the existing image/text columns.
+alter table public.credits_balance
+  add column video_credits_remaining int not null default 0;
 
-create index church_contacts_team_id_idx on public.church_contacts(team_id);
+alter table public.plan_limits
+  add column video_credits_per_cycle int not null default 0;
 
-create table public.church_events (
-  id uuid primary key default gen_random_uuid(),
-  team_id uuid not null references public.teams(id) on delete cascade,
-  title text not null,
-  description text,
-  event_date date not null,
-  reminder_days_before int not null default 1,
-  reminder_sent boolean not null default false,
-  created_at timestamptz not null default now()
-);
+-- Re-create the three credit RPCs (defined in 0016_credit_rpc_functions.sql)
+-- with a `video` branch alongside the existing `image`/`text` ones.
+create or replace function public.consume_credit(
+  p_owner_id uuid,
+  p_credit_type text,
+  p_amount int default 1
+) returns table (success boolean, remaining int)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_row public.credits_balance%rowtype;
+begin
+  if p_credit_type not in ('image', 'text', 'video') then
+    raise exception 'invalid credit type: %', p_credit_type;
+  end if;
 
-create index church_events_team_id_idx on public.church_events(team_id, event_date);
+  select * into v_row
+  from public.credits_balance
+  where owner_id = p_owner_id
+  for update;
 
-create table public.communications (
-  id uuid primary key default gen_random_uuid(),
-  team_id uuid not null references public.teams(id) on delete cascade,
-  sent_by uuid not null references auth.users(id),
-  subject text not null,
-  body text not null,
-  template_type text not null default 'custom'
-    check (template_type in ('custom', 'sunday_bulletin', 'event_reminder')),
-  recipient_count int not null default 0,
-  created_at timestamptz not null default now()
-);
+  if not found then
+    return query select false, 0;
+    return;
+  end if;
 
-create index communications_team_id_idx on public.communications(team_id, created_at desc);
+  if p_credit_type = 'image' then
+    if v_row.image_credits_remaining < p_amount then
+      return query select false, v_row.image_credits_remaining;
+      return;
+    end if;
 
-alter table public.church_contacts enable row level security;
-alter table public.church_events enable row level security;
-alter table public.communications enable row level security;
+    update public.credits_balance
+      set image_credits_remaining = image_credits_remaining - p_amount,
+          updated_at = now()
+      where id = v_row.id;
 
--- Any team member can view (transparency); only the team owner can write —
--- same "team_role = 'owner'" exists-check the team_invites_insert_owner
--- policy (0015_rls_policies.sql) already uses.
-create policy "church_contacts_select_team" on public.church_contacts
-  for select using (team_id = public.current_team_id());
+    return query select true, v_row.image_credits_remaining - p_amount;
+  elsif p_credit_type = 'text' then
+    if v_row.text_credits_remaining < p_amount then
+      return query select false, v_row.text_credits_remaining;
+      return;
+    end if;
 
-create policy "church_contacts_insert_owner" on public.church_contacts
-  for insert with check (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and team_id = church_contacts.team_id and team_role = 'owner'
-    )
-  );
+    update public.credits_balance
+      set text_credits_remaining = text_credits_remaining - p_amount,
+          updated_at = now()
+      where id = v_row.id;
 
-create policy "church_contacts_delete_owner" on public.church_contacts
-  for delete using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and team_id = church_contacts.team_id and team_role = 'owner'
-    )
-  );
+    return query select true, v_row.text_credits_remaining - p_amount;
+  else
+    if v_row.video_credits_remaining < p_amount then
+      return query select false, v_row.video_credits_remaining;
+      return;
+    end if;
 
-create policy "church_events_select_team" on public.church_events
-  for select using (team_id = public.current_team_id());
+    update public.credits_balance
+      set video_credits_remaining = video_credits_remaining - p_amount,
+          updated_at = now()
+      where id = v_row.id;
 
-create policy "church_events_insert_owner" on public.church_events
-  for insert with check (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and team_id = church_events.team_id and team_role = 'owner'
-    )
-  );
+    return query select true, v_row.video_credits_remaining - p_amount;
+  end if;
+end;
+$$;
 
-create policy "church_events_delete_owner" on public.church_events
-  for delete using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and team_id = church_events.team_id and team_role = 'owner'
-    )
-  );
+grant execute on function public.consume_credit(uuid, text, int) to authenticated, service_role;
 
-create policy "communications_select_team" on public.communications
-  for select using (team_id = public.current_team_id());
+create or replace function public.refund_credit(
+  p_owner_id uuid,
+  p_credit_type text,
+  p_amount int default 1
+) returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if p_credit_type not in ('image', 'text', 'video') then
+    raise exception 'invalid credit type: %', p_credit_type;
+  end if;
 
-create policy "communications_insert_owner" on public.communications
-  for insert with check (
-    sent_by = auth.uid()
-    and exists (
-      select 1 from public.profiles
-      where id = auth.uid() and team_id = communications.team_id and team_role = 'owner'
-    )
-  );
--- No update/delete policy: the send log is append-only.
+  if p_credit_type = 'image' then
+    update public.credits_balance
+      set image_credits_remaining = image_credits_remaining + p_amount,
+          updated_at = now()
+      where owner_id = p_owner_id;
+  elsif p_credit_type = 'text' then
+    update public.credits_balance
+      set text_credits_remaining = text_credits_remaining + p_amount,
+          updated_at = now()
+      where owner_id = p_owner_id;
+  else
+    update public.credits_balance
+      set video_credits_remaining = video_credits_remaining + p_amount,
+          updated_at = now()
+      where owner_id = p_owner_id;
+  end if;
+end;
+$$;
 
--- ---- migrations/0024_financial_transactions.sql ----
--- Financeiro Básico: a simple income/expense ledger for a church, not a real
--- accounting system — no receipts, no bank integration, no reconciliation.
--- Category is free text with UI-suggested options rather than a separate
--- categories table, matching the brief's "categorias simples configuráveis".
-create table public.financial_transactions (
-  id uuid primary key default gen_random_uuid(),
-  team_id uuid not null references public.teams(id) on delete cascade,
-  type text not null check (type in ('income', 'expense')),
-  amount_usd numeric(10, 2) not null check (amount_usd > 0),
-  category text not null,
-  description text,
-  occurred_on date not null,
-  created_by uuid not null references auth.users(id),
-  created_at timestamptz not null default now()
-);
+grant execute on function public.refund_credit(uuid, text, int) to authenticated, service_role;
 
-create index financial_transactions_team_id_idx
-  on public.financial_transactions(team_id, occurred_on desc);
+create or replace function public.reset_credits(
+  p_subscription_id uuid,
+  p_cycle_start timestamptz,
+  p_cycle_end timestamptz
+) returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_sub public.subscriptions%rowtype;
+  v_limits public.plan_limits%rowtype;
+  v_owner uuid;
+  v_is_team boolean;
+begin
+  select * into v_sub from public.subscriptions where id = p_subscription_id;
+  if not found then
+    raise exception 'subscription % not found', p_subscription_id;
+  end if;
 
-alter table public.financial_transactions enable row level security;
+  select * into v_limits from public.plan_limits where plan_code = v_sub.plan_code;
+  if not found then
+    raise exception 'plan_limits for % not found', v_sub.plan_code;
+  end if;
 
--- Same team-read / owner-write shape as church_contacts/church_events
--- (0023_church_admin.sql) — transparency for the whole team, but only the
--- owner (treasurer) can record or remove transactions.
-create policy "financial_transactions_select_team" on public.financial_transactions
-  for select using (team_id = public.current_team_id());
+  v_owner := coalesce(v_sub.team_id, v_sub.owner_id);
+  v_is_team := v_sub.team_id is not null;
 
-create policy "financial_transactions_insert_owner" on public.financial_transactions
-  for insert with check (
-    created_by = auth.uid()
-    and exists (
-      select 1 from public.profiles
-      where id = auth.uid() and team_id = financial_transactions.team_id and team_role = 'owner'
-    )
-  );
+  insert into public.credits_balance (
+    owner_id, is_team, subscription_id,
+    image_credits_remaining, text_credits_remaining, video_credits_remaining,
+    cycle_start, cycle_end
+  ) values (
+    v_owner, v_is_team, p_subscription_id,
+    v_limits.image_credits_per_cycle, v_limits.text_credits_per_cycle, v_limits.video_credits_per_cycle,
+    p_cycle_start, p_cycle_end
+  )
+  on conflict (subscription_id) do update set
+    owner_id = excluded.owner_id,
+    is_team = excluded.is_team,
+    image_credits_remaining = excluded.image_credits_remaining,
+    text_credits_remaining = excluded.text_credits_remaining,
+    video_credits_remaining = excluded.video_credits_remaining,
+    cycle_start = excluded.cycle_start,
+    cycle_end = excluded.cycle_end,
+    updated_at = now();
+end;
+$$;
 
-create policy "financial_transactions_delete_owner" on public.financial_transactions
-  for delete using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and team_id = financial_transactions.team_id and team_role = 'owner'
-    )
-  );
+grant execute on function public.reset_credits(uuid, timestamptz, timestamptz) to service_role;
 
--- ---- migrations/0025_notification_prefs.sql ----
--- Daily devotional reminder preferences. Real per-user timezone-aware
--- scheduling isn't practical for a single daily cron without storing a real
--- timezone, so "configurable time" is scoped to three broad slots — the
--- external scheduler hits /api/cron/daily-reminder once per slot per day.
-alter table public.profiles
-  add column daily_reminder_enabled boolean not null default true,
-  add column reminder_slot text not null default 'morning'
-    check (reminder_slot in ('morning', 'afternoon', 'evening'));
-
--- No new RLS policy needed: the existing profiles_update_own policy
--- (0015_rls_policies.sql) already covers these columns.
-
--- ---- migrations/0026_prayer_requests.sql ----
--- Personal prayer journal: a list of requests the user can mark as answered.
-create table public.prayer_requests (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  content text not null,
-  is_answered boolean not null default false,
-  answered_at timestamptz,
-  created_at timestamptz not null default now()
-);
-
-create index prayer_requests_user_id_idx on public.prayer_requests(user_id, created_at desc);
-
-alter table public.prayer_requests enable row level security;
-
-create policy "prayer_requests_all_own" on public.prayer_requests
-  for all using (user_id = auth.uid()) with check (user_id = auth.uid());
-
--- ---- migrations/0027_badges.sql ----
--- Conquistas/Badges: a small fixed catalog of achievements, awarded
--- idempotently by the admin client from various API routes.
-create table public.badges (
-  code text primary key,
-  name text not null,
-  description text not null,
-  icon_key text not null -- maps to a lucide-react icon name in the UI
-);
-
-create table public.user_badges (
+-- ---- migrations/0019_message_outlines.sql ----
+-- Message/sermon prep tool. Consumes the existing `text` credit pool (see
+-- ai_usage_log.feature = 'message_outline') — no new credit type needed.
+create table public.message_outlines (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  badge_code text not null references public.badges(code),
-  earned_at timestamptz not null default now(),
-  unique (user_id, badge_code)
+  team_id uuid references public.teams(id) on delete set null,
+  topic text not null,
+  audience text not null,
+  duration_minutes int not null,
+  style text not null,
+  tone text not null,
+  outline jsonb not null,
+  created_at timestamptz not null default now()
 );
 
-create index user_badges_user_id_idx on public.user_badges(user_id);
+create index message_outlines_user_id_idx on public.message_outlines(user_id, created_at desc);
+create index message_outlines_team_id_idx on public.message_outlines(team_id, created_at desc);
 
-alter table public.badges enable row level security;
-alter table public.user_badges enable row level security;
+alter table public.message_outlines enable row level security;
 
--- Shared catalog, same posture as seasonal_templates: readable by any
--- authenticated user, writable only via migrations/seed.
-create policy "badges_select_authenticated" on public.badges
-  for select using (auth.role() = 'authenticated');
+create policy "message_outlines_select_own_or_team" on public.message_outlines
+  for select using (
+    user_id = auth.uid() or (team_id is not null and team_id = public.current_team_id())
+  );
 
-create policy "user_badges_select_own" on public.user_badges
-  for select using (user_id = auth.uid());
--- No insert/update/delete policy: badges are awarded exclusively by the
--- service-role admin client (src/lib/badges/award.ts), never by the client
--- directly — a user can't self-award an achievement.
+create policy "message_outlines_insert_own" on public.message_outlines
+  for insert with check (user_id = auth.uid());
 
--- ---- migrations/0028_event_flyers.sql ----
--- Church Admin: AI-generated promotional flyer image for an event, via
--- Runway's gen4_image model (Models surface). Reuses the "image" credit
--- type already shared with the Bible Art generator — no new credit type
--- or plan_limits column needed.
-alter table public.church_events add column flyer_image_url text;
+create policy "message_outlines_delete_own" on public.message_outlines
+  for delete using (user_id = auth.uid());
 
--- ai_usage_log.feature is constrained by a check — widen it again (see
--- 0019_message_outlines.sql for the same pattern) to include this feature.
+-- ai_usage_log.feature is constrained by a check — widen it to include the
+-- two new AI features added in this pass (message outlines, video).
 alter table public.ai_usage_log drop constraint ai_usage_log_feature_check;
 alter table public.ai_usage_log add constraint ai_usage_log_feature_check
-  check (feature in ('bible_art', 'post_caption', 'devotional', 'spiritual_chat', 'message_outline', 'video', 'event_flyer'));
+  check (feature in ('bible_art', 'post_caption', 'devotional', 'spiritual_chat', 'message_outline', 'video'));
 
--- ---- seed.sql: new section only (Badges catalog) ----
--- Conquistas/Badges catalog — icon_key maps to a lucide-react icon name.
-insert into public.badges (code, name, description, icon_key)
+-- ---- migrations/0020_bible_schema.sql ----
+-- Bible reader module. Book names/order/chapter counts are objective canonical
+-- facts (seeded in supabase/seed.sql), not copyrighted. Verse *text* is a lazy
+-- cache (see bible_verses below) fetched from a free public-domain translation
+-- API on first request per chapter — never pre-seeded in full, to avoid a
+-- massive upfront import and to keep licensing clean (WEB/KJV in English,
+-- Reina-Valera 1909 in Spanish — all public domain).
+
+create table public.bible_translations (
+  code text primary key,
+  language text not null check (language in ('en', 'es')),
+  name text not null,
+  license text not null default 'Public Domain'
+);
+
+create table public.bible_books (
+  code text primary key,
+  testament text not null check (testament in ('ot', 'nt')),
+  sort_order int not null,
+  chapter_count int not null
+);
+
+-- The verse-text cache. Populated by the admin client the first time a
+-- chapter is requested (src/app/api/bible/chapter/route.ts), never seeded.
+create table public.bible_verses (
+  id bigint generated always as identity primary key,
+  translation_code text not null references public.bible_translations(code),
+  book_code text not null references public.bible_books(code),
+  chapter int not null,
+  verse int not null,
+  text text not null,
+  unique (translation_code, book_code, chapter, verse)
+);
+
+create index bible_verses_lookup_idx on public.bible_verses(translation_code, book_code, chapter);
+
+create table public.reading_plans (
+  id text primary key, -- 'thirty-day' | 'ninety-day' | 'year'
+  duration_days int not null,
+  sort_order int not null
+);
+
+-- `readings` is a jsonb array of {"book": code, "chapter": n} for that day —
+-- named to avoid colliding with the `references` SQL keyword.
+create table public.reading_plan_days (
+  id bigint generated always as identity primary key,
+  plan_id text not null references public.reading_plans(id) on delete cascade,
+  day_number int not null,
+  readings jsonb not null,
+  unique (plan_id, day_number)
+);
+
+create table public.user_reading_plans (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  plan_id text not null references public.reading_plans(id),
+  current_day int not null default 1,
+  started_at timestamptz not null default now(),
+  unique (user_id, plan_id)
+);
+
+create table public.reading_progress (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  book_code text not null references public.bible_books(code),
+  chapter int not null,
+  completed_at timestamptz not null default now(),
+  unique (user_id, book_code, chapter)
+);
+
+create index reading_progress_user_id_idx on public.reading_progress(user_id);
+
+create table public.bible_favorites (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  book_code text not null references public.bible_books(code),
+  chapter int not null,
+  verse int, -- null = whole-chapter favorite
+  created_at timestamptz not null default now(),
+  unique (user_id, book_code, chapter, verse)
+);
+
+create index bible_favorites_user_id_idx on public.bible_favorites(user_id);
+
+create table public.bible_study_resources (
+  id uuid primary key default gen_random_uuid(),
+  category text not null check (category in ('map', 'timeline', 'context')),
+  title text not null,
+  body text not null,
+  image_url text,
+  sort_order int not null default 0
+);
+
+-- RLS: translations/books/verses/plans/plan_days/study_resources are shared,
+-- non-sensitive reference content — read-only for authenticated, writes only
+-- via the admin client (seed data, or the lazy-cache route for bible_verses).
+alter table public.bible_translations enable row level security;
+create policy "bible_translations_select_all" on public.bible_translations for select using (true);
+
+alter table public.bible_books enable row level security;
+create policy "bible_books_select_all" on public.bible_books for select using (true);
+
+alter table public.bible_verses enable row level security;
+create policy "bible_verses_select_all" on public.bible_verses for select using (true);
+
+alter table public.reading_plans enable row level security;
+create policy "reading_plans_select_all" on public.reading_plans for select using (true);
+
+alter table public.reading_plan_days enable row level security;
+create policy "reading_plan_days_select_all" on public.reading_plan_days for select using (true);
+
+alter table public.bible_study_resources enable row level security;
+create policy "bible_study_resources_select_all" on public.bible_study_resources for select using (true);
+
+-- Own-row RLS for user-generated Bible data.
+alter table public.user_reading_plans enable row level security;
+create policy "user_reading_plans_all_own" on public.user_reading_plans
+  for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+alter table public.reading_progress enable row level security;
+create policy "reading_progress_all_own" on public.reading_progress
+  for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+alter table public.bible_favorites enable row level security;
+create policy "bible_favorites_all_own" on public.bible_favorites
+  for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- ---- migrations/0021_video_generations.sql ----
+-- Video Studio module: AI video generation jobs (Runway) plus a media_type
+-- column on seasonal_templates so the curated loop library ("Zeal Lab") can
+-- serve video loops through the same table used for image templates.
+create table public.video_generations (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  team_id uuid references public.teams(id) on delete set null,
+  prompt text not null,
+  duration_seconds int not null,
+  status text not null default 'pending' check (status in ('pending', 'processing', 'succeeded', 'failed')),
+  video_url text,
+  thumbnail_url text,
+  runway_job_id text,
+  error_message text,
+  created_at timestamptz not null default now(),
+  completed_at timestamptz
+);
+
+create index video_generations_user_id_idx on public.video_generations(user_id, created_at desc);
+create index video_generations_team_id_idx on public.video_generations(team_id, created_at desc);
+
+alter table public.video_generations enable row level security;
+
+create policy "video_generations_select_own_or_team" on public.video_generations
+  for select using (
+    user_id = auth.uid() or (team_id is not null and team_id = public.current_team_id())
+  );
+
+create policy "video_generations_insert_own" on public.video_generations
+  for insert with check (user_id = auth.uid());
+
+create policy "video_generations_delete_own" on public.video_generations
+  for delete using (user_id = auth.uid());
+
+alter table public.seasonal_templates
+  add column media_type text not null default 'image' check (media_type in ('image', 'video'));
+
+-- ---- migrations/0022_quiz_schema.sql ----
+-- Bible trivia quiz with a global leaderboard.
+create table public.quiz_questions (
+  id uuid primary key default gen_random_uuid(),
+  category text not null check (category in ('old_testament', 'new_testament', 'people', 'miracles', 'general')),
+  difficulty text not null check (difficulty in ('easy', 'medium', 'hard')),
+  question text not null,
+  options jsonb not null, -- exactly 4 strings, e.g. '["A", "B", "C", "D"]'
+  correct_index int not null check (correct_index between 0 and 3),
+  created_at timestamptz not null default now()
+);
+
+-- No select policy: quiz_questions.correct_index must never be readable by an
+-- authenticated client directly. RLS is enabled with a default-deny stance —
+-- only the service-role admin client (which bypasses RLS entirely) reads this
+-- table, stripping correct_index before the questions ever reach the browser
+-- (see /api/quiz/questions) and using it server-side to grade submissions
+-- (see /api/quiz/submit). This is the same "server never trusts the client"
+-- posture the plan calls for, enforced at the data layer instead of just the
+-- API layer.
+alter table public.quiz_questions enable row level security;
+
+create table public.quiz_sessions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  score int not null,
+  total_questions int not null,
+  -- Snapshotted at submit time (from profiles, server-side) rather than
+  -- joined live, so the leaderboard is stable even if the user later renames
+  -- themselves, and so a client can never spoof another display name.
+  display_name text not null,
+  completed_at timestamptz not null default now()
+);
+
+create index quiz_sessions_user_id_idx on public.quiz_sessions(user_id, completed_at desc);
+create index quiz_sessions_score_idx on public.quiz_sessions(score desc);
+
+alter table public.quiz_sessions enable row level security;
+
+create policy "quiz_sessions_select_own" on public.quiz_sessions
+  for select using (user_id = auth.uid());
+
+-- No insert/update/delete policy for authenticated users: sessions are only
+-- ever written by the admin client from /api/quiz/submit, which computes the
+-- score itself from quiz_questions.correct_index instead of trusting a
+-- client-supplied score.
+
+-- Draws a random batch of full question rows (correct_index included) for the
+-- service-role admin client to use when building a quiz round — the API
+-- route (GET /api/quiz/questions) strips correct_index before responding.
+-- Only granted to service_role, never authenticated, so this function can't
+-- be called directly from the browser to leak answers.
+create or replace function public.get_random_quiz_questions(p_count int default 10)
+returns setof public.quiz_questions
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select * from public.quiz_questions order by random() limit p_count;
+$$;
+
+grant execute on function public.get_random_quiz_questions(int) to service_role;
+
+-- Public leaderboard: the one deliberately public-read surface in the app.
+-- Exposes only (display_name, best_score) per user — never user_id, email, or
+-- any other profile data — via the same security-definer pattern already
+-- used by current_team_id(), so quiz_sessions itself never needs a broad
+-- read policy.
+create or replace function public.get_leaderboard(p_limit int default 20)
+returns table (display_name text, best_score int)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select display_name, score as best_score
+  from (
+    select
+      display_name,
+      score,
+      row_number() over (partition by user_id order by score desc, completed_at desc) as rn
+    from public.quiz_sessions
+  ) ranked
+  where rn = 1
+  order by best_score desc
+  limit p_limit;
+$$;
+
+grant execute on function public.get_leaderboard(int) to authenticated;
+
+-- ---- seed.sql lines 58-731: Bible reader + Quiz/Games seed data ----
+-- ============================================================
+-- Bible reader module seed data
+-- ============================================================
+
+insert into public.bible_translations (code, language, name, license)
 values
-  ('first_art', 'First Art', 'Generated your first piece of Bible art.', 'Palette'),
-  ('first_post', 'First Post', 'Created your first social post.', 'Layers'),
-  ('first_devotional_note', 'Reflective Heart', 'Wrote your first devotional note.', 'Sunrise'),
-  ('first_message_outline', 'First Message', 'Generated your first sermon outline.', 'Mic'),
-  ('first_video', 'First Video', 'Generated your first AI video.', 'Clapperboard'),
-  ('streak_7', '7-Day Streak', 'Read the Bible 7 days in a row.', 'Flame'),
-  ('streak_30', '30-Day Streak', 'Read the Bible 30 days in a row.', 'Zap'),
-  ('ten_chapters_read', 'Ten Chapters', 'Read 10 chapters of the Bible.', 'BookOpen'),
-  ('book_complete', 'Book Complete', 'Finished reading an entire book of the Bible.', 'BookMarked'),
-  ('quiz_champion', 'Perfect Score', 'Got a perfect score on a Bible trivia quiz.', 'Trophy')
-on conflict (code) do update set name = excluded.name, description = excluded.description, icon_key = excluded.icon_key;
+  ('web', 'en', 'World English Bible', 'Public Domain'),
+  ('kjv', 'en', 'King James Version', 'Public Domain'),
+  ('rva1909', 'es', 'Reina-Valera 1909', 'Public Domain')
+on conflict (code) do update set language = excluded.language, name = excluded.name, license = excluded.license;
+
+insert into public.reading_plans (id, duration_days, sort_order)
+values
+  ('thirty-day', 30, 1),
+  ('ninety-day', 90, 2),
+  ('year', 365, 3)
+on conflict (id) do update set duration_days = excluded.duration_days, sort_order = excluded.sort_order;
+
+insert into public.bible_study_resources (category, title, body, sort_order)
+values
+  ('map', 'The Garden of Eden and Mesopotamia', 'The early chapters of Genesis place humanity''s origin near the Tigris and Euphrates rivers, in the region later known as Mesopotamia — the geographic backdrop for Genesis 1-11.', 1),
+  ('map', 'The Route of the Exodus', 'Israel''s journey out of Egypt, across the Red Sea, and through the wilderness of Sinai toward Canaan — the setting for the book of Exodus and much of Numbers.', 2),
+  ('map', 'The Promised Land Divided', 'After the conquest under Joshua, the land of Canaan was allotted among the twelve tribes of Israel, each receiving its own territory.', 3),
+  ('map', 'Israel in the Time of Jesus', 'By the first century, the region was divided into Galilee, Samaria, Judea, and surrounding territories — the setting for the Gospels.', 4),
+  ('map', 'Paul''s Missionary Journeys', 'The apostle Paul traveled across the eastern Mediterranean on three (and a final, fourth to Rome) missionary journeys recorded in Acts 13-28, establishing churches across Asia Minor and Greece.', 5),
+  ('map', 'The Seven Churches of Revelation', 'Revelation 2-3 addresses seven churches in the Roman province of Asia (modern-day western Turkey): Ephesus, Smyrna, Pergamum, Thyatira, Sardis, Philadelphia, and Laodicea.', 6),
+  ('timeline', 'From Creation to the Patriarchs', 'Genesis spans from creation through the lives of Abraham, Isaac, Jacob, and Joseph — the founding family of Israel.', 1),
+  ('timeline', 'Exodus to the Monarchy', 'From the Exodus from Egypt through the era of the Judges to the establishment of Israel''s kingship under Saul, David, and Solomon.', 2),
+  ('timeline', 'The Divided Kingdom and Exile', 'After Solomon, the kingdom split into Israel (north) and Judah (south), eventually falling to Assyria and Babylon respectively.', 3),
+  ('timeline', 'The Life of Christ', 'The four Gospels record the birth, ministry, death, and resurrection of Jesus, traditionally dated to the early first century AD.', 4),
+  ('timeline', 'The Early Church', 'Acts records the growth of the church from Jerusalem outward following Jesus'' resurrection and ascension, through Paul''s missionary work.', 5),
+  ('context', 'Understanding Hebrew Poetry', 'Books like Psalms, Proverbs, and Job use parallelism — restating or contrasting an idea in a second line — rather than rhyme, as their central poetic device.', 1),
+  ('context', 'The Old Testament Covenants', 'Key covenants — with Noah, Abraham, Israel at Sinai, and David — form the backbone of the Old Testament''s unfolding story.', 2),
+  ('context', 'Second Temple Judaism', 'By the New Testament era, Jewish religious life was shaped by groups like the Pharisees and Sadducees, and centered on the Temple rebuilt after the Babylonian exile.', 3)
+on conflict do nothing;
+
+-- OT total: 929, NT total: 260, combined: 1189
+insert into public.bible_books (code, testament, sort_order, chapter_count) values
+  ('gen', 'ot', 1, 50),
+  ('exo', 'ot', 2, 40),
+  ('lev', 'ot', 3, 27),
+  ('num', 'ot', 4, 36),
+  ('deu', 'ot', 5, 34),
+  ('jos', 'ot', 6, 24),
+  ('jdg', 'ot', 7, 21),
+  ('rut', 'ot', 8, 4),
+  ('1sa', 'ot', 9, 31),
+  ('2sa', 'ot', 10, 24),
+  ('1ki', 'ot', 11, 22),
+  ('2ki', 'ot', 12, 25),
+  ('1ch', 'ot', 13, 29),
+  ('2ch', 'ot', 14, 36),
+  ('ezr', 'ot', 15, 10),
+  ('neh', 'ot', 16, 13),
+  ('est', 'ot', 17, 10),
+  ('job', 'ot', 18, 42),
+  ('psa', 'ot', 19, 150),
+  ('pro', 'ot', 20, 31),
+  ('ecc', 'ot', 21, 12),
+  ('sng', 'ot', 22, 8),
+  ('isa', 'ot', 23, 66),
+  ('jer', 'ot', 24, 52),
+  ('lam', 'ot', 25, 5),
+  ('eze', 'ot', 26, 48),
+  ('dan', 'ot', 27, 12),
+  ('hos', 'ot', 28, 14),
+  ('joe', 'ot', 29, 3),
+  ('amo', 'ot', 30, 9),
+  ('oba', 'ot', 31, 1),
+  ('jon', 'ot', 32, 4),
+  ('mic', 'ot', 33, 7),
+  ('nah', 'ot', 34, 3),
+  ('hab', 'ot', 35, 3),
+  ('zep', 'ot', 36, 3),
+  ('hag', 'ot', 37, 2),
+  ('zec', 'ot', 38, 14),
+  ('mal', 'ot', 39, 4),
+  ('mat', 'nt', 40, 28),
+  ('mrk', 'nt', 41, 16),
+  ('luk', 'nt', 42, 24),
+  ('jhn', 'nt', 43, 21),
+  ('act', 'nt', 44, 28),
+  ('rom', 'nt', 45, 16),
+  ('1co', 'nt', 46, 16),
+  ('2co', 'nt', 47, 13),
+  ('gal', 'nt', 48, 6),
+  ('eph', 'nt', 49, 6),
+  ('php', 'nt', 50, 4),
+  ('col', 'nt', 51, 4),
+  ('1th', 'nt', 52, 5),
+  ('2th', 'nt', 53, 3),
+  ('1ti', 'nt', 54, 6),
+  ('2ti', 'nt', 55, 4),
+  ('tit', 'nt', 56, 3),
+  ('phm', 'nt', 57, 1),
+  ('heb', 'nt', 58, 13),
+  ('jas', 'nt', 59, 5),
+  ('1pe', 'nt', 60, 5),
+  ('2pe', 'nt', 61, 3),
+  ('1jn', 'nt', 62, 5),
+  ('2jn', 'nt', 63, 1),
+  ('3jn', 'nt', 64, 1),
+  ('jud', 'nt', 65, 1),
+  ('rev', 'nt', 66, 22)
+on conflict (code) do update set testament = excluded.testament, sort_order = excluded.sort_order, chapter_count = excluded.chapter_count;
+
+insert into public.reading_plan_days (plan_id, day_number, readings) values
+  ('year', 1, '[{"book":"gen","chapter":1},{"book":"gen","chapter":2},{"book":"gen","chapter":3},{"book":"gen","chapter":4}]'::jsonb),
+  ('year', 2, '[{"book":"gen","chapter":5},{"book":"gen","chapter":6},{"book":"gen","chapter":7}]'::jsonb),
+  ('year', 3, '[{"book":"gen","chapter":8},{"book":"gen","chapter":9},{"book":"gen","chapter":10}]'::jsonb),
+  ('year', 4, '[{"book":"gen","chapter":11},{"book":"gen","chapter":12},{"book":"gen","chapter":13},{"book":"gen","chapter":14}]'::jsonb),
+  ('year', 5, '[{"book":"gen","chapter":15},{"book":"gen","chapter":16},{"book":"gen","chapter":17}]'::jsonb),
+  ('year', 6, '[{"book":"gen","chapter":18},{"book":"gen","chapter":19},{"book":"gen","chapter":20}]'::jsonb),
+  ('year', 7, '[{"book":"gen","chapter":21},{"book":"gen","chapter":22},{"book":"gen","chapter":23}]'::jsonb),
+  ('year', 8, '[{"book":"gen","chapter":24},{"book":"gen","chapter":25},{"book":"gen","chapter":26},{"book":"gen","chapter":27}]'::jsonb),
+  ('year', 9, '[{"book":"gen","chapter":28},{"book":"gen","chapter":29},{"book":"gen","chapter":30}]'::jsonb),
+  ('year', 10, '[{"book":"gen","chapter":31},{"book":"gen","chapter":32},{"book":"gen","chapter":33}]'::jsonb),
+  ('year', 11, '[{"book":"gen","chapter":34},{"book":"gen","chapter":35},{"book":"gen","chapter":36}]'::jsonb),
+  ('year', 12, '[{"book":"gen","chapter":37},{"book":"gen","chapter":38},{"book":"gen","chapter":39},{"book":"gen","chapter":40}]'::jsonb),
+  ('year', 13, '[{"book":"gen","chapter":41},{"book":"gen","chapter":42},{"book":"gen","chapter":43}]'::jsonb),
+  ('year', 14, '[{"book":"gen","chapter":44},{"book":"gen","chapter":45},{"book":"gen","chapter":46}]'::jsonb),
+  ('year', 15, '[{"book":"gen","chapter":47},{"book":"gen","chapter":48},{"book":"gen","chapter":49}]'::jsonb),
+  ('year', 16, '[{"book":"gen","chapter":50},{"book":"exo","chapter":1},{"book":"exo","chapter":2},{"book":"exo","chapter":3}]'::jsonb),
+  ('year', 17, '[{"book":"exo","chapter":4},{"book":"exo","chapter":5},{"book":"exo","chapter":6}]'::jsonb),
+  ('year', 18, '[{"book":"exo","chapter":7},{"book":"exo","chapter":8},{"book":"exo","chapter":9}]'::jsonb),
+  ('year', 19, '[{"book":"exo","chapter":10},{"book":"exo","chapter":11},{"book":"exo","chapter":12}]'::jsonb),
+  ('year', 20, '[{"book":"exo","chapter":13},{"book":"exo","chapter":14},{"book":"exo","chapter":15},{"book":"exo","chapter":16}]'::jsonb),
+  ('year', 21, '[{"book":"exo","chapter":17},{"book":"exo","chapter":18},{"book":"exo","chapter":19}]'::jsonb),
+  ('year', 22, '[{"book":"exo","chapter":20},{"book":"exo","chapter":21},{"book":"exo","chapter":22}]'::jsonb),
+  ('year', 23, '[{"book":"exo","chapter":23},{"book":"exo","chapter":24},{"book":"exo","chapter":25}]'::jsonb),
+  ('year', 24, '[{"book":"exo","chapter":26},{"book":"exo","chapter":27},{"book":"exo","chapter":28},{"book":"exo","chapter":29}]'::jsonb),
+  ('year', 25, '[{"book":"exo","chapter":30},{"book":"exo","chapter":31},{"book":"exo","chapter":32}]'::jsonb),
+  ('year', 26, '[{"book":"exo","chapter":33},{"book":"exo","chapter":34},{"book":"exo","chapter":35}]'::jsonb),
+  ('year', 27, '[{"book":"exo","chapter":36},{"book":"exo","chapter":37},{"book":"exo","chapter":38}]'::jsonb),
+  ('year', 28, '[{"book":"exo","chapter":39},{"book":"exo","chapter":40},{"book":"lev","chapter":1},{"book":"lev","chapter":2}]'::jsonb),
+  ('year', 29, '[{"book":"lev","chapter":3},{"book":"lev","chapter":4},{"book":"lev","chapter":5}]'::jsonb),
+  ('year', 30, '[{"book":"lev","chapter":6},{"book":"lev","chapter":7},{"book":"lev","chapter":8}]'::jsonb),
+  ('year', 31, '[{"book":"lev","chapter":9},{"book":"lev","chapter":10},{"book":"lev","chapter":11}]'::jsonb),
+  ('year', 32, '[{"book":"lev","chapter":12},{"book":"lev","chapter":13},{"book":"lev","chapter":14},{"book":"lev","chapter":15}]'::jsonb),
+  ('year', 33, '[{"book":"lev","chapter":16},{"book":"lev","chapter":17},{"book":"lev","chapter":18}]'::jsonb),
+  ('year', 34, '[{"book":"lev","chapter":19},{"book":"lev","chapter":20},{"book":"lev","chapter":21}]'::jsonb),
+  ('year', 35, '[{"book":"lev","chapter":22},{"book":"lev","chapter":23},{"book":"lev","chapter":24},{"book":"lev","chapter":25}]'::jsonb),
+  ('year', 36, '[{"book":"lev","chapter":26},{"book":"lev","chapter":27},{"book":"num","chapter":1}]'::jsonb),
+  ('year', 37, '[{"book":"num","chapter":2},{"book":"num","chapter":3},{"book":"num","chapter":4}]'::jsonb),
+  ('year', 38, '[{"book":"num","chapter":5},{"book":"num","chapter":6},{"book":"num","chapter":7}]'::jsonb),
+  ('year', 39, '[{"book":"num","chapter":8},{"book":"num","chapter":9},{"book":"num","chapter":10},{"book":"num","chapter":11}]'::jsonb),
+  ('year', 40, '[{"book":"num","chapter":12},{"book":"num","chapter":13},{"book":"num","chapter":14}]'::jsonb),
+  ('year', 41, '[{"book":"num","chapter":15},{"book":"num","chapter":16},{"book":"num","chapter":17}]'::jsonb),
+  ('year', 42, '[{"book":"num","chapter":18},{"book":"num","chapter":19},{"book":"num","chapter":20}]'::jsonb),
+  ('year', 43, '[{"book":"num","chapter":21},{"book":"num","chapter":22},{"book":"num","chapter":23},{"book":"num","chapter":24}]'::jsonb),
+  ('year', 44, '[{"book":"num","chapter":25},{"book":"num","chapter":26},{"book":"num","chapter":27}]'::jsonb),
+  ('year', 45, '[{"book":"num","chapter":28},{"book":"num","chapter":29},{"book":"num","chapter":30}]'::jsonb),
+  ('year', 46, '[{"book":"num","chapter":31},{"book":"num","chapter":32},{"book":"num","chapter":33}]'::jsonb),
+  ('year', 47, '[{"book":"num","chapter":34},{"book":"num","chapter":35},{"book":"num","chapter":36},{"book":"deu","chapter":1}]'::jsonb),
+  ('year', 48, '[{"book":"deu","chapter":2},{"book":"deu","chapter":3},{"book":"deu","chapter":4}]'::jsonb),
+  ('year', 49, '[{"book":"deu","chapter":5},{"book":"deu","chapter":6},{"book":"deu","chapter":7}]'::jsonb),
+  ('year', 50, '[{"book":"deu","chapter":8},{"book":"deu","chapter":9},{"book":"deu","chapter":10}]'::jsonb),
+  ('year', 51, '[{"book":"deu","chapter":11},{"book":"deu","chapter":12},{"book":"deu","chapter":13},{"book":"deu","chapter":14}]'::jsonb),
+  ('year', 52, '[{"book":"deu","chapter":15},{"book":"deu","chapter":16},{"book":"deu","chapter":17}]'::jsonb),
+  ('year', 53, '[{"book":"deu","chapter":18},{"book":"deu","chapter":19},{"book":"deu","chapter":20}]'::jsonb),
+  ('year', 54, '[{"book":"deu","chapter":21},{"book":"deu","chapter":22},{"book":"deu","chapter":23}]'::jsonb),
+  ('year', 55, '[{"book":"deu","chapter":24},{"book":"deu","chapter":25},{"book":"deu","chapter":26},{"book":"deu","chapter":27}]'::jsonb),
+  ('year', 56, '[{"book":"deu","chapter":28},{"book":"deu","chapter":29},{"book":"deu","chapter":30}]'::jsonb),
+  ('year', 57, '[{"book":"deu","chapter":31},{"book":"deu","chapter":32},{"book":"deu","chapter":33}]'::jsonb),
+  ('year', 58, '[{"book":"deu","chapter":34},{"book":"jos","chapter":1},{"book":"jos","chapter":2}]'::jsonb),
+  ('year', 59, '[{"book":"jos","chapter":3},{"book":"jos","chapter":4},{"book":"jos","chapter":5},{"book":"jos","chapter":6}]'::jsonb),
+  ('year', 60, '[{"book":"jos","chapter":7},{"book":"jos","chapter":8},{"book":"jos","chapter":9}]'::jsonb),
+  ('year', 61, '[{"book":"jos","chapter":10},{"book":"jos","chapter":11},{"book":"jos","chapter":12}]'::jsonb),
+  ('year', 62, '[{"book":"jos","chapter":13},{"book":"jos","chapter":14},{"book":"jos","chapter":15}]'::jsonb),
+  ('year', 63, '[{"book":"jos","chapter":16},{"book":"jos","chapter":17},{"book":"jos","chapter":18},{"book":"jos","chapter":19}]'::jsonb),
+  ('year', 64, '[{"book":"jos","chapter":20},{"book":"jos","chapter":21},{"book":"jos","chapter":22}]'::jsonb),
+  ('year', 65, '[{"book":"jos","chapter":23},{"book":"jos","chapter":24},{"book":"jdg","chapter":1}]'::jsonb),
+  ('year', 66, '[{"book":"jdg","chapter":2},{"book":"jdg","chapter":3},{"book":"jdg","chapter":4}]'::jsonb),
+  ('year', 67, '[{"book":"jdg","chapter":5},{"book":"jdg","chapter":6},{"book":"jdg","chapter":7},{"book":"jdg","chapter":8}]'::jsonb),
+  ('year', 68, '[{"book":"jdg","chapter":9},{"book":"jdg","chapter":10},{"book":"jdg","chapter":11}]'::jsonb),
+  ('year', 69, '[{"book":"jdg","chapter":12},{"book":"jdg","chapter":13},{"book":"jdg","chapter":14}]'::jsonb),
+  ('year', 70, '[{"book":"jdg","chapter":15},{"book":"jdg","chapter":16},{"book":"jdg","chapter":17},{"book":"jdg","chapter":18}]'::jsonb),
+  ('year', 71, '[{"book":"jdg","chapter":19},{"book":"jdg","chapter":20},{"book":"jdg","chapter":21}]'::jsonb),
+  ('year', 72, '[{"book":"rut","chapter":1},{"book":"rut","chapter":2},{"book":"rut","chapter":3}]'::jsonb),
+  ('year', 73, '[{"book":"rut","chapter":4},{"book":"1sa","chapter":1},{"book":"1sa","chapter":2}]'::jsonb),
+  ('year', 74, '[{"book":"1sa","chapter":3},{"book":"1sa","chapter":4},{"book":"1sa","chapter":5},{"book":"1sa","chapter":6}]'::jsonb),
+  ('year', 75, '[{"book":"1sa","chapter":7},{"book":"1sa","chapter":8},{"book":"1sa","chapter":9}]'::jsonb),
+  ('year', 76, '[{"book":"1sa","chapter":10},{"book":"1sa","chapter":11},{"book":"1sa","chapter":12}]'::jsonb),
+  ('year', 77, '[{"book":"1sa","chapter":13},{"book":"1sa","chapter":14},{"book":"1sa","chapter":15}]'::jsonb),
+  ('year', 78, '[{"book":"1sa","chapter":16},{"book":"1sa","chapter":17},{"book":"1sa","chapter":18},{"book":"1sa","chapter":19}]'::jsonb),
+  ('year', 79, '[{"book":"1sa","chapter":20},{"book":"1sa","chapter":21},{"book":"1sa","chapter":22}]'::jsonb),
+  ('year', 80, '[{"book":"1sa","chapter":23},{"book":"1sa","chapter":24},{"book":"1sa","chapter":25}]'::jsonb),
+  ('year', 81, '[{"book":"1sa","chapter":26},{"book":"1sa","chapter":27},{"book":"1sa","chapter":28}]'::jsonb),
+  ('year', 82, '[{"book":"1sa","chapter":29},{"book":"1sa","chapter":30},{"book":"1sa","chapter":31},{"book":"2sa","chapter":1}]'::jsonb),
+  ('year', 83, '[{"book":"2sa","chapter":2},{"book":"2sa","chapter":3},{"book":"2sa","chapter":4}]'::jsonb),
+  ('year', 84, '[{"book":"2sa","chapter":5},{"book":"2sa","chapter":6},{"book":"2sa","chapter":7}]'::jsonb),
+  ('year', 85, '[{"book":"2sa","chapter":8},{"book":"2sa","chapter":9},{"book":"2sa","chapter":10}]'::jsonb),
+  ('year', 86, '[{"book":"2sa","chapter":11},{"book":"2sa","chapter":12},{"book":"2sa","chapter":13},{"book":"2sa","chapter":14}]'::jsonb),
+  ('year', 87, '[{"book":"2sa","chapter":15},{"book":"2sa","chapter":16},{"book":"2sa","chapter":17}]'::jsonb),
+  ('year', 88, '[{"book":"2sa","chapter":18},{"book":"2sa","chapter":19},{"book":"2sa","chapter":20}]'::jsonb),
+  ('year', 89, '[{"book":"2sa","chapter":21},{"book":"2sa","chapter":22},{"book":"2sa","chapter":23}]'::jsonb),
+  ('year', 90, '[{"book":"2sa","chapter":24},{"book":"1ki","chapter":1},{"book":"1ki","chapter":2},{"book":"1ki","chapter":3}]'::jsonb),
+  ('year', 91, '[{"book":"1ki","chapter":4},{"book":"1ki","chapter":5},{"book":"1ki","chapter":6}]'::jsonb),
+  ('year', 92, '[{"book":"1ki","chapter":7},{"book":"1ki","chapter":8},{"book":"1ki","chapter":9}]'::jsonb),
+  ('year', 93, '[{"book":"1ki","chapter":10},{"book":"1ki","chapter":11},{"book":"1ki","chapter":12}]'::jsonb),
+  ('year', 94, '[{"book":"1ki","chapter":13},{"book":"1ki","chapter":14},{"book":"1ki","chapter":15},{"book":"1ki","chapter":16}]'::jsonb),
+  ('year', 95, '[{"book":"1ki","chapter":17},{"book":"1ki","chapter":18},{"book":"1ki","chapter":19}]'::jsonb),
+  ('year', 96, '[{"book":"1ki","chapter":20},{"book":"1ki","chapter":21},{"book":"1ki","chapter":22}]'::jsonb),
+  ('year', 97, '[{"book":"2ki","chapter":1},{"book":"2ki","chapter":2},{"book":"2ki","chapter":3}]'::jsonb),
+  ('year', 98, '[{"book":"2ki","chapter":4},{"book":"2ki","chapter":5},{"book":"2ki","chapter":6},{"book":"2ki","chapter":7}]'::jsonb),
+  ('year', 99, '[{"book":"2ki","chapter":8},{"book":"2ki","chapter":9},{"book":"2ki","chapter":10}]'::jsonb),
+  ('year', 100, '[{"book":"2ki","chapter":11},{"book":"2ki","chapter":12},{"book":"2ki","chapter":13}]'::jsonb),
+  ('year', 101, '[{"book":"2ki","chapter":14},{"book":"2ki","chapter":15},{"book":"2ki","chapter":16},{"book":"2ki","chapter":17}]'::jsonb),
+  ('year', 102, '[{"book":"2ki","chapter":18},{"book":"2ki","chapter":19},{"book":"2ki","chapter":20}]'::jsonb),
+  ('year', 103, '[{"book":"2ki","chapter":21},{"book":"2ki","chapter":22},{"book":"2ki","chapter":23}]'::jsonb),
+  ('year', 104, '[{"book":"2ki","chapter":24},{"book":"2ki","chapter":25},{"book":"1ch","chapter":1}]'::jsonb),
+  ('year', 105, '[{"book":"1ch","chapter":2},{"book":"1ch","chapter":3},{"book":"1ch","chapter":4},{"book":"1ch","chapter":5}]'::jsonb),
+  ('year', 106, '[{"book":"1ch","chapter":6},{"book":"1ch","chapter":7},{"book":"1ch","chapter":8}]'::jsonb),
+  ('year', 107, '[{"book":"1ch","chapter":9},{"book":"1ch","chapter":10},{"book":"1ch","chapter":11}]'::jsonb),
+  ('year', 108, '[{"book":"1ch","chapter":12},{"book":"1ch","chapter":13},{"book":"1ch","chapter":14}]'::jsonb),
+  ('year', 109, '[{"book":"1ch","chapter":15},{"book":"1ch","chapter":16},{"book":"1ch","chapter":17},{"book":"1ch","chapter":18}]'::jsonb),
+  ('year', 110, '[{"book":"1ch","chapter":19},{"book":"1ch","chapter":20},{"book":"1ch","chapter":21}]'::jsonb),
+  ('year', 111, '[{"book":"1ch","chapter":22},{"book":"1ch","chapter":23},{"book":"1ch","chapter":24}]'::jsonb),
+  ('year', 112, '[{"book":"1ch","chapter":25},{"book":"1ch","chapter":26},{"book":"1ch","chapter":27}]'::jsonb),
+  ('year', 113, '[{"book":"1ch","chapter":28},{"book":"1ch","chapter":29},{"book":"2ch","chapter":1},{"book":"2ch","chapter":2}]'::jsonb),
+  ('year', 114, '[{"book":"2ch","chapter":3},{"book":"2ch","chapter":4},{"book":"2ch","chapter":5}]'::jsonb),
+  ('year', 115, '[{"book":"2ch","chapter":6},{"book":"2ch","chapter":7},{"book":"2ch","chapter":8}]'::jsonb),
+  ('year', 116, '[{"book":"2ch","chapter":9},{"book":"2ch","chapter":10},{"book":"2ch","chapter":11}]'::jsonb),
+  ('year', 117, '[{"book":"2ch","chapter":12},{"book":"2ch","chapter":13},{"book":"2ch","chapter":14},{"book":"2ch","chapter":15}]'::jsonb),
+  ('year', 118, '[{"book":"2ch","chapter":16},{"book":"2ch","chapter":17},{"book":"2ch","chapter":18}]'::jsonb),
+  ('year', 119, '[{"book":"2ch","chapter":19},{"book":"2ch","chapter":20},{"book":"2ch","chapter":21}]'::jsonb),
+  ('year', 120, '[{"book":"2ch","chapter":22},{"book":"2ch","chapter":23},{"book":"2ch","chapter":24}]'::jsonb),
+  ('year', 121, '[{"book":"2ch","chapter":25},{"book":"2ch","chapter":26},{"book":"2ch","chapter":27},{"book":"2ch","chapter":28}]'::jsonb),
+  ('year', 122, '[{"book":"2ch","chapter":29},{"book":"2ch","chapter":30},{"book":"2ch","chapter":31}]'::jsonb),
+  ('year', 123, '[{"book":"2ch","chapter":32},{"book":"2ch","chapter":33},{"book":"2ch","chapter":34}]'::jsonb),
+  ('year', 124, '[{"book":"2ch","chapter":35},{"book":"2ch","chapter":36},{"book":"ezr","chapter":1}]'::jsonb),
+  ('year', 125, '[{"book":"ezr","chapter":2},{"book":"ezr","chapter":3},{"book":"ezr","chapter":4},{"book":"ezr","chapter":5}]'::jsonb),
+  ('year', 126, '[{"book":"ezr","chapter":6},{"book":"ezr","chapter":7},{"book":"ezr","chapter":8}]'::jsonb),
+  ('year', 127, '[{"book":"ezr","chapter":9},{"book":"ezr","chapter":10},{"book":"neh","chapter":1}]'::jsonb),
+  ('year', 128, '[{"book":"neh","chapter":2},{"book":"neh","chapter":3},{"book":"neh","chapter":4}]'::jsonb),
+  ('year', 129, '[{"book":"neh","chapter":5},{"book":"neh","chapter":6},{"book":"neh","chapter":7},{"book":"neh","chapter":8}]'::jsonb),
+  ('year', 130, '[{"book":"neh","chapter":9},{"book":"neh","chapter":10},{"book":"neh","chapter":11}]'::jsonb),
+  ('year', 131, '[{"book":"neh","chapter":12},{"book":"neh","chapter":13},{"book":"est","chapter":1}]'::jsonb),
+  ('year', 132, '[{"book":"est","chapter":2},{"book":"est","chapter":3},{"book":"est","chapter":4}]'::jsonb),
+  ('year', 133, '[{"book":"est","chapter":5},{"book":"est","chapter":6},{"book":"est","chapter":7},{"book":"est","chapter":8}]'::jsonb),
+  ('year', 134, '[{"book":"est","chapter":9},{"book":"est","chapter":10},{"book":"job","chapter":1}]'::jsonb),
+  ('year', 135, '[{"book":"job","chapter":2},{"book":"job","chapter":3},{"book":"job","chapter":4}]'::jsonb),
+  ('year', 136, '[{"book":"job","chapter":5},{"book":"job","chapter":6},{"book":"job","chapter":7},{"book":"job","chapter":8}]'::jsonb),
+  ('year', 137, '[{"book":"job","chapter":9},{"book":"job","chapter":10},{"book":"job","chapter":11}]'::jsonb),
+  ('year', 138, '[{"book":"job","chapter":12},{"book":"job","chapter":13},{"book":"job","chapter":14}]'::jsonb),
+  ('year', 139, '[{"book":"job","chapter":15},{"book":"job","chapter":16},{"book":"job","chapter":17}]'::jsonb),
+  ('year', 140, '[{"book":"job","chapter":18},{"book":"job","chapter":19},{"book":"job","chapter":20},{"book":"job","chapter":21}]'::jsonb),
+  ('year', 141, '[{"book":"job","chapter":22},{"book":"job","chapter":23},{"book":"job","chapter":24}]'::jsonb),
+  ('year', 142, '[{"book":"job","chapter":25},{"book":"job","chapter":26},{"book":"job","chapter":27}]'::jsonb),
+  ('year', 143, '[{"book":"job","chapter":28},{"book":"job","chapter":29},{"book":"job","chapter":30}]'::jsonb),
+  ('year', 144, '[{"book":"job","chapter":31},{"book":"job","chapter":32},{"book":"job","chapter":33},{"book":"job","chapter":34}]'::jsonb),
+  ('year', 145, '[{"book":"job","chapter":35},{"book":"job","chapter":36},{"book":"job","chapter":37}]'::jsonb),
+  ('year', 146, '[{"book":"job","chapter":38},{"book":"job","chapter":39},{"book":"job","chapter":40}]'::jsonb),
+  ('year', 147, '[{"book":"job","chapter":41},{"book":"job","chapter":42},{"book":"psa","chapter":1}]'::jsonb),
+  ('year', 148, '[{"book":"psa","chapter":2},{"book":"psa","chapter":3},{"book":"psa","chapter":4},{"book":"psa","chapter":5}]'::jsonb),
+  ('year', 149, '[{"book":"psa","chapter":6},{"book":"psa","chapter":7},{"book":"psa","chapter":8}]'::jsonb),
+  ('year', 150, '[{"book":"psa","chapter":9},{"book":"psa","chapter":10},{"book":"psa","chapter":11}]'::jsonb),
+  ('year', 151, '[{"book":"psa","chapter":12},{"book":"psa","chapter":13},{"book":"psa","chapter":14}]'::jsonb),
+  ('year', 152, '[{"book":"psa","chapter":15},{"book":"psa","chapter":16},{"book":"psa","chapter":17},{"book":"psa","chapter":18}]'::jsonb),
+  ('year', 153, '[{"book":"psa","chapter":19},{"book":"psa","chapter":20},{"book":"psa","chapter":21}]'::jsonb),
+  ('year', 154, '[{"book":"psa","chapter":22},{"book":"psa","chapter":23},{"book":"psa","chapter":24}]'::jsonb),
+  ('year', 155, '[{"book":"psa","chapter":25},{"book":"psa","chapter":26},{"book":"psa","chapter":27}]'::jsonb),
+  ('year', 156, '[{"book":"psa","chapter":28},{"book":"psa","chapter":29},{"book":"psa","chapter":30},{"book":"psa","chapter":31}]'::jsonb),
+  ('year', 157, '[{"book":"psa","chapter":32},{"book":"psa","chapter":33},{"book":"psa","chapter":34}]'::jsonb),
+  ('year', 158, '[{"book":"psa","chapter":35},{"book":"psa","chapter":36},{"book":"psa","chapter":37}]'::jsonb),
+  ('year', 159, '[{"book":"psa","chapter":38},{"book":"psa","chapter":39},{"book":"psa","chapter":40}]'::jsonb),
+  ('year', 160, '[{"book":"psa","chapter":41},{"book":"psa","chapter":42},{"book":"psa","chapter":43},{"book":"psa","chapter":44}]'::jsonb),
+  ('year', 161, '[{"book":"psa","chapter":45},{"book":"psa","chapter":46},{"book":"psa","chapter":47}]'::jsonb),
+  ('year', 162, '[{"book":"psa","chapter":48},{"book":"psa","chapter":49},{"book":"psa","chapter":50}]'::jsonb),
+  ('year', 163, '[{"book":"psa","chapter":51},{"book":"psa","chapter":52},{"book":"psa","chapter":53}]'::jsonb),
+  ('year', 164, '[{"book":"psa","chapter":54},{"book":"psa","chapter":55},{"book":"psa","chapter":56},{"book":"psa","chapter":57}]'::jsonb),
+  ('year', 165, '[{"book":"psa","chapter":58},{"book":"psa","chapter":59},{"book":"psa","chapter":60}]'::jsonb),
+  ('year', 166, '[{"book":"psa","chapter":61},{"book":"psa","chapter":62},{"book":"psa","chapter":63}]'::jsonb),
+  ('year', 167, '[{"book":"psa","chapter":64},{"book":"psa","chapter":65},{"book":"psa","chapter":66},{"book":"psa","chapter":67}]'::jsonb),
+  ('year', 168, '[{"book":"psa","chapter":68},{"book":"psa","chapter":69},{"book":"psa","chapter":70}]'::jsonb),
+  ('year', 169, '[{"book":"psa","chapter":71},{"book":"psa","chapter":72},{"book":"psa","chapter":73}]'::jsonb),
+  ('year', 170, '[{"book":"psa","chapter":74},{"book":"psa","chapter":75},{"book":"psa","chapter":76}]'::jsonb),
+  ('year', 171, '[{"book":"psa","chapter":77},{"book":"psa","chapter":78},{"book":"psa","chapter":79},{"book":"psa","chapter":80}]'::jsonb),
+  ('year', 172, '[{"book":"psa","chapter":81},{"book":"psa","chapter":82},{"book":"psa","chapter":83}]'::jsonb),
+  ('year', 173, '[{"book":"psa","chapter":84},{"book":"psa","chapter":85},{"book":"psa","chapter":86}]'::jsonb),
+  ('year', 174, '[{"book":"psa","chapter":87},{"book":"psa","chapter":88},{"book":"psa","chapter":89}]'::jsonb),
+  ('year', 175, '[{"book":"psa","chapter":90},{"book":"psa","chapter":91},{"book":"psa","chapter":92},{"book":"psa","chapter":93}]'::jsonb),
+  ('year', 176, '[{"book":"psa","chapter":94},{"book":"psa","chapter":95},{"book":"psa","chapter":96}]'::jsonb),
+  ('year', 177, '[{"book":"psa","chapter":97},{"book":"psa","chapter":98},{"book":"psa","chapter":99}]'::jsonb),
+  ('year', 178, '[{"book":"psa","chapter":100},{"book":"psa","chapter":101},{"book":"psa","chapter":102}]'::jsonb),
+  ('year', 179, '[{"book":"psa","chapter":103},{"book":"psa","chapter":104},{"book":"psa","chapter":105},{"book":"psa","chapter":106}]'::jsonb),
+  ('year', 180, '[{"book":"psa","chapter":107},{"book":"psa","chapter":108},{"book":"psa","chapter":109}]'::jsonb),
+  ('year', 181, '[{"book":"psa","chapter":110},{"book":"psa","chapter":111},{"book":"psa","chapter":112}]'::jsonb),
+  ('year', 182, '[{"book":"psa","chapter":113},{"book":"psa","chapter":114},{"book":"psa","chapter":115}]'::jsonb),
+  ('year', 183, '[{"book":"psa","chapter":116},{"book":"psa","chapter":117},{"book":"psa","chapter":118},{"book":"psa","chapter":119}]'::jsonb),
+  ('year', 184, '[{"book":"psa","chapter":120},{"book":"psa","chapter":121},{"book":"psa","chapter":122}]'::jsonb),
+  ('year', 185, '[{"book":"psa","chapter":123},{"book":"psa","chapter":124},{"book":"psa","chapter":125}]'::jsonb),
+  ('year', 186, '[{"book":"psa","chapter":126},{"book":"psa","chapter":127},{"book":"psa","chapter":128}]'::jsonb),
+  ('year', 187, '[{"book":"psa","chapter":129},{"book":"psa","chapter":130},{"book":"psa","chapter":131},{"book":"psa","chapter":132}]'::jsonb),
+  ('year', 188, '[{"book":"psa","chapter":133},{"book":"psa","chapter":134},{"book":"psa","chapter":135}]'::jsonb),
+  ('year', 189, '[{"book":"psa","chapter":136},{"book":"psa","chapter":137},{"book":"psa","chapter":138}]'::jsonb),
+  ('year', 190, '[{"book":"psa","chapter":139},{"book":"psa","chapter":140},{"book":"psa","chapter":141}]'::jsonb),
+  ('year', 191, '[{"book":"psa","chapter":142},{"book":"psa","chapter":143},{"book":"psa","chapter":144},{"book":"psa","chapter":145}]'::jsonb),
+  ('year', 192, '[{"book":"psa","chapter":146},{"book":"psa","chapter":147},{"book":"psa","chapter":148}]'::jsonb),
+  ('year', 193, '[{"book":"psa","chapter":149},{"book":"psa","chapter":150},{"book":"pro","chapter":1}]'::jsonb),
+  ('year', 194, '[{"book":"pro","chapter":2},{"book":"pro","chapter":3},{"book":"pro","chapter":4}]'::jsonb),
+  ('year', 195, '[{"book":"pro","chapter":5},{"book":"pro","chapter":6},{"book":"pro","chapter":7},{"book":"pro","chapter":8}]'::jsonb),
+  ('year', 196, '[{"book":"pro","chapter":9},{"book":"pro","chapter":10},{"book":"pro","chapter":11}]'::jsonb),
+  ('year', 197, '[{"book":"pro","chapter":12},{"book":"pro","chapter":13},{"book":"pro","chapter":14}]'::jsonb),
+  ('year', 198, '[{"book":"pro","chapter":15},{"book":"pro","chapter":16},{"book":"pro","chapter":17}]'::jsonb),
+  ('year', 199, '[{"book":"pro","chapter":18},{"book":"pro","chapter":19},{"book":"pro","chapter":20},{"book":"pro","chapter":21}]'::jsonb),
+  ('year', 200, '[{"book":"pro","chapter":22},{"book":"pro","chapter":23},{"book":"pro","chapter":24}]'::jsonb),
+  ('year', 201, '[{"book":"pro","chapter":25},{"book":"pro","chapter":26},{"book":"pro","chapter":27}]'::jsonb),
+  ('year', 202, '[{"book":"pro","chapter":28},{"book":"pro","chapter":29},{"book":"pro","chapter":30},{"book":"pro","chapter":31}]'::jsonb),
+  ('year', 203, '[{"book":"ecc","chapter":1},{"book":"ecc","chapter":2},{"book":"ecc","chapter":3}]'::jsonb),
+  ('year', 204, '[{"book":"ecc","chapter":4},{"book":"ecc","chapter":5},{"book":"ecc","chapter":6}]'::jsonb),
+  ('year', 205, '[{"book":"ecc","chapter":7},{"book":"ecc","chapter":8},{"book":"ecc","chapter":9}]'::jsonb),
+  ('year', 206, '[{"book":"ecc","chapter":10},{"book":"ecc","chapter":11},{"book":"ecc","chapter":12},{"book":"sng","chapter":1}]'::jsonb),
+  ('year', 207, '[{"book":"sng","chapter":2},{"book":"sng","chapter":3},{"book":"sng","chapter":4}]'::jsonb),
+  ('year', 208, '[{"book":"sng","chapter":5},{"book":"sng","chapter":6},{"book":"sng","chapter":7}]'::jsonb),
+  ('year', 209, '[{"book":"sng","chapter":8},{"book":"isa","chapter":1},{"book":"isa","chapter":2}]'::jsonb),
+  ('year', 210, '[{"book":"isa","chapter":3},{"book":"isa","chapter":4},{"book":"isa","chapter":5},{"book":"isa","chapter":6}]'::jsonb),
+  ('year', 211, '[{"book":"isa","chapter":7},{"book":"isa","chapter":8},{"book":"isa","chapter":9}]'::jsonb),
+  ('year', 212, '[{"book":"isa","chapter":10},{"book":"isa","chapter":11},{"book":"isa","chapter":12}]'::jsonb),
+  ('year', 213, '[{"book":"isa","chapter":13},{"book":"isa","chapter":14},{"book":"isa","chapter":15}]'::jsonb),
+  ('year', 214, '[{"book":"isa","chapter":16},{"book":"isa","chapter":17},{"book":"isa","chapter":18},{"book":"isa","chapter":19}]'::jsonb),
+  ('year', 215, '[{"book":"isa","chapter":20},{"book":"isa","chapter":21},{"book":"isa","chapter":22}]'::jsonb),
+  ('year', 216, '[{"book":"isa","chapter":23},{"book":"isa","chapter":24},{"book":"isa","chapter":25}]'::jsonb),
+  ('year', 217, '[{"book":"isa","chapter":26},{"book":"isa","chapter":27},{"book":"isa","chapter":28}]'::jsonb),
+  ('year', 218, '[{"book":"isa","chapter":29},{"book":"isa","chapter":30},{"book":"isa","chapter":31},{"book":"isa","chapter":32}]'::jsonb),
+  ('year', 219, '[{"book":"isa","chapter":33},{"book":"isa","chapter":34},{"book":"isa","chapter":35}]'::jsonb),
+  ('year', 220, '[{"book":"isa","chapter":36},{"book":"isa","chapter":37},{"book":"isa","chapter":38}]'::jsonb),
+  ('year', 221, '[{"book":"isa","chapter":39},{"book":"isa","chapter":40},{"book":"isa","chapter":41}]'::jsonb),
+  ('year', 222, '[{"book":"isa","chapter":42},{"book":"isa","chapter":43},{"book":"isa","chapter":44},{"book":"isa","chapter":45}]'::jsonb),
+  ('year', 223, '[{"book":"isa","chapter":46},{"book":"isa","chapter":47},{"book":"isa","chapter":48}]'::jsonb),
+  ('year', 224, '[{"book":"isa","chapter":49},{"book":"isa","chapter":50},{"book":"isa","chapter":51}]'::jsonb),
+  ('year', 225, '[{"book":"isa","chapter":52},{"book":"isa","chapter":53},{"book":"isa","chapter":54}]'::jsonb),
+  ('year', 226, '[{"book":"isa","chapter":55},{"book":"isa","chapter":56},{"book":"isa","chapter":57},{"book":"isa","chapter":58}]'::jsonb),
+  ('year', 227, '[{"book":"isa","chapter":59},{"book":"isa","chapter":60},{"book":"isa","chapter":61}]'::jsonb),
+  ('year', 228, '[{"book":"isa","chapter":62},{"book":"isa","chapter":63},{"book":"isa","chapter":64}]'::jsonb),
+  ('year', 229, '[{"book":"isa","chapter":65},{"book":"isa","chapter":66},{"book":"jer","chapter":1}]'::jsonb),
+  ('year', 230, '[{"book":"jer","chapter":2},{"book":"jer","chapter":3},{"book":"jer","chapter":4},{"book":"jer","chapter":5}]'::jsonb),
+  ('year', 231, '[{"book":"jer","chapter":6},{"book":"jer","chapter":7},{"book":"jer","chapter":8}]'::jsonb),
+  ('year', 232, '[{"book":"jer","chapter":9},{"book":"jer","chapter":10},{"book":"jer","chapter":11}]'::jsonb),
+  ('year', 233, '[{"book":"jer","chapter":12},{"book":"jer","chapter":13},{"book":"jer","chapter":14},{"book":"jer","chapter":15}]'::jsonb),
+  ('year', 234, '[{"book":"jer","chapter":16},{"book":"jer","chapter":17},{"book":"jer","chapter":18}]'::jsonb),
+  ('year', 235, '[{"book":"jer","chapter":19},{"book":"jer","chapter":20},{"book":"jer","chapter":21}]'::jsonb),
+  ('year', 236, '[{"book":"jer","chapter":22},{"book":"jer","chapter":23},{"book":"jer","chapter":24}]'::jsonb),
+  ('year', 237, '[{"book":"jer","chapter":25},{"book":"jer","chapter":26},{"book":"jer","chapter":27},{"book":"jer","chapter":28}]'::jsonb),
+  ('year', 238, '[{"book":"jer","chapter":29},{"book":"jer","chapter":30},{"book":"jer","chapter":31}]'::jsonb),
+  ('year', 239, '[{"book":"jer","chapter":32},{"book":"jer","chapter":33},{"book":"jer","chapter":34}]'::jsonb),
+  ('year', 240, '[{"book":"jer","chapter":35},{"book":"jer","chapter":36},{"book":"jer","chapter":37}]'::jsonb),
+  ('year', 241, '[{"book":"jer","chapter":38},{"book":"jer","chapter":39},{"book":"jer","chapter":40},{"book":"jer","chapter":41}]'::jsonb),
+  ('year', 242, '[{"book":"jer","chapter":42},{"book":"jer","chapter":43},{"book":"jer","chapter":44}]'::jsonb),
+  ('year', 243, '[{"book":"jer","chapter":45},{"book":"jer","chapter":46},{"book":"jer","chapter":47}]'::jsonb),
+  ('year', 244, '[{"book":"jer","chapter":48},{"book":"jer","chapter":49},{"book":"jer","chapter":50}]'::jsonb),
+  ('year', 245, '[{"book":"jer","chapter":51},{"book":"jer","chapter":52},{"book":"lam","chapter":1},{"book":"lam","chapter":2}]'::jsonb),
+  ('year', 246, '[{"book":"lam","chapter":3},{"book":"lam","chapter":4},{"book":"lam","chapter":5}]'::jsonb),
+  ('year', 247, '[{"book":"eze","chapter":1},{"book":"eze","chapter":2},{"book":"eze","chapter":3}]'::jsonb),
+  ('year', 248, '[{"book":"eze","chapter":4},{"book":"eze","chapter":5},{"book":"eze","chapter":6}]'::jsonb),
+  ('year', 249, '[{"book":"eze","chapter":7},{"book":"eze","chapter":8},{"book":"eze","chapter":9},{"book":"eze","chapter":10}]'::jsonb),
+  ('year', 250, '[{"book":"eze","chapter":11},{"book":"eze","chapter":12},{"book":"eze","chapter":13}]'::jsonb),
+  ('year', 251, '[{"book":"eze","chapter":14},{"book":"eze","chapter":15},{"book":"eze","chapter":16}]'::jsonb),
+  ('year', 252, '[{"book":"eze","chapter":17},{"book":"eze","chapter":18},{"book":"eze","chapter":19}]'::jsonb),
+  ('year', 253, '[{"book":"eze","chapter":20},{"book":"eze","chapter":21},{"book":"eze","chapter":22},{"book":"eze","chapter":23}]'::jsonb),
+  ('year', 254, '[{"book":"eze","chapter":24},{"book":"eze","chapter":25},{"book":"eze","chapter":26}]'::jsonb),
+  ('year', 255, '[{"book":"eze","chapter":27},{"book":"eze","chapter":28},{"book":"eze","chapter":29}]'::jsonb),
+  ('year', 256, '[{"book":"eze","chapter":30},{"book":"eze","chapter":31},{"book":"eze","chapter":32}]'::jsonb),
+  ('year', 257, '[{"book":"eze","chapter":33},{"book":"eze","chapter":34},{"book":"eze","chapter":35},{"book":"eze","chapter":36}]'::jsonb),
+  ('year', 258, '[{"book":"eze","chapter":37},{"book":"eze","chapter":38},{"book":"eze","chapter":39}]'::jsonb),
+  ('year', 259, '[{"book":"eze","chapter":40},{"book":"eze","chapter":41},{"book":"eze","chapter":42}]'::jsonb),
+  ('year', 260, '[{"book":"eze","chapter":43},{"book":"eze","chapter":44},{"book":"eze","chapter":45}]'::jsonb),
+  ('year', 261, '[{"book":"eze","chapter":46},{"book":"eze","chapter":47},{"book":"eze","chapter":48},{"book":"dan","chapter":1}]'::jsonb),
+  ('year', 262, '[{"book":"dan","chapter":2},{"book":"dan","chapter":3},{"book":"dan","chapter":4}]'::jsonb),
+  ('year', 263, '[{"book":"dan","chapter":5},{"book":"dan","chapter":6},{"book":"dan","chapter":7}]'::jsonb),
+  ('year', 264, '[{"book":"dan","chapter":8},{"book":"dan","chapter":9},{"book":"dan","chapter":10}]'::jsonb),
+  ('year', 265, '[{"book":"dan","chapter":11},{"book":"dan","chapter":12},{"book":"hos","chapter":1},{"book":"hos","chapter":2}]'::jsonb),
+  ('year', 266, '[{"book":"hos","chapter":3},{"book":"hos","chapter":4},{"book":"hos","chapter":5}]'::jsonb),
+  ('year', 267, '[{"book":"hos","chapter":6},{"book":"hos","chapter":7},{"book":"hos","chapter":8}]'::jsonb),
+  ('year', 268, '[{"book":"hos","chapter":9},{"book":"hos","chapter":10},{"book":"hos","chapter":11},{"book":"hos","chapter":12}]'::jsonb),
+  ('year', 269, '[{"book":"hos","chapter":13},{"book":"hos","chapter":14},{"book":"joe","chapter":1}]'::jsonb),
+  ('year', 270, '[{"book":"joe","chapter":2},{"book":"joe","chapter":3},{"book":"amo","chapter":1}]'::jsonb),
+  ('year', 271, '[{"book":"amo","chapter":2},{"book":"amo","chapter":3},{"book":"amo","chapter":4}]'::jsonb),
+  ('year', 272, '[{"book":"amo","chapter":5},{"book":"amo","chapter":6},{"book":"amo","chapter":7},{"book":"amo","chapter":8}]'::jsonb),
+  ('year', 273, '[{"book":"amo","chapter":9},{"book":"oba","chapter":1},{"book":"jon","chapter":1}]'::jsonb),
+  ('year', 274, '[{"book":"jon","chapter":2},{"book":"jon","chapter":3},{"book":"jon","chapter":4}]'::jsonb),
+  ('year', 275, '[{"book":"mic","chapter":1},{"book":"mic","chapter":2},{"book":"mic","chapter":3}]'::jsonb),
+  ('year', 276, '[{"book":"mic","chapter":4},{"book":"mic","chapter":5},{"book":"mic","chapter":6},{"book":"mic","chapter":7}]'::jsonb),
+  ('year', 277, '[{"book":"nah","chapter":1},{"book":"nah","chapter":2},{"book":"nah","chapter":3}]'::jsonb),
+  ('year', 278, '[{"book":"hab","chapter":1},{"book":"hab","chapter":2},{"book":"hab","chapter":3}]'::jsonb),
+  ('year', 279, '[{"book":"zep","chapter":1},{"book":"zep","chapter":2},{"book":"zep","chapter":3}]'::jsonb),
+  ('year', 280, '[{"book":"hag","chapter":1},{"book":"hag","chapter":2},{"book":"zec","chapter":1},{"book":"zec","chapter":2}]'::jsonb),
+  ('year', 281, '[{"book":"zec","chapter":3},{"book":"zec","chapter":4},{"book":"zec","chapter":5}]'::jsonb),
+  ('year', 282, '[{"book":"zec","chapter":6},{"book":"zec","chapter":7},{"book":"zec","chapter":8}]'::jsonb),
+  ('year', 283, '[{"book":"zec","chapter":9},{"book":"zec","chapter":10},{"book":"zec","chapter":11}]'::jsonb),
+  ('year', 284, '[{"book":"zec","chapter":12},{"book":"zec","chapter":13},{"book":"zec","chapter":14},{"book":"mal","chapter":1}]'::jsonb),
+  ('year', 285, '[{"book":"mal","chapter":2},{"book":"mal","chapter":3},{"book":"mal","chapter":4}]'::jsonb),
+  ('year', 286, '[{"book":"mat","chapter":1},{"book":"mat","chapter":2},{"book":"mat","chapter":3}]'::jsonb),
+  ('year', 287, '[{"book":"mat","chapter":4},{"book":"mat","chapter":5},{"book":"mat","chapter":6}]'::jsonb),
+  ('year', 288, '[{"book":"mat","chapter":7},{"book":"mat","chapter":8},{"book":"mat","chapter":9},{"book":"mat","chapter":10}]'::jsonb),
+  ('year', 289, '[{"book":"mat","chapter":11},{"book":"mat","chapter":12},{"book":"mat","chapter":13}]'::jsonb),
+  ('year', 290, '[{"book":"mat","chapter":14},{"book":"mat","chapter":15},{"book":"mat","chapter":16}]'::jsonb),
+  ('year', 291, '[{"book":"mat","chapter":17},{"book":"mat","chapter":18},{"book":"mat","chapter":19}]'::jsonb),
+  ('year', 292, '[{"book":"mat","chapter":20},{"book":"mat","chapter":21},{"book":"mat","chapter":22},{"book":"mat","chapter":23}]'::jsonb),
+  ('year', 293, '[{"book":"mat","chapter":24},{"book":"mat","chapter":25},{"book":"mat","chapter":26}]'::jsonb),
+  ('year', 294, '[{"book":"mat","chapter":27},{"book":"mat","chapter":28},{"book":"mrk","chapter":1}]'::jsonb),
+  ('year', 295, '[{"book":"mrk","chapter":2},{"book":"mrk","chapter":3},{"book":"mrk","chapter":4}]'::jsonb),
+  ('year', 296, '[{"book":"mrk","chapter":5},{"book":"mrk","chapter":6},{"book":"mrk","chapter":7},{"book":"mrk","chapter":8}]'::jsonb),
+  ('year', 297, '[{"book":"mrk","chapter":9},{"book":"mrk","chapter":10},{"book":"mrk","chapter":11}]'::jsonb),
+  ('year', 298, '[{"book":"mrk","chapter":12},{"book":"mrk","chapter":13},{"book":"mrk","chapter":14}]'::jsonb),
+  ('year', 299, '[{"book":"mrk","chapter":15},{"book":"mrk","chapter":16},{"book":"luk","chapter":1},{"book":"luk","chapter":2}]'::jsonb),
+  ('year', 300, '[{"book":"luk","chapter":3},{"book":"luk","chapter":4},{"book":"luk","chapter":5}]'::jsonb),
+  ('year', 301, '[{"book":"luk","chapter":6},{"book":"luk","chapter":7},{"book":"luk","chapter":8}]'::jsonb),
+  ('year', 302, '[{"book":"luk","chapter":9},{"book":"luk","chapter":10},{"book":"luk","chapter":11}]'::jsonb),
+  ('year', 303, '[{"book":"luk","chapter":12},{"book":"luk","chapter":13},{"book":"luk","chapter":14},{"book":"luk","chapter":15}]'::jsonb),
+  ('year', 304, '[{"book":"luk","chapter":16},{"book":"luk","chapter":17},{"book":"luk","chapter":18}]'::jsonb),
+  ('year', 305, '[{"book":"luk","chapter":19},{"book":"luk","chapter":20},{"book":"luk","chapter":21}]'::jsonb),
+  ('year', 306, '[{"book":"luk","chapter":22},{"book":"luk","chapter":23},{"book":"luk","chapter":24}]'::jsonb),
+  ('year', 307, '[{"book":"jhn","chapter":1},{"book":"jhn","chapter":2},{"book":"jhn","chapter":3},{"book":"jhn","chapter":4}]'::jsonb),
+  ('year', 308, '[{"book":"jhn","chapter":5},{"book":"jhn","chapter":6},{"book":"jhn","chapter":7}]'::jsonb),
+  ('year', 309, '[{"book":"jhn","chapter":8},{"book":"jhn","chapter":9},{"book":"jhn","chapter":10}]'::jsonb),
+  ('year', 310, '[{"book":"jhn","chapter":11},{"book":"jhn","chapter":12},{"book":"jhn","chapter":13}]'::jsonb),
+  ('year', 311, '[{"book":"jhn","chapter":14},{"book":"jhn","chapter":15},{"book":"jhn","chapter":16},{"book":"jhn","chapter":17}]'::jsonb),
+  ('year', 312, '[{"book":"jhn","chapter":18},{"book":"jhn","chapter":19},{"book":"jhn","chapter":20}]'::jsonb),
+  ('year', 313, '[{"book":"jhn","chapter":21},{"book":"act","chapter":1},{"book":"act","chapter":2}]'::jsonb),
+  ('year', 314, '[{"book":"act","chapter":3},{"book":"act","chapter":4},{"book":"act","chapter":5}]'::jsonb),
+  ('year', 315, '[{"book":"act","chapter":6},{"book":"act","chapter":7},{"book":"act","chapter":8},{"book":"act","chapter":9}]'::jsonb),
+  ('year', 316, '[{"book":"act","chapter":10},{"book":"act","chapter":11},{"book":"act","chapter":12}]'::jsonb),
+  ('year', 317, '[{"book":"act","chapter":13},{"book":"act","chapter":14},{"book":"act","chapter":15}]'::jsonb),
+  ('year', 318, '[{"book":"act","chapter":16},{"book":"act","chapter":17},{"book":"act","chapter":18}]'::jsonb),
+  ('year', 319, '[{"book":"act","chapter":19},{"book":"act","chapter":20},{"book":"act","chapter":21},{"book":"act","chapter":22}]'::jsonb),
+  ('year', 320, '[{"book":"act","chapter":23},{"book":"act","chapter":24},{"book":"act","chapter":25}]'::jsonb),
+  ('year', 321, '[{"book":"act","chapter":26},{"book":"act","chapter":27},{"book":"act","chapter":28}]'::jsonb),
+  ('year', 322, '[{"book":"rom","chapter":1},{"book":"rom","chapter":2},{"book":"rom","chapter":3}]'::jsonb),
+  ('year', 323, '[{"book":"rom","chapter":4},{"book":"rom","chapter":5},{"book":"rom","chapter":6},{"book":"rom","chapter":7}]'::jsonb),
+  ('year', 324, '[{"book":"rom","chapter":8},{"book":"rom","chapter":9},{"book":"rom","chapter":10}]'::jsonb),
+  ('year', 325, '[{"book":"rom","chapter":11},{"book":"rom","chapter":12},{"book":"rom","chapter":13}]'::jsonb),
+  ('year', 326, '[{"book":"rom","chapter":14},{"book":"rom","chapter":15},{"book":"rom","chapter":16}]'::jsonb),
+  ('year', 327, '[{"book":"1co","chapter":1},{"book":"1co","chapter":2},{"book":"1co","chapter":3},{"book":"1co","chapter":4}]'::jsonb),
+  ('year', 328, '[{"book":"1co","chapter":5},{"book":"1co","chapter":6},{"book":"1co","chapter":7}]'::jsonb),
+  ('year', 329, '[{"book":"1co","chapter":8},{"book":"1co","chapter":9},{"book":"1co","chapter":10}]'::jsonb),
+  ('year', 330, '[{"book":"1co","chapter":11},{"book":"1co","chapter":12},{"book":"1co","chapter":13}]'::jsonb),
+  ('year', 331, '[{"book":"1co","chapter":14},{"book":"1co","chapter":15},{"book":"1co","chapter":16},{"book":"2co","chapter":1}]'::jsonb),
+  ('year', 332, '[{"book":"2co","chapter":2},{"book":"2co","chapter":3},{"book":"2co","chapter":4}]'::jsonb),
+  ('year', 333, '[{"book":"2co","chapter":5},{"book":"2co","chapter":6},{"book":"2co","chapter":7}]'::jsonb),
+  ('year', 334, '[{"book":"2co","chapter":8},{"book":"2co","chapter":9},{"book":"2co","chapter":10},{"book":"2co","chapter":11}]'::jsonb),
+  ('year', 335, '[{"book":"2co","chapter":12},{"book":"2co","chapter":13},{"book":"gal","chapter":1}]'::jsonb),
+  ('year', 336, '[{"book":"gal","chapter":2},{"book":"gal","chapter":3},{"book":"gal","chapter":4}]'::jsonb),
+  ('year', 337, '[{"book":"gal","chapter":5},{"book":"gal","chapter":6},{"book":"eph","chapter":1}]'::jsonb),
+  ('year', 338, '[{"book":"eph","chapter":2},{"book":"eph","chapter":3},{"book":"eph","chapter":4},{"book":"eph","chapter":5}]'::jsonb),
+  ('year', 339, '[{"book":"eph","chapter":6},{"book":"php","chapter":1},{"book":"php","chapter":2}]'::jsonb),
+  ('year', 340, '[{"book":"php","chapter":3},{"book":"php","chapter":4},{"book":"col","chapter":1}]'::jsonb),
+  ('year', 341, '[{"book":"col","chapter":2},{"book":"col","chapter":3},{"book":"col","chapter":4}]'::jsonb),
+  ('year', 342, '[{"book":"1th","chapter":1},{"book":"1th","chapter":2},{"book":"1th","chapter":3},{"book":"1th","chapter":4}]'::jsonb),
+  ('year', 343, '[{"book":"1th","chapter":5},{"book":"2th","chapter":1},{"book":"2th","chapter":2}]'::jsonb),
+  ('year', 344, '[{"book":"2th","chapter":3},{"book":"1ti","chapter":1},{"book":"1ti","chapter":2}]'::jsonb),
+  ('year', 345, '[{"book":"1ti","chapter":3},{"book":"1ti","chapter":4},{"book":"1ti","chapter":5}]'::jsonb),
+  ('year', 346, '[{"book":"1ti","chapter":6},{"book":"2ti","chapter":1},{"book":"2ti","chapter":2},{"book":"2ti","chapter":3}]'::jsonb),
+  ('year', 347, '[{"book":"2ti","chapter":4},{"book":"tit","chapter":1},{"book":"tit","chapter":2}]'::jsonb),
+  ('year', 348, '[{"book":"tit","chapter":3},{"book":"phm","chapter":1},{"book":"heb","chapter":1}]'::jsonb),
+  ('year', 349, '[{"book":"heb","chapter":2},{"book":"heb","chapter":3},{"book":"heb","chapter":4}]'::jsonb),
+  ('year', 350, '[{"book":"heb","chapter":5},{"book":"heb","chapter":6},{"book":"heb","chapter":7},{"book":"heb","chapter":8}]'::jsonb),
+  ('year', 351, '[{"book":"heb","chapter":9},{"book":"heb","chapter":10},{"book":"heb","chapter":11}]'::jsonb),
+  ('year', 352, '[{"book":"heb","chapter":12},{"book":"heb","chapter":13},{"book":"jas","chapter":1}]'::jsonb),
+  ('year', 353, '[{"book":"jas","chapter":2},{"book":"jas","chapter":3},{"book":"jas","chapter":4}]'::jsonb),
+  ('year', 354, '[{"book":"jas","chapter":5},{"book":"1pe","chapter":1},{"book":"1pe","chapter":2},{"book":"1pe","chapter":3}]'::jsonb),
+  ('year', 355, '[{"book":"1pe","chapter":4},{"book":"1pe","chapter":5},{"book":"2pe","chapter":1}]'::jsonb),
+  ('year', 356, '[{"book":"2pe","chapter":2},{"book":"2pe","chapter":3},{"book":"1jn","chapter":1}]'::jsonb),
+  ('year', 357, '[{"book":"1jn","chapter":2},{"book":"1jn","chapter":3},{"book":"1jn","chapter":4}]'::jsonb),
+  ('year', 358, '[{"book":"1jn","chapter":5},{"book":"2jn","chapter":1},{"book":"3jn","chapter":1},{"book":"jud","chapter":1}]'::jsonb),
+  ('year', 359, '[{"book":"rev","chapter":1},{"book":"rev","chapter":2},{"book":"rev","chapter":3}]'::jsonb),
+  ('year', 360, '[{"book":"rev","chapter":4},{"book":"rev","chapter":5},{"book":"rev","chapter":6}]'::jsonb),
+  ('year', 361, '[{"book":"rev","chapter":7},{"book":"rev","chapter":8},{"book":"rev","chapter":9}]'::jsonb),
+  ('year', 362, '[{"book":"rev","chapter":10},{"book":"rev","chapter":11},{"book":"rev","chapter":12},{"book":"rev","chapter":13}]'::jsonb),
+  ('year', 363, '[{"book":"rev","chapter":14},{"book":"rev","chapter":15},{"book":"rev","chapter":16}]'::jsonb),
+  ('year', 364, '[{"book":"rev","chapter":17},{"book":"rev","chapter":18},{"book":"rev","chapter":19}]'::jsonb),
+  ('year', 365, '[{"book":"rev","chapter":20},{"book":"rev","chapter":21},{"book":"rev","chapter":22}]'::jsonb)
+on conflict (plan_id, day_number) do update set readings = excluded.readings;
+
+insert into public.reading_plan_days (plan_id, day_number, readings) values
+  ('ninety-day', 1, '[{"book":"mat","chapter":1},{"book":"psa","chapter":1},{"book":"mat","chapter":2},{"book":"psa","chapter":2},{"book":"mat","chapter":3}]'::jsonb),
+  ('ninety-day', 2, '[{"book":"psa","chapter":3},{"book":"mat","chapter":4},{"book":"psa","chapter":4},{"book":"mat","chapter":5},{"book":"psa","chapter":5}]'::jsonb),
+  ('ninety-day', 3, '[{"book":"mat","chapter":6},{"book":"psa","chapter":6},{"book":"mat","chapter":7},{"book":"psa","chapter":7},{"book":"mat","chapter":8}]'::jsonb),
+  ('ninety-day', 4, '[{"book":"psa","chapter":8},{"book":"mat","chapter":9},{"book":"psa","chapter":9},{"book":"mat","chapter":10},{"book":"psa","chapter":10}]'::jsonb),
+  ('ninety-day', 5, '[{"book":"mat","chapter":11},{"book":"psa","chapter":11},{"book":"mat","chapter":12},{"book":"psa","chapter":12},{"book":"mat","chapter":13}]'::jsonb),
+  ('ninety-day', 6, '[{"book":"psa","chapter":13},{"book":"mat","chapter":14},{"book":"psa","chapter":14},{"book":"mat","chapter":15},{"book":"psa","chapter":15}]'::jsonb),
+  ('ninety-day', 7, '[{"book":"mat","chapter":16},{"book":"psa","chapter":16},{"book":"mat","chapter":17},{"book":"psa","chapter":17},{"book":"mat","chapter":18}]'::jsonb),
+  ('ninety-day', 8, '[{"book":"psa","chapter":18},{"book":"mat","chapter":19},{"book":"psa","chapter":19},{"book":"mat","chapter":20},{"book":"psa","chapter":20}]'::jsonb),
+  ('ninety-day', 9, '[{"book":"mat","chapter":21},{"book":"psa","chapter":21},{"book":"mat","chapter":22},{"book":"psa","chapter":22},{"book":"mat","chapter":23}]'::jsonb),
+  ('ninety-day', 10, '[{"book":"psa","chapter":23},{"book":"mat","chapter":24},{"book":"psa","chapter":24},{"book":"mat","chapter":25}]'::jsonb),
+  ('ninety-day', 11, '[{"book":"psa","chapter":25},{"book":"mat","chapter":26},{"book":"psa","chapter":26},{"book":"mat","chapter":27},{"book":"psa","chapter":27}]'::jsonb),
+  ('ninety-day', 12, '[{"book":"mat","chapter":28},{"book":"psa","chapter":28},{"book":"mrk","chapter":1},{"book":"psa","chapter":29},{"book":"mrk","chapter":2}]'::jsonb),
+  ('ninety-day', 13, '[{"book":"psa","chapter":30},{"book":"mrk","chapter":3},{"book":"psa","chapter":31},{"book":"mrk","chapter":4},{"book":"psa","chapter":32}]'::jsonb),
+  ('ninety-day', 14, '[{"book":"mrk","chapter":5},{"book":"psa","chapter":33},{"book":"mrk","chapter":6},{"book":"psa","chapter":34},{"book":"mrk","chapter":7}]'::jsonb),
+  ('ninety-day', 15, '[{"book":"psa","chapter":35},{"book":"mrk","chapter":8},{"book":"psa","chapter":36},{"book":"mrk","chapter":9},{"book":"psa","chapter":37}]'::jsonb),
+  ('ninety-day', 16, '[{"book":"mrk","chapter":10},{"book":"psa","chapter":38},{"book":"mrk","chapter":11},{"book":"psa","chapter":39},{"book":"mrk","chapter":12}]'::jsonb),
+  ('ninety-day', 17, '[{"book":"psa","chapter":40},{"book":"mrk","chapter":13},{"book":"psa","chapter":41},{"book":"mrk","chapter":14},{"book":"psa","chapter":42}]'::jsonb),
+  ('ninety-day', 18, '[{"book":"mrk","chapter":15},{"book":"psa","chapter":43},{"book":"mrk","chapter":16},{"book":"psa","chapter":44},{"book":"luk","chapter":1}]'::jsonb),
+  ('ninety-day', 19, '[{"book":"psa","chapter":45},{"book":"luk","chapter":2},{"book":"psa","chapter":46},{"book":"luk","chapter":3},{"book":"psa","chapter":47}]'::jsonb),
+  ('ninety-day', 20, '[{"book":"luk","chapter":4},{"book":"psa","chapter":48},{"book":"luk","chapter":5},{"book":"psa","chapter":49}]'::jsonb),
+  ('ninety-day', 21, '[{"book":"luk","chapter":6},{"book":"psa","chapter":50},{"book":"luk","chapter":7},{"book":"psa","chapter":51},{"book":"luk","chapter":8}]'::jsonb),
+  ('ninety-day', 22, '[{"book":"psa","chapter":52},{"book":"luk","chapter":9},{"book":"psa","chapter":53},{"book":"luk","chapter":10},{"book":"psa","chapter":54}]'::jsonb),
+  ('ninety-day', 23, '[{"book":"luk","chapter":11},{"book":"psa","chapter":55},{"book":"luk","chapter":12},{"book":"psa","chapter":56},{"book":"luk","chapter":13}]'::jsonb),
+  ('ninety-day', 24, '[{"book":"psa","chapter":57},{"book":"luk","chapter":14},{"book":"psa","chapter":58},{"book":"luk","chapter":15},{"book":"psa","chapter":59}]'::jsonb),
+  ('ninety-day', 25, '[{"book":"luk","chapter":16},{"book":"psa","chapter":60},{"book":"luk","chapter":17},{"book":"psa","chapter":61},{"book":"luk","chapter":18}]'::jsonb),
+  ('ninety-day', 26, '[{"book":"psa","chapter":62},{"book":"luk","chapter":19},{"book":"psa","chapter":63},{"book":"luk","chapter":20},{"book":"psa","chapter":64}]'::jsonb),
+  ('ninety-day', 27, '[{"book":"luk","chapter":21},{"book":"psa","chapter":65},{"book":"luk","chapter":22},{"book":"psa","chapter":66},{"book":"luk","chapter":23}]'::jsonb),
+  ('ninety-day', 28, '[{"book":"psa","chapter":67},{"book":"luk","chapter":24},{"book":"psa","chapter":68},{"book":"jhn","chapter":1},{"book":"psa","chapter":69}]'::jsonb),
+  ('ninety-day', 29, '[{"book":"jhn","chapter":2},{"book":"psa","chapter":70},{"book":"jhn","chapter":3},{"book":"psa","chapter":71},{"book":"jhn","chapter":4}]'::jsonb),
+  ('ninety-day', 30, '[{"book":"psa","chapter":72},{"book":"jhn","chapter":5},{"book":"psa","chapter":73},{"book":"jhn","chapter":6}]'::jsonb),
+  ('ninety-day', 31, '[{"book":"psa","chapter":74},{"book":"jhn","chapter":7},{"book":"psa","chapter":75},{"book":"jhn","chapter":8},{"book":"psa","chapter":76}]'::jsonb),
+  ('ninety-day', 32, '[{"book":"jhn","chapter":9},{"book":"psa","chapter":77},{"book":"jhn","chapter":10},{"book":"psa","chapter":78},{"book":"jhn","chapter":11}]'::jsonb),
+  ('ninety-day', 33, '[{"book":"psa","chapter":79},{"book":"jhn","chapter":12},{"book":"psa","chapter":80},{"book":"jhn","chapter":13},{"book":"psa","chapter":81}]'::jsonb),
+  ('ninety-day', 34, '[{"book":"jhn","chapter":14},{"book":"psa","chapter":82},{"book":"jhn","chapter":15},{"book":"psa","chapter":83},{"book":"jhn","chapter":16}]'::jsonb),
+  ('ninety-day', 35, '[{"book":"psa","chapter":84},{"book":"jhn","chapter":17},{"book":"psa","chapter":85},{"book":"jhn","chapter":18},{"book":"psa","chapter":86}]'::jsonb),
+  ('ninety-day', 36, '[{"book":"jhn","chapter":19},{"book":"psa","chapter":87},{"book":"jhn","chapter":20},{"book":"psa","chapter":88},{"book":"jhn","chapter":21}]'::jsonb),
+  ('ninety-day', 37, '[{"book":"psa","chapter":89},{"book":"act","chapter":1},{"book":"psa","chapter":90},{"book":"act","chapter":2},{"book":"psa","chapter":91}]'::jsonb),
+  ('ninety-day', 38, '[{"book":"act","chapter":3},{"book":"psa","chapter":92},{"book":"act","chapter":4},{"book":"psa","chapter":93},{"book":"act","chapter":5}]'::jsonb),
+  ('ninety-day', 39, '[{"book":"psa","chapter":94},{"book":"act","chapter":6},{"book":"psa","chapter":95},{"book":"act","chapter":7},{"book":"psa","chapter":96}]'::jsonb),
+  ('ninety-day', 40, '[{"book":"act","chapter":8},{"book":"psa","chapter":97},{"book":"act","chapter":9},{"book":"psa","chapter":98}]'::jsonb),
+  ('ninety-day', 41, '[{"book":"act","chapter":10},{"book":"psa","chapter":99},{"book":"act","chapter":11},{"book":"psa","chapter":100},{"book":"act","chapter":12}]'::jsonb),
+  ('ninety-day', 42, '[{"book":"psa","chapter":101},{"book":"act","chapter":13},{"book":"psa","chapter":102},{"book":"act","chapter":14},{"book":"psa","chapter":103}]'::jsonb),
+  ('ninety-day', 43, '[{"book":"act","chapter":15},{"book":"psa","chapter":104},{"book":"act","chapter":16},{"book":"psa","chapter":105},{"book":"act","chapter":17}]'::jsonb),
+  ('ninety-day', 44, '[{"book":"psa","chapter":106},{"book":"act","chapter":18},{"book":"psa","chapter":107},{"book":"act","chapter":19},{"book":"psa","chapter":108}]'::jsonb),
+  ('ninety-day', 45, '[{"book":"act","chapter":20},{"book":"psa","chapter":109},{"book":"act","chapter":21},{"book":"psa","chapter":110},{"book":"act","chapter":22}]'::jsonb),
+  ('ninety-day', 46, '[{"book":"psa","chapter":111},{"book":"act","chapter":23},{"book":"psa","chapter":112},{"book":"act","chapter":24},{"book":"psa","chapter":113}]'::jsonb),
+  ('ninety-day', 47, '[{"book":"act","chapter":25},{"book":"psa","chapter":114},{"book":"act","chapter":26},{"book":"psa","chapter":115},{"book":"act","chapter":27}]'::jsonb),
+  ('ninety-day', 48, '[{"book":"psa","chapter":116},{"book":"act","chapter":28},{"book":"psa","chapter":117},{"book":"rom","chapter":1},{"book":"psa","chapter":118}]'::jsonb),
+  ('ninety-day', 49, '[{"book":"rom","chapter":2},{"book":"psa","chapter":119},{"book":"rom","chapter":3},{"book":"psa","chapter":120},{"book":"rom","chapter":4}]'::jsonb),
+  ('ninety-day', 50, '[{"book":"psa","chapter":121},{"book":"rom","chapter":5},{"book":"psa","chapter":122},{"book":"rom","chapter":6}]'::jsonb),
+  ('ninety-day', 51, '[{"book":"psa","chapter":123},{"book":"rom","chapter":7},{"book":"psa","chapter":124},{"book":"rom","chapter":8},{"book":"psa","chapter":125}]'::jsonb),
+  ('ninety-day', 52, '[{"book":"rom","chapter":9},{"book":"psa","chapter":126},{"book":"rom","chapter":10},{"book":"psa","chapter":127},{"book":"rom","chapter":11}]'::jsonb),
+  ('ninety-day', 53, '[{"book":"psa","chapter":128},{"book":"rom","chapter":12},{"book":"psa","chapter":129},{"book":"rom","chapter":13},{"book":"psa","chapter":130}]'::jsonb),
+  ('ninety-day', 54, '[{"book":"rom","chapter":14},{"book":"psa","chapter":131},{"book":"rom","chapter":15},{"book":"psa","chapter":132},{"book":"rom","chapter":16}]'::jsonb),
+  ('ninety-day', 55, '[{"book":"psa","chapter":133},{"book":"1co","chapter":1},{"book":"psa","chapter":134},{"book":"1co","chapter":2},{"book":"psa","chapter":135}]'::jsonb),
+  ('ninety-day', 56, '[{"book":"1co","chapter":3},{"book":"psa","chapter":136},{"book":"1co","chapter":4},{"book":"psa","chapter":137},{"book":"1co","chapter":5}]'::jsonb),
+  ('ninety-day', 57, '[{"book":"psa","chapter":138},{"book":"1co","chapter":6},{"book":"psa","chapter":139},{"book":"1co","chapter":7},{"book":"psa","chapter":140}]'::jsonb),
+  ('ninety-day', 58, '[{"book":"1co","chapter":8},{"book":"psa","chapter":141},{"book":"1co","chapter":9},{"book":"psa","chapter":142},{"book":"1co","chapter":10}]'::jsonb),
+  ('ninety-day', 59, '[{"book":"psa","chapter":143},{"book":"1co","chapter":11},{"book":"psa","chapter":144},{"book":"1co","chapter":12},{"book":"psa","chapter":145}]'::jsonb),
+  ('ninety-day', 60, '[{"book":"1co","chapter":13},{"book":"psa","chapter":146},{"book":"1co","chapter":14},{"book":"psa","chapter":147}]'::jsonb),
+  ('ninety-day', 61, '[{"book":"1co","chapter":15},{"book":"psa","chapter":148},{"book":"1co","chapter":16},{"book":"psa","chapter":149},{"book":"2co","chapter":1}]'::jsonb),
+  ('ninety-day', 62, '[{"book":"psa","chapter":150},{"book":"2co","chapter":2},{"book":"pro","chapter":1},{"book":"2co","chapter":3},{"book":"pro","chapter":2}]'::jsonb),
+  ('ninety-day', 63, '[{"book":"2co","chapter":4},{"book":"pro","chapter":3},{"book":"2co","chapter":5},{"book":"pro","chapter":4},{"book":"2co","chapter":6}]'::jsonb),
+  ('ninety-day', 64, '[{"book":"pro","chapter":5},{"book":"2co","chapter":7},{"book":"pro","chapter":6},{"book":"2co","chapter":8},{"book":"pro","chapter":7}]'::jsonb),
+  ('ninety-day', 65, '[{"book":"2co","chapter":9},{"book":"pro","chapter":8},{"book":"2co","chapter":10},{"book":"pro","chapter":9},{"book":"2co","chapter":11}]'::jsonb),
+  ('ninety-day', 66, '[{"book":"pro","chapter":10},{"book":"2co","chapter":12},{"book":"pro","chapter":11},{"book":"2co","chapter":13},{"book":"pro","chapter":12}]'::jsonb),
+  ('ninety-day', 67, '[{"book":"gal","chapter":1},{"book":"pro","chapter":13},{"book":"gal","chapter":2},{"book":"pro","chapter":14},{"book":"gal","chapter":3}]'::jsonb),
+  ('ninety-day', 68, '[{"book":"pro","chapter":15},{"book":"gal","chapter":4},{"book":"pro","chapter":16},{"book":"gal","chapter":5},{"book":"pro","chapter":17}]'::jsonb),
+  ('ninety-day', 69, '[{"book":"gal","chapter":6},{"book":"pro","chapter":18},{"book":"eph","chapter":1},{"book":"pro","chapter":19},{"book":"eph","chapter":2}]'::jsonb),
+  ('ninety-day', 70, '[{"book":"pro","chapter":20},{"book":"eph","chapter":3},{"book":"pro","chapter":21},{"book":"eph","chapter":4}]'::jsonb),
+  ('ninety-day', 71, '[{"book":"pro","chapter":22},{"book":"eph","chapter":5},{"book":"pro","chapter":23},{"book":"eph","chapter":6},{"book":"pro","chapter":24}]'::jsonb),
+  ('ninety-day', 72, '[{"book":"php","chapter":1},{"book":"pro","chapter":25},{"book":"php","chapter":2},{"book":"pro","chapter":26},{"book":"php","chapter":3}]'::jsonb),
+  ('ninety-day', 73, '[{"book":"pro","chapter":27},{"book":"php","chapter":4},{"book":"pro","chapter":28},{"book":"col","chapter":1},{"book":"pro","chapter":29}]'::jsonb),
+  ('ninety-day', 74, '[{"book":"col","chapter":2},{"book":"pro","chapter":30},{"book":"col","chapter":3},{"book":"pro","chapter":31},{"book":"col","chapter":4}]'::jsonb),
+  ('ninety-day', 75, '[{"book":"1th","chapter":1},{"book":"1th","chapter":2},{"book":"1th","chapter":3},{"book":"1th","chapter":4},{"book":"1th","chapter":5}]'::jsonb),
+  ('ninety-day', 76, '[{"book":"2th","chapter":1},{"book":"2th","chapter":2},{"book":"2th","chapter":3},{"book":"1ti","chapter":1},{"book":"1ti","chapter":2}]'::jsonb),
+  ('ninety-day', 77, '[{"book":"1ti","chapter":3},{"book":"1ti","chapter":4},{"book":"1ti","chapter":5},{"book":"1ti","chapter":6},{"book":"2ti","chapter":1}]'::jsonb),
+  ('ninety-day', 78, '[{"book":"2ti","chapter":2},{"book":"2ti","chapter":3},{"book":"2ti","chapter":4},{"book":"tit","chapter":1},{"book":"tit","chapter":2}]'::jsonb),
+  ('ninety-day', 79, '[{"book":"tit","chapter":3},{"book":"phm","chapter":1},{"book":"heb","chapter":1},{"book":"heb","chapter":2},{"book":"heb","chapter":3}]'::jsonb),
+  ('ninety-day', 80, '[{"book":"heb","chapter":4},{"book":"heb","chapter":5},{"book":"heb","chapter":6},{"book":"heb","chapter":7}]'::jsonb),
+  ('ninety-day', 81, '[{"book":"heb","chapter":8},{"book":"heb","chapter":9},{"book":"heb","chapter":10},{"book":"heb","chapter":11},{"book":"heb","chapter":12}]'::jsonb),
+  ('ninety-day', 82, '[{"book":"heb","chapter":13},{"book":"jas","chapter":1},{"book":"jas","chapter":2},{"book":"jas","chapter":3},{"book":"jas","chapter":4}]'::jsonb),
+  ('ninety-day', 83, '[{"book":"jas","chapter":5},{"book":"1pe","chapter":1},{"book":"1pe","chapter":2},{"book":"1pe","chapter":3},{"book":"1pe","chapter":4}]'::jsonb),
+  ('ninety-day', 84, '[{"book":"1pe","chapter":5},{"book":"2pe","chapter":1},{"book":"2pe","chapter":2},{"book":"2pe","chapter":3},{"book":"1jn","chapter":1}]'::jsonb),
+  ('ninety-day', 85, '[{"book":"1jn","chapter":2},{"book":"1jn","chapter":3},{"book":"1jn","chapter":4},{"book":"1jn","chapter":5},{"book":"2jn","chapter":1}]'::jsonb),
+  ('ninety-day', 86, '[{"book":"3jn","chapter":1},{"book":"jud","chapter":1},{"book":"rev","chapter":1},{"book":"rev","chapter":2},{"book":"rev","chapter":3}]'::jsonb),
+  ('ninety-day', 87, '[{"book":"rev","chapter":4},{"book":"rev","chapter":5},{"book":"rev","chapter":6},{"book":"rev","chapter":7},{"book":"rev","chapter":8}]'::jsonb),
+  ('ninety-day', 88, '[{"book":"rev","chapter":9},{"book":"rev","chapter":10},{"book":"rev","chapter":11},{"book":"rev","chapter":12},{"book":"rev","chapter":13}]'::jsonb),
+  ('ninety-day', 89, '[{"book":"rev","chapter":14},{"book":"rev","chapter":15},{"book":"rev","chapter":16},{"book":"rev","chapter":17},{"book":"rev","chapter":18}]'::jsonb),
+  ('ninety-day', 90, '[{"book":"rev","chapter":19},{"book":"rev","chapter":20},{"book":"rev","chapter":21},{"book":"rev","chapter":22}]'::jsonb)
+on conflict (plan_id, day_number) do update set readings = excluded.readings;
+
+insert into public.reading_plan_days (plan_id, day_number, readings) values
+  ('thirty-day', 1, '[{"book":"gen","chapter":1},{"book":"gen","chapter":3}]'::jsonb),
+  ('thirty-day', 2, '[{"book":"gen","chapter":12}]'::jsonb),
+  ('thirty-day', 3, '[{"book":"gen","chapter":22},{"book":"exo","chapter":20}]'::jsonb),
+  ('thirty-day', 4, '[{"book":"jos","chapter":1}]'::jsonb),
+  ('thirty-day', 5, '[{"book":"psa","chapter":1}]'::jsonb),
+  ('thirty-day', 6, '[{"book":"psa","chapter":23},{"book":"psa","chapter":51}]'::jsonb),
+  ('thirty-day', 7, '[{"book":"psa","chapter":91}]'::jsonb),
+  ('thirty-day', 8, '[{"book":"psa","chapter":100}]'::jsonb),
+  ('thirty-day', 9, '[{"book":"psa","chapter":121},{"book":"psa","chapter":139}]'::jsonb),
+  ('thirty-day', 10, '[{"book":"pro","chapter":3}]'::jsonb),
+  ('thirty-day', 11, '[{"book":"pro","chapter":31},{"book":"isa","chapter":40}]'::jsonb),
+  ('thirty-day', 12, '[{"book":"isa","chapter":53}]'::jsonb),
+  ('thirty-day', 13, '[{"book":"mat","chapter":5}]'::jsonb),
+  ('thirty-day', 14, '[{"book":"mat","chapter":6},{"book":"mat","chapter":7}]'::jsonb),
+  ('thirty-day', 15, '[{"book":"mat","chapter":28}]'::jsonb),
+  ('thirty-day', 16, '[{"book":"luk","chapter":2}]'::jsonb),
+  ('thirty-day', 17, '[{"book":"luk","chapter":15},{"book":"jhn","chapter":1}]'::jsonb),
+  ('thirty-day', 18, '[{"book":"jhn","chapter":3}]'::jsonb),
+  ('thirty-day', 19, '[{"book":"jhn","chapter":14}]'::jsonb),
+  ('thirty-day', 20, '[{"book":"jhn","chapter":15},{"book":"act","chapter":2}]'::jsonb),
+  ('thirty-day', 21, '[{"book":"rom","chapter":8}]'::jsonb),
+  ('thirty-day', 22, '[{"book":"rom","chapter":12},{"book":"1co","chapter":13}]'::jsonb),
+  ('thirty-day', 23, '[{"book":"gal","chapter":5}]'::jsonb),
+  ('thirty-day', 24, '[{"book":"eph","chapter":6}]'::jsonb),
+  ('thirty-day', 25, '[{"book":"php","chapter":4},{"book":"col","chapter":3}]'::jsonb),
+  ('thirty-day', 26, '[{"book":"heb","chapter":11}]'::jsonb),
+  ('thirty-day', 27, '[{"book":"jas","chapter":1}]'::jsonb),
+  ('thirty-day', 28, '[{"book":"1pe","chapter":5},{"book":"1jn","chapter":4}]'::jsonb),
+  ('thirty-day', 29, '[{"book":"rev","chapter":21}]'::jsonb),
+  ('thirty-day', 30, '[{"book":"rev","chapter":22}]'::jsonb)
+on conflict (plan_id, day_number) do update set readings = excluded.readings;
+
+-- Quiz/Games module: ~60 original Bible trivia questions, hand-authored (not
+-- AI-generated), spanning five categories and three difficulty tiers.
+insert into public.quiz_questions (category, difficulty, question, options, correct_index)
+values
+  -- Old Testament
+  ('old_testament', 'easy', 'Who built an ark to survive a great flood?', '["Noah", "Abraham", "Moses", "David"]'::jsonb, 0),
+  ('old_testament', 'easy', 'In how many days did God complete His work of creation before resting, according to Genesis?', '["6", "7", "40", "3"]'::jsonb, 0),
+  ('old_testament', 'easy', 'Which Old Testament book describes God parting the Red Sea?', '["Exodus", "Genesis", "Numbers", "Leviticus"]'::jsonb, 0),
+  ('old_testament', 'easy', 'How many commandments did Moses receive on Mount Sinai?', '["10", "12", "7", "5"]'::jsonb, 0),
+  ('old_testament', 'medium', 'What was the name of Abraham''s son through his wife Sarah?', '["Isaac", "Ishmael", "Jacob", "Esau"]'::jsonb, 0),
+  ('old_testament', 'medium', 'Who was sold into slavery in Egypt by his own brothers?', '["Joseph", "Benjamin", "Reuben", "Judah"]'::jsonb, 0),
+  ('old_testament', 'medium', 'Which judge of Israel was famous for his great strength and long hair?', '["Samson", "Gideon", "Deborah", "Ehud"]'::jsonb, 0),
+  ('old_testament', 'medium', 'What sea did Moses part to lead the Israelites out of Egypt?', '["The Red Sea", "The Dead Sea", "The Sea of Galilee", "The Mediterranean Sea"]'::jsonb, 0),
+  ('old_testament', 'hard', 'How many years did the Israelites wander in the wilderness before entering the Promised Land?', '["40", "10", "70", "25"]'::jsonb, 0),
+  ('old_testament', 'hard', 'Which king of Israel is credited with writing many of the Psalms?', '["David", "Solomon", "Saul", "Hezekiah"]'::jsonb, 0),
+  ('old_testament', 'hard', 'On which mountain did Elijah confront the prophets of Baal?', '["Mount Carmel", "Mount Sinai", "Mount Nebo", "Mount Horeb"]'::jsonb, 0),
+  ('old_testament', 'hard', 'Who succeeded Moses as leader of Israel?', '["Joshua", "Caleb", "Aaron", "Samuel"]'::jsonb, 0),
+
+  -- New Testament
+  ('new_testament', 'easy', 'In which town was Jesus born?', '["Bethlehem", "Nazareth", "Jerusalem", "Capernaum"]'::jsonb, 0),
+  ('new_testament', 'easy', 'How many disciples did Jesus choose as His closest followers?', '["12", "10", "7", "70"]'::jsonb, 0),
+  ('new_testament', 'easy', 'Who baptized Jesus in the Jordan River?', '["John the Baptist", "Peter", "Andrew", "Philip"]'::jsonb, 0),
+  ('new_testament', 'easy', 'On which day did Jesus rise from the dead?', '["The third day", "The seventh day", "The first day", "The fortieth day"]'::jsonb, 0),
+  ('new_testament', 'medium', 'Which Gospel begins with the words "In the beginning was the Word"?', '["John", "Matthew", "Mark", "Luke"]'::jsonb, 0),
+  ('new_testament', 'medium', 'Who denied knowing Jesus three times before the rooster crowed?', '["Peter", "Judas", "Thomas", "John"]'::jsonb, 0),
+  ('new_testament', 'medium', 'On the road to which city did Saul encounter a blinding light and become a believer?', '["Damascus", "Jerusalem", "Antioch", "Rome"]'::jsonb, 0),
+  ('new_testament', 'medium', 'What was Jesus'' first recorded miracle, according to the Gospel of John?', '["Turning water into wine", "Healing a blind man", "Feeding the 5,000", "Walking on water"]'::jsonb, 0),
+  ('new_testament', 'hard', 'How many books make up the New Testament?', '["27", "24", "39", "66"]'::jsonb, 0),
+  ('new_testament', 'hard', 'Which apostle is traditionally credited with writing the book of Revelation?', '["John", "Paul", "Peter", "James"]'::jsonb, 0),
+  ('new_testament', 'hard', 'Who was the Roman governor who presided over Jesus'' trial?', '["Pontius Pilate", "Herod Antipas", "Caiaphas", "Felix"]'::jsonb, 0),
+  ('new_testament', 'hard', 'According to Acts, what event marked the birth of the Church, when the Holy Spirit came upon the disciples?', '["Pentecost", "Passover", "The Transfiguration", "The Ascension"]'::jsonb, 0),
+
+  -- People
+  ('people', 'easy', 'Who was the first man created according to Genesis?', '["Adam", "Noah", "Cain", "Abel"]'::jsonb, 0),
+  ('people', 'easy', 'Who was the first woman created according to Genesis?', '["Eve", "Sarah", "Rebekah", "Rachel"]'::jsonb, 0),
+  ('people', 'easy', 'Which shepherd boy defeated the giant Goliath?', '["David", "Samuel", "Saul", "Jonathan"]'::jsonb, 0),
+  ('people', 'easy', 'Who was swallowed by a great fish after fleeing from God''s call?', '["Jonah", "Elijah", "Jeremiah", "Daniel"]'::jsonb, 0),
+  ('people', 'medium', 'Who was known for his wisdom and asked God for it rather than riches?', '["Solomon", "David", "Rehoboam", "Josiah"]'::jsonb, 0),
+  ('people', 'medium', 'Which prophet was thrown into a den of lions?', '["Daniel", "Ezekiel", "Isaiah", "Jeremiah"]'::jsonb, 0),
+  ('people', 'medium', 'Who was the mother of Jesus?', '["Mary", "Martha", "Elizabeth", "Anna"]'::jsonb, 0),
+  ('people', 'medium', 'Which queen risked her life to save the Jewish people from destruction in Persia?', '["Esther", "Ruth", "Deborah", "Jezebel"]'::jsonb, 0),
+  ('people', 'hard', 'Who was Isaac''s wife, chosen at a well by Abraham''s servant?', '["Rebekah", "Rachel", "Leah", "Zipporah"]'::jsonb, 0),
+  ('people', 'hard', 'Which tax collector climbed a tree to see Jesus?', '["Zacchaeus", "Matthew", "Levi", "Nicodemus"]'::jsonb, 0),
+  ('people', 'hard', 'Who was the father of John the Baptist?', '["Zechariah", "Zebedee", "Joseph", "Simeon"]'::jsonb, 0),
+  ('people', 'hard', 'Which of Jacob''s twelve sons received a coat of many colors?', '["Joseph", "Benjamin", "Judah", "Reuben"]'::jsonb, 0),
+
+  -- Miracles
+  ('miracles', 'easy', 'What did Jesus multiply to feed 5,000 people?', '["Loaves and fish", "Bread and wine", "Grapes and grain", "Water and oil"]'::jsonb, 0),
+  ('miracles', 'easy', 'What did Jesus turn water into at a wedding in Cana?', '["Wine", "Milk", "Oil", "Honey"]'::jsonb, 0),
+  ('miracles', 'easy', 'How did Jesus calm a storm while His disciples were in a boat?', '["He spoke to the wind and waves", "He rowed to shore", "He prayed all night", "He built a shelter"]'::jsonb, 0),
+  ('miracles', 'medium', 'Who did Jesus raise from the dead after four days in the tomb?', '["Lazarus", "Jairus'' daughter", "The widow''s son at Nain", "Stephen"]'::jsonb, 0),
+  ('miracles', 'medium', 'What happened to the walls of Jericho when the Israelites marched around them?', '["They collapsed", "They caught fire", "They turned to dust", "They opened a gate"]'::jsonb, 0),
+  ('miracles', 'medium', 'How did God provide food for the Israelites in the wilderness each morning?', '["Manna", "Quail only", "Bread from a bakery", "Fruit trees"]'::jsonb, 0),
+  ('miracles', 'medium', 'What did Moses'' staff turn into before Pharaoh?', '["A serpent", "A rod of fire", "A river", "A bird"]'::jsonb, 0),
+  ('miracles', 'hard', 'Which apostle walked on water toward Jesus before beginning to sink?', '["Peter", "John", "Andrew", "James"]'::jsonb, 0),
+  ('miracles', 'hard', 'What sign did God give Gideon involving a wool fleece?', '["Dew on the fleece but not the ground, then the reverse", "A burning fleece", "A talking fleece", "A fleece that turned to gold"]'::jsonb, 0),
+  ('miracles', 'hard', 'How did the fire fall in Elijah''s contest with the prophets of Baal on Mount Carmel?', '["Fire fell from heaven and consumed the soaked sacrifice", "Elijah lit it himself", "Lightning struck a tree", "The prophets lit it"]'::jsonb, 0),
+  ('miracles', 'hard', 'What happened to Lot''s wife when she looked back at Sodom?', '["She turned into a pillar of salt", "She was struck blind", "She turned to stone", "She vanished"]'::jsonb, 0),
+  ('miracles', 'hard', 'Of the ten lepers Jesus healed, how many returned to thank Him?', '["One", "All ten", "Five", "None"]'::jsonb, 0),
+
+  -- General
+  ('general', 'easy', 'What is the first book of the Bible?', '["Genesis", "Exodus", "Matthew", "Psalms"]'::jsonb, 0),
+  ('general', 'easy', 'What is the last book of the Bible?', '["Revelation", "Malachi", "Jude", "Acts"]'::jsonb, 0),
+  ('general', 'easy', 'How many books are in the Old Testament (Protestant canon)?', '["39", "27", "66", "46"]'::jsonb, 0),
+  ('general', 'easy', 'Which of these is the shortest verse in most English Bible translations?', '["Jesus wept", "God is love", "Pray always", "Rejoice always"]'::jsonb, 0),
+  ('general', 'medium', 'Which Bible chapter is often called the love chapter for its passage on love?', '["1 Corinthians 13", "Song of Solomon 2", "Ephesians 5", "Philippians 4"]'::jsonb, 0),
+  ('general', 'medium', 'What language was most of the Old Testament originally written in?', '["Hebrew", "Greek", "Latin", "Aramaic"]'::jsonb, 0),
+  ('general', 'medium', 'What language was most of the New Testament originally written in?', '["Greek", "Hebrew", "Latin", "Aramaic"]'::jsonb, 0),
+  ('general', 'medium', 'Which book of the Bible first records the Ten Commandments being given at Sinai?', '["Exodus", "Genesis", "Leviticus", "Deuteronomy"]'::jsonb, 0),
+  ('general', 'hard', 'How many total books make up the Protestant Bible (Old and New Testament combined)?', '["66", "73", "39", "27"]'::jsonb, 0),
+  ('general', 'hard', 'Which Old Testament book is entirely a collection of songs celebrating love between a bride and groom?', '["Song of Solomon", "Psalms", "Proverbs", "Lamentations"]'::jsonb, 0),
+  ('general', 'hard', 'Which New Testament letter, written by Paul during a Roman imprisonment, is often called the epistle of joy?', '["Philippians", "Galatians", "Romans", "Titus"]'::jsonb, 0),
+  ('general', 'hard', 'What is the traditional term for the first five books of the Bible, attributed to Moses?', '["The Pentateuch", "The Prophets", "The Gospels", "The Wisdom Books"]'::jsonb, 0)
+on conflict do nothing;
