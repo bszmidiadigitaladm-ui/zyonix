@@ -293,6 +293,19 @@
     "markActive": "Marcar como activo",
     "delete": "Eliminar"
   },
+  "settings": {
+    "title": "Configuración",
+    "dailyReminderTitle": "Correo de recordatorio diario",
+    "dailyReminderSubtitle": "Recibe el devocional de hoy en tu correo.",
+    "enableToggle": "Enviarme un correo de recordatorio diario",
+    "slotLabel": "Hora del día",
+    "slot_morning": "Mañana",
+    "slot_afternoon": "Tarde",
+    "slot_evening": "Noche",
+    "save": "Guardar",
+    "saving": "Guardando…",
+    "saved": "Guardado"
+  },
   "games": {
     "title": "Trivia y Juegos",
     "tabPlay": "Jugar",

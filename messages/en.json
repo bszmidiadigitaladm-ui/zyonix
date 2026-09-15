@@ -293,6 +293,19 @@
     "markActive": "Mark as active",
     "delete": "Delete"
   },
+  "settings": {
+    "title": "Settings",
+    "dailyReminderTitle": "Daily reminder email",
+    "dailyReminderSubtitle": "Get today's devotional sent to your inbox.",
+    "enableToggle": "Send me a daily reminder email",
+    "slotLabel": "Time of day",
+    "slot_morning": "Morning",
+    "slot_afternoon": "Afternoon",
+    "slot_evening": "Evening",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved"
+  },
   "games": {
     "title": "Quiz & Games",
     "tabPlay": "Play",

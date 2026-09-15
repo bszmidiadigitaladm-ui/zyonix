@@ -71,6 +71,21 @@ header `Authorization: Bearer <CRON_SECRET>`. The devotionals page also
 lazy-generates today's entry on first visit if the cron hasn't run yet, so
 the feature works in local dev without any scheduler configured.
 
+Two more jobs use the same scheduler + `CRON_SECRET` pattern:
+
+- `POST /api/cron/daily-reminder?slot=morning` (and again with `slot=afternoon`,
+  `slot=evening`) — emails today's devotional to every user whose notification
+  preference (`/settings`) matches that slot. Schedule all three once a day,
+  at whatever wall-clock time you consider "morning"/"afternoon"/"evening" for
+  your userbase — there's no per-user timezone, just the slot they picked.
+- `POST /api/cron/event-reminders` — once a day, emails a reminder to a
+  church's contact list for any `church_events` row whose reminder is due
+  today (see "Church Admin" below).
+
+Both require `RESEND_API_KEY` and `RESEND_FROM_EMAIL` to actually send;
+without them the routes still run but every send fails (and is logged, not
+thrown — one bad address never aborts the whole batch).
+
 ## Project structure
 
 ```

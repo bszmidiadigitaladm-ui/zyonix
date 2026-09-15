@@ -17,6 +17,7 @@ export type SubscriptionStatus =
   | "canceled"
   | "unpaid";
 export type TeamRole = "owner" | "member";
+export type ReminderSlot = "morning" | "afternoon" | "evening";
 export type CreditType = "image" | "text" | "video";
 export type ChatRole = "user" | "assistant" | "system";
 export type ChatMessageType = "normal" | "crisis_redirect";
@@ -34,6 +35,8 @@ export interface Database {
           stripe_customer_id: string | null;
           team_id: string | null;
           team_role: TeamRole | null;
+          daily_reminder_enabled: boolean;
+          reminder_slot: ReminderSlot;
           created_at: string;
           updated_at: string;
         };
@@ -45,6 +48,8 @@ export interface Database {
           stripe_customer_id?: string | null;
           team_id?: string | null;
           team_role?: TeamRole | null;
+          daily_reminder_enabled?: boolean;
+          reminder_slot?: ReminderSlot;
           created_at?: string;
           updated_at?: string;
         };
@@ -56,6 +61,8 @@ export interface Database {
           stripe_customer_id?: string | null;
           team_id?: string | null;
           team_role?: TeamRole | null;
+          daily_reminder_enabled?: boolean;
+          reminder_slot?: ReminderSlot;
           created_at?: string;
           updated_at?: string;
         };

@@ -17,6 +17,7 @@ import {
   CreditCard,
   Users,
   HandHeart,
+  Settings,
   type LucideIcon,
 } from "lucide-react";
 import { APP_NAME } from "@/lib/config";
@@ -35,6 +36,7 @@ const NAV_KEYS = [
   { href: "/chat", key: "spiritualChat", icon: MessageCircle },
   { href: "/templates", key: "templates", icon: LayoutTemplate },
   { href: "/billing", key: "planAndCredits", icon: CreditCard },
+  { href: "/settings", key: "settings", icon: Settings },
 ] satisfies { href: string; key: string; icon: LucideIcon }[];
 
 export function Sidebar({ showTeam }: { showTeam: boolean }) {
