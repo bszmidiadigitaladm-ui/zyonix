@@ -8,6 +8,7 @@ import { generateSpiritualChatReply, type ChatTurn } from "@/lib/openai/chat";
 import { checkSelfHarmModeration } from "@/lib/openai/moderation";
 import { matchesCrisisKeywords } from "@/lib/safety/crisis-keywords";
 import { CRISIS_RESOURCES, CRISIS_REDIRECT_MESSAGE } from "@/lib/safety/crisis-resources";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const bodySchema = z.object({
   message: z.string().trim().min(1).max(4000),
@@ -28,6 +29,13 @@ export async function POST(request: Request) {
 
   if (!user) {
     return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+  }
+
+  // Independent of the daily cap above (which Pro plans don't have at all) —
+  // this guards against a scripted burst of messages regardless of plan.
+  const allowed = await checkRateLimit(`ai:chat:${user.id}`, 15, 60);
+  if (!allowed) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
   }
 
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));

@@ -6,6 +6,7 @@ import { getProfile, getSubscription, resolveCreditOwnerId, isBillable } from "@
 import { consumeCredit, refundCredit } from "@/lib/credits/consume";
 import { generateMessageOutline } from "@/lib/openai/text";
 import { awardBadge } from "@/lib/badges/award";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const bodySchema = z.object({
   topic: z.string().trim().min(1).max(300),
@@ -23,6 +24,11 @@ export async function POST(request: Request) {
 
   if (!user) {
     return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+  }
+
+  const allowed = await checkRateLimit(`ai:message:${user.id}`, 10, 60);
+  if (!allowed) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
   }
 
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));

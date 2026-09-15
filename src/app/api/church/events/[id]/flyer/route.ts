@@ -5,6 +5,7 @@ import { requireTeamOwnerId, getProfile, getSubscription, isBillable } from "@/l
 import { consumeCredit, refundCredit } from "@/lib/credits/consume";
 import { buildEventFlyerPrompt, createEventFlyerImage } from "@/lib/video/runway";
 import { uploadGeneratedImage } from "@/lib/supabase/storage";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function POST(_request: Request, { params }: RouteContext<"/api/church/events/[id]/flyer">) {
   const { id } = await params;
@@ -15,6 +16,11 @@ export async function POST(_request: Request, { params }: RouteContext<"/api/chu
 
   if (!user) {
     return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+  }
+
+  const allowed = await checkRateLimit(`church:flyer:${user.id}`, 10, 60);
+  if (!allowed) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
   }
 
   const teamId = await requireTeamOwnerId(supabase, user.id);

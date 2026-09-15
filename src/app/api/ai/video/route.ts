@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getProfile, getSubscription, resolveCreditOwnerId, isBillable } from "@/lib/auth/session";
 import { consumeCredit, refundCredit } from "@/lib/credits/consume";
 import { createVideoGeneration } from "@/lib/video/runway";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const bodySchema = z.object({
   prompt: z.string().trim().min(1).max(1000),
@@ -19,6 +20,11 @@ export async function POST(request: Request) {
 
   if (!user) {
     return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+  }
+
+  const allowed = await checkRateLimit(`ai:video:${user.id}`, 5, 60);
+  if (!allowed) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
   }
 
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));

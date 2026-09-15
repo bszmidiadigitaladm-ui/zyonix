@@ -7,6 +7,7 @@ import { getPlanLimits } from "@/lib/credits/config";
 import { consumeCredit, refundCredit } from "@/lib/credits/consume";
 import { generateCaption } from "@/lib/openai/text";
 import { awardBadge } from "@/lib/badges/award";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const bodySchema = z.object({
   template_id: z.string().uuid().optional(),
@@ -23,6 +24,11 @@ export async function POST(request: Request) {
 
   if (!user) {
     return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+  }
+
+  const allowed = await checkRateLimit(`ai:posts:${user.id}`, 10, 60);
+  if (!allowed) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
   }
 
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));

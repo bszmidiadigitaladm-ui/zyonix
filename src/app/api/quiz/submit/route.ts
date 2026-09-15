@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getProfile } from "@/lib/auth/session";
 import { awardBadge } from "@/lib/badges/award";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const bodySchema = z.object({
   answers: z
@@ -25,6 +26,11 @@ export async function POST(request: Request) {
 
   if (!user) {
     return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+  }
+
+  const allowed = await checkRateLimit(`quiz:submit:${user.id}`, 10, 60);
+  if (!allowed) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
   }
 
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));

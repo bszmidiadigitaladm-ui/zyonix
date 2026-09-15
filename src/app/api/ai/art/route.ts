@@ -8,6 +8,7 @@ import { consumeCredit, refundCredit } from "@/lib/credits/consume";
 import { ART_STYLES, OUTPUT_FORMATS, buildArtPrompt, generateBibleArt } from "@/lib/openai/art";
 import { uploadGeneratedImage } from "@/lib/supabase/storage";
 import { awardBadge } from "@/lib/badges/award";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const bodySchema = z
   .object({
@@ -28,6 +29,11 @@ export async function POST(request: Request) {
 
   if (!user) {
     return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+  }
+
+  const allowed = await checkRateLimit(`ai:art:${user.id}`, 10, 60);
+  if (!allowed) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
   }
 
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
