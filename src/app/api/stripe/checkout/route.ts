@@ -60,7 +60,6 @@ export async function POST(request: Request) {
     client_reference_id: user.id,
     line_items: [{ price: plan.stripe_price_id, quantity: 1 }],
     subscription_data: {
-      trial_period_days: 3,
       metadata: { supabase_user_id: user.id, plan_code: plan.code },
     },
     payment_method_collection: "always",

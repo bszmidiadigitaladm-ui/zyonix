@@ -43,7 +43,7 @@
     },
     "signup": {
       "title": "Create your {appName} account",
-      "subtitle": "Start with a 3-day free trial — no charge until it ends.",
+      "subtitle": "Create your account to get started.",
       "fullName": "Full name",
       "email": "Email",
       "password": "Password",
@@ -57,14 +57,14 @@
   },
   "onboarding": {
     "plan": {
-      "eyebrow": "3-day free trial",
+      "eyebrow": "Simple, transparent pricing",
       "title": "Choose your {appName} plan",
-      "subtitle": "Your card won't be charged until the trial ends.",
+      "subtitle": "Cancel anytime — no long-term commitment.",
       "mostPopular": "Most popular",
       "perMonth": "/mo",
-      "trialNote": "3-day free trial, cancel anytime",
-      "startTrial": "Start free trial",
-      "startingTrial": "Starting trial…",
+      "trialNote": "Cancel anytime",
+      "startTrial": "Subscribe",
+      "startingTrial": "Starting…",
       "devActivate": "🛠️ Dev: activate without payment",
       "features": {
         "artWatermarked": "Bible art & posts (watermarked)",
@@ -78,7 +78,7 @@
       }
     },
     "checkout": {
-      "settingUp": "Setting up your {appName} trial…",
+      "settingUp": "Setting up your {appName} account…",
       "settingUpSubtitle": "This only takes a few seconds.",
       "almostThereTitle": "Almost there",
       "almostThereBody": "Your payment went through, but activation is taking a little longer than usual.",

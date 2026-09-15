@@ -43,7 +43,7 @@
     },
     "signup": {
       "title": "Crea tu cuenta de {appName}",
-      "subtitle": "Empieza con 3 días de prueba gratis — sin cargo hasta que termine.",
+      "subtitle": "Crea tu cuenta para comenzar.",
       "fullName": "Nombre completo",
       "email": "Correo electrónico",
       "password": "Contraseña",
@@ -57,14 +57,14 @@
   },
   "onboarding": {
     "plan": {
-      "eyebrow": "3 días de prueba gratis",
+      "eyebrow": "Precios simples y transparentes",
       "title": "Elige tu plan de {appName}",
-      "subtitle": "No se te cobrará hasta que termine la prueba.",
+      "subtitle": "Cancela cuando quieras — sin compromiso a largo plazo.",
       "mostPopular": "Más popular",
       "perMonth": "/mes",
-      "trialNote": "3 días de prueba gratis, cancela cuando quieras",
-      "startTrial": "Comenzar prueba gratis",
-      "startingTrial": "Iniciando prueba…",
+      "trialNote": "Cancela cuando quieras",
+      "startTrial": "Suscribirme",
+      "startingTrial": "Iniciando…",
       "devActivate": "🛠️ Dev: activar sin pago",
       "features": {
         "artWatermarked": "Arte y publicaciones bíblicas (con marca de agua)",
@@ -78,7 +78,7 @@
       }
     },
     "checkout": {
-      "settingUp": "Configurando tu prueba de {appName}…",
+      "settingUp": "Configurando tu cuenta de {appName}…",
       "settingUpSubtitle": "Esto solo toma unos segundos.",
       "almostThereTitle": "Ya casi",
       "almostThereBody": "Tu pago se procesó, pero la activación está tardando un poco más de lo usual.",
