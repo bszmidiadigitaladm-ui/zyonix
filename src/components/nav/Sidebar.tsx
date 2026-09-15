@@ -16,6 +16,7 @@ import {
   LayoutTemplate,
   CreditCard,
   Users,
+  HandHeart,
   type LucideIcon,
 } from "lucide-react";
 import { APP_NAME } from "@/lib/config";
@@ -29,6 +30,7 @@ const NAV_KEYS = [
   { href: "/message", key: "messagePrep", icon: Mic },
   { href: "/video", key: "video", icon: Clapperboard },
   { href: "/games", key: "games", icon: Gamepad2 },
+  { href: "/prayer", key: "prayer", icon: HandHeart },
   { href: "/devotionals", key: "devotional", icon: Sunrise },
   { href: "/chat", key: "spiritualChat", icon: MessageCircle },
   { href: "/templates", key: "templates", icon: LayoutTemplate },

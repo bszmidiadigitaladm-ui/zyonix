@@ -874,6 +874,33 @@ export interface Database {
         };
         Relationships: [];
       };
+      prayer_requests: {
+        Row: {
+          id: string;
+          user_id: string;
+          content: string;
+          is_answered: boolean;
+          answered_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          content: string;
+          is_answered?: boolean;
+          answered_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          content?: string;
+          is_answered?: boolean;
+          answered_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -928,6 +955,7 @@ export type MessageOutlineRow = Database["public"]["Tables"]["message_outlines"]
 export type VideoGeneration = Database["public"]["Tables"]["video_generations"]["Row"];
 export type QuizQuestion = Database["public"]["Tables"]["quiz_questions"]["Row"];
 export type QuizSession = Database["public"]["Tables"]["quiz_sessions"]["Row"];
+export type PrayerRequest = Database["public"]["Tables"]["prayer_requests"]["Row"];
 export type BibleTranslation = Database["public"]["Tables"]["bible_translations"]["Row"];
 export type BibleBookRow = Database["public"]["Tables"]["bible_books"]["Row"];
 export type BibleVerseRow = Database["public"]["Tables"]["bible_verses"]["Row"];

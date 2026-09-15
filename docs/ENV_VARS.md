@@ -29,7 +29,9 @@ Rule enforced throughout the codebase: any variable **without** the
 | `OPENAI_API_KEY` | GPT text, GPT Image, and Moderation endpoint calls | OpenAI Platform → API keys |
 | `OPENAI_ORG_ID` | Optional — org-scoped billing/usage attribution | OpenAI Platform → Organization settings |
 | `RUNWAY_API_KEY` | Video Studio module — AI video generation (Gen-4 Turbo) | [dev.runwayml.com](https://dev.runwayml.com) → API Keys |
-| `CRON_SECRET` | Shared secret checked by `/api/cron/daily-devotional` | Generate any random string yourself |
+| `RESEND_API_KEY` | Sends Church Admin communications, event reminders, and daily devotional reminder emails | [resend.com](https://resend.com) → API Keys |
+| `RESEND_FROM_EMAIL` | The verified "from" address used for all outgoing email | [resend.com](https://resend.com) → Domains (must be on a verified domain) |
+| `CRON_SECRET` | Shared secret checked by `/api/cron/*` routes | Generate any random string yourself |
 
 ## Setting up the accounts
 
@@ -50,3 +52,6 @@ Rule enforced throughout the codebase: any variable **without** the
 4. **Runway** (Video Studio only): create an account at
    [dev.runwayml.com](https://dev.runwayml.com), generate an API key, and add
    credit to the account — generations are billed per second of output.
+5. **Resend** (Church Admin communications + daily reminder emails): create an
+   account at [resend.com](https://resend.com), verify a sending domain, and
+   generate an API key.

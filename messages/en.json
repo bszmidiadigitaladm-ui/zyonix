@@ -15,6 +15,9 @@
     "bible": "Bible",
     "video": "Video Studio",
     "games": "Quiz & Games",
+    "prayer": "Prayer Journal",
+    "badges": "Badges",
+    "settings": "Settings",
     "devotional": "Devotional",
     "spiritualChat": "Spiritual Chat",
     "templates": "Templates",
@@ -275,6 +278,20 @@
     "noHistory": "You haven't generated any videos yet.",
     "loopLibraryTitle": "Zeal Lab",
     "loopLibrarySubtitle": "Curated video loops for your posts and stories."
+  },
+  "prayer": {
+    "title": "Prayer Journal",
+    "subtitle": "Keep track of what you're praying for, and celebrate when it's answered.",
+    "newRequest": "New prayer request",
+    "newRequestPlaceholder": "What's on your heart?",
+    "add": "Add request",
+    "adding": "Adding…",
+    "active": "Active",
+    "answered": "Answered",
+    "noActive": "No active prayer requests yet.",
+    "markAnswered": "Mark as answered",
+    "markActive": "Mark as active",
+    "delete": "Delete"
   },
   "games": {
     "title": "Quiz & Games",

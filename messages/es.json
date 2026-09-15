@@ -15,6 +15,9 @@
     "bible": "Biblia",
     "video": "Estudio de Video",
     "games": "Quiz y Juegos",
+    "prayer": "Diario de Oración",
+    "badges": "Insignias",
+    "settings": "Configuración",
     "devotional": "Devocional",
     "spiritualChat": "Chat Espiritual",
     "templates": "Plantillas",
@@ -275,6 +278,20 @@
     "noHistory": "Aún no has generado ningún video.",
     "loopLibraryTitle": "Zeal Lab",
     "loopLibrarySubtitle": "Loops de video seleccionados para tus publicaciones e historias."
+  },
+  "prayer": {
+    "title": "Diario de Oración",
+    "subtitle": "Lleva un registro de lo que estás orando y celebra cuando sea respondido.",
+    "newRequest": "Nuevo pedido de oración",
+    "newRequestPlaceholder": "¿Qué tienes en el corazón?",
+    "add": "Agregar pedido",
+    "adding": "Agregando…",
+    "active": "Activos",
+    "answered": "Respondidos",
+    "noActive": "Aún no hay pedidos de oración activos.",
+    "markAnswered": "Marcar como respondido",
+    "markActive": "Marcar como activo",
+    "delete": "Eliminar"
   },
   "games": {
     "title": "Trivia y Juegos",
