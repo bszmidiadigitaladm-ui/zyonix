@@ -397,6 +397,8 @@
     "managePlan": "Manage plan",
     "imageCredits": "Image credits",
     "textCredits": "Text credits",
+    "occasionSuggestion": "{occasion} is {days, plural, =0 {today} one {in # day} other {in # days}}",
+    "occasionSuggestionCta": "Get a head start — generate art for it",
     "badgesTeaser": "Your badges",
     "badgesEarnedCount": "{earned} of {total} earned",
     "quickTools": "Quick tools",

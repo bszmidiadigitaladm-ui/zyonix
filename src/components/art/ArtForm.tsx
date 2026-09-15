@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ART_STYLES, OUTPUT_FORMATS, type ArtStyle, type OutputFormat } from "@/lib/openai/art";
 import type { BibleArtGeneration } from "@/lib/types/database.types";
@@ -24,8 +24,9 @@ const FORMAT_KEY: Record<OutputFormat, string> = {
 export function ArtForm() {
   const t = useTranslations("art");
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [verseReference, setVerseReference] = useState("");
-  const [theme, setTheme] = useState("");
+  const [theme, setTheme] = useState(() => searchParams.get("theme") ?? "");
   const [style, setStyle] = useState<ArtStyle>("cinematic");
   const [format, setFormat] = useState<OutputFormat>("square");
   const [loading, setLoading] = useState(false);

@@ -10,10 +10,12 @@ import {
   Clapperboard,
   Gamepad2,
   Award,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 import { requireOnboardedUser, resolveCreditOwnerId } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { getUpcomingOccasion } from "@/lib/liturgical/calendar";
 import { PlanBadge } from "@/components/billing/PlanBadge";
 import { CreditMeter } from "@/components/billing/CreditMeter";
 import { Card } from "@/components/ui/Card";
@@ -35,11 +37,19 @@ const ACTIVITY_ICON: Record<ActivityItem["type"], LucideIcon> = {
   chat: MessageCircle,
 };
 
+const OCCASION_KEY: Record<string, string> = {
+  easter: "occasionEaster",
+  christmas: "occasionChristmas",
+  mothers_day: "occasionMothersDay",
+};
+
 export default async function DashboardPage() {
   const { profile, subscription } = await requireOnboardedUser();
   const t = await getTranslations("dashboard");
   const tNav = await getTranslations("nav");
+  const tTemplates = await getTranslations("templates");
   const supabase = await createClient();
+  const occasion = getUpcomingOccasion();
   const ownerId = resolveCreditOwnerId(profile);
 
   const [
@@ -151,6 +161,25 @@ export default async function DashboardPage() {
             total={limits.text_credits_per_cycle}
           />
         </Card>
+      )}
+
+      {occasion && (
+        <Link href={`/art?theme=${encodeURIComponent(tTemplates(OCCASION_KEY[occasion.occasion]))}`}>
+          <Card className="mb-8 flex items-center gap-4 transition hover:border-accent/40">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
+              <Sparkles size={20} />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium">
+                {t("occasionSuggestion", {
+                  occasion: tTemplates(OCCASION_KEY[occasion.occasion]),
+                  days: occasion.daysUntil,
+                })}
+              </p>
+              <p className="text-xs text-muted">{t("occasionSuggestionCta")}</p>
+            </div>
+          </Card>
+        </Link>
       )}
 
       {badgesTotal ? (

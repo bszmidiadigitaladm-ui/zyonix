@@ -397,6 +397,8 @@
     "managePlan": "Gestionar plan",
     "imageCredits": "Créditos de imagen",
     "textCredits": "Créditos de texto",
+    "occasionSuggestion": "{occasion} es {days, plural, =0 {hoy} one {en # día} other {en # días}}",
+    "occasionSuggestionCta": "Adelántate — genera una arte para la ocasión",
     "badgesTeaser": "Tus insignias",
     "badgesEarnedCount": "{earned} de {total} obtenidas",
     "quickTools": "Herramientas rápidas",
