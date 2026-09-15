@@ -66,7 +66,7 @@ export default async function OnboardingPlanPage() {
               displayName={plan.display_name}
               priceUsd={plan.monthly_price_usd}
               features={featuresFor(plan.code as PlanCode, planLimits, tFeatures)}
-              highlighted={plan.code === "creator"}
+              highlighted={plan.code === "church_pro"}
             />
           );
         })}

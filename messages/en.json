@@ -94,7 +94,7 @@
       "expiredTitle": "Invite expired",
       "expiredBody": "Ask the team owner to send a new invite.",
       "joinTitle": "Join {teamName}",
-      "joinBody": "You've been invited to collaborate on this Church Pro workspace.",
+      "joinBody": "You've been invited to collaborate on this Pro workspace.",
       "theTeam": "the team",
       "accept": "Accept and join team",
       "accepting": "Joining…"
@@ -511,7 +511,7 @@
     "occasionEaster": "Easter",
     "occasionChristmas": "Christmas",
     "occasionMothersDay": "Mother's Day",
-    "locked": "Creator+"
+    "locked": "Pro"
   },
   "language": {
     "label": "Language"

@@ -3,8 +3,7 @@ import type { PlanCode, SubscriptionStatus } from "@/lib/types/database.types";
 
 const PLAN_LABEL: Record<PlanCode, string> = {
   starter: "Starter",
-  creator: "Creator",
-  church_pro: "Church Pro",
+  church_pro: "Pro",
 };
 
 const STATUS_STYLE: Record<SubscriptionStatus, string> = {

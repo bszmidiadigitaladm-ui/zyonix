@@ -9,7 +9,7 @@
 // to `never` on every `.select()`/`.eq()`/etc. This matches what the real
 // codegen output always does — inline everything, never share a Row interface.
 
-export type PlanCode = "starter" | "creator" | "church_pro";
+export type PlanCode = "starter" | "church_pro";
 export type SubscriptionStatus =
   | "trialing"
   | "active"

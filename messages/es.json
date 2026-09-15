@@ -94,7 +94,7 @@
       "expiredTitle": "Invitación expirada",
       "expiredBody": "Pide al dueño del equipo que envíe una nueva invitación.",
       "joinTitle": "Únete a {teamName}",
-      "joinBody": "Has sido invitado a colaborar en este espacio de Church Pro.",
+      "joinBody": "Has sido invitado a colaborar en este espacio Pro.",
       "theTeam": "el equipo",
       "accept": "Aceptar y unirme al equipo",
       "accepting": "Uniéndose…"
@@ -511,7 +511,7 @@
     "occasionEaster": "Pascua",
     "occasionChristmas": "Navidad",
     "occasionMothersDay": "Día de la Madre",
-    "locked": "Creator+"
+    "locked": "Pro"
   },
   "language": {
     "label": "Idioma"

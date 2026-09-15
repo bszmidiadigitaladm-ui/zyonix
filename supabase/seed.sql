@@ -10,12 +10,17 @@
 -- to keep video cost under ~15-20% of each plan's monthly price. Starter
 -- gets none, matching the existing no-watermark/no-seasonal-templates
 -- gating pattern for premium features.
+--
+-- Two tiers, not three (0029_merge_creator_into_pro.sql merged the former
+-- middle "Creator" tier into "Pro" on a live database — this seed reflects
+-- that same end state for fresh installs). "Pro" also has an annual billing
+-- option ($22/mo, billed ~$264/year) configured entirely on the payment
+-- processor's side — it sends the same plan_code, so no extra row here.
 
 insert into public.plans (code, display_name, stripe_price_id, monthly_price_usd, is_team_plan, sort_order)
 values
-  ('starter', 'Starter', 'price_starter_REPLACE_ME', 9.90, false, 1),
-  ('creator', 'Creator', 'price_creator_REPLACE_ME', 19.90, false, 2),
-  ('church_pro', 'Church Pro', 'price_church_pro_REPLACE_ME', 29.90, true, 3)
+  ('starter', 'Starter', 'price_starter_REPLACE_ME', 19.90, false, 1),
+  ('church_pro', 'Pro', 'price_church_pro_REPLACE_ME', 29.90, true, 2)
 on conflict (code) do update set
   display_name = excluded.display_name,
   stripe_price_id = excluded.stripe_price_id,
@@ -29,7 +34,6 @@ insert into public.plan_limits (
 )
 values
   ('starter', 15, 30, 0, 10, 'standard', true, false, false, null),
-  ('creator', 60, 120, 24, null, 'high', false, true, true, null),
   ('church_pro', 150, 300, 50, null, 'high', false, true, true, 10)
 on conflict (plan_code) do update set
   image_credits_per_cycle = excluded.image_credits_per_cycle,
