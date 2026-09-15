@@ -10,6 +10,7 @@ const TABS = [
   { href: "/team/contacts", key: "tabContacts" },
   { href: "/team/events", key: "tabEvents" },
   { href: "/team/communications", key: "tabCommunications" },
+  { href: "/team/finances", key: "tabFinances" },
 ] as const;
 
 export function TeamTabNav() {

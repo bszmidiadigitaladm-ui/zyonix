@@ -108,7 +108,8 @@
       "tabWorkspace": "Espacio",
       "tabContacts": "Contactos",
       "tabEvents": "Eventos",
-      "tabCommunications": "Comunicaciones"
+      "tabCommunications": "Comunicaciones",
+      "tabFinances": "Finanzas"
     },
     "invite": {
       "title": "Invitar a un miembro",
@@ -151,6 +152,22 @@
       "noHistory": "Aún no se han enviado comunicaciones.",
       "recipientCount": "{count} destinatarios",
       "noContactsError": "Agrega al menos un contacto antes de enviar.",
+      "genericError": "Algo salió mal. Inténtalo de nuevo."
+    },
+    "finances": {
+      "currentBalance": "Saldo actual",
+      "monthIncome": "Ingresos este mes",
+      "monthExpense": "Gastos este mes",
+      "type": "Tipo",
+      "income": "Ingreso",
+      "expense": "Gasto",
+      "amount": "Monto (USD)",
+      "category": "Categoría",
+      "categoryPlaceholder": "ej. Diezmo, Ofrenda, Servicios",
+      "date": "Fecha",
+      "description": "Descripción (opcional)",
+      "add": "Agregar transacción",
+      "noTransactions": "Aún no hay transacciones.",
       "genericError": "Algo salió mal. Inténtalo de nuevo."
     }
   },

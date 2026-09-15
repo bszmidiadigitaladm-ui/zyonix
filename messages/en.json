@@ -108,7 +108,8 @@
       "tabWorkspace": "Workspace",
       "tabContacts": "Contacts",
       "tabEvents": "Events",
-      "tabCommunications": "Communications"
+      "tabCommunications": "Communications",
+      "tabFinances": "Finances"
     },
     "invite": {
       "title": "Invite a teammate",
@@ -151,6 +152,22 @@
       "noHistory": "No communications sent yet.",
       "recipientCount": "{count} recipients",
       "noContactsError": "Add at least one contact before sending.",
+      "genericError": "Something went wrong. Please try again."
+    },
+    "finances": {
+      "currentBalance": "Current balance",
+      "monthIncome": "Income this month",
+      "monthExpense": "Expenses this month",
+      "type": "Type",
+      "income": "Income",
+      "expense": "Expense",
+      "amount": "Amount (USD)",
+      "category": "Category",
+      "categoryPlaceholder": "e.g. Tithe, Offering, Utilities",
+      "date": "Date",
+      "description": "Description (optional)",
+      "add": "Add transaction",
+      "noTransactions": "No transactions yet.",
       "genericError": "Something went wrong. Please try again."
     }
   },

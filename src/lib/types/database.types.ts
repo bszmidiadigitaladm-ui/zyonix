@@ -953,6 +953,42 @@ export interface Database {
         };
         Relationships: [];
       };
+      financial_transactions: {
+        Row: {
+          id: string;
+          team_id: string;
+          type: "income" | "expense";
+          amount_usd: number;
+          category: string;
+          description: string | null;
+          occurred_on: string;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          team_id: string;
+          type: "income" | "expense";
+          amount_usd: number;
+          category: string;
+          description?: string | null;
+          occurred_on: string;
+          created_by: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          team_id?: string;
+          type?: "income" | "expense";
+          amount_usd?: number;
+          category?: string;
+          description?: string | null;
+          occurred_on?: string;
+          created_by?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       prayer_requests: {
         Row: {
           id: string;
@@ -1038,6 +1074,7 @@ export type PrayerRequest = Database["public"]["Tables"]["prayer_requests"]["Row
 export type ChurchContact = Database["public"]["Tables"]["church_contacts"]["Row"];
 export type ChurchEvent = Database["public"]["Tables"]["church_events"]["Row"];
 export type Communication = Database["public"]["Tables"]["communications"]["Row"];
+export type FinancialTransaction = Database["public"]["Tables"]["financial_transactions"]["Row"];
 export type BibleTranslation = Database["public"]["Tables"]["bible_translations"]["Row"];
 export type BibleBookRow = Database["public"]["Tables"]["bible_books"]["Row"];
 export type BibleVerseRow = Database["public"]["Tables"]["bible_verses"]["Row"];
