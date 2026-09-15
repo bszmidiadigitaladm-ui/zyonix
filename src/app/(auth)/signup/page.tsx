@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { GlowBackdrop } from "@/components/ui/GlowBackdrop";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { Turnstile } from "@/components/auth/Turnstile";
 
 export default function SignupPage() {
   return (
@@ -34,6 +35,7 @@ function SignupForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -47,6 +49,7 @@ function SignupForm() {
       options: {
         data: { full_name: fullName },
         emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+        captchaToken: captchaToken ?? undefined,
       },
     });
 
@@ -121,6 +124,7 @@ function SignupForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+          <Turnstile onVerify={setCaptchaToken} />
           {error && <p className="text-sm text-danger">{error}</p>}
           <Button type="submit" disabled={loading} className="w-full">
             {loading ? t("submitting") : t("submit")}

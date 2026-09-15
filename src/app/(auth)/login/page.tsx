@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { GlowBackdrop } from "@/components/ui/GlowBackdrop";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { Turnstile } from "@/components/auth/Turnstile";
 
 export default function LoginPage() {
   return (
@@ -29,6 +30,7 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -36,7 +38,11 @@ function LoginForm() {
     setLoading(true);
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+      options: { captchaToken: captchaToken ?? undefined },
+    });
 
     setLoading(false);
     if (error) {
@@ -84,6 +90,7 @@ function LoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+          <Turnstile onVerify={setCaptchaToken} />
           {error && <p className="text-sm text-danger">{error}</p>}
           <Button type="submit" disabled={loading} className="w-full">
             {loading ? t("submitting") : t("submit")}

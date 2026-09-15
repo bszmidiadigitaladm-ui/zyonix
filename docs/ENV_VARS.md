@@ -17,6 +17,7 @@ Rule enforced throughout the codebase: any variable **without** the
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anonymous key — RLS-enforced client access | Supabase Dashboard → Project Settings → API |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Reserved for a future embedded Stripe Elements flow; not required for the current Checkout-redirect flow | Stripe Dashboard → Developers → API keys |
 | `NEXT_PUBLIC_SITE_URL` | Base URL used for OAuth/Checkout/Portal redirect URLs | Set manually per environment (e.g. `http://localhost:3000`, or your Netlify URL) |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Bot protection widget on signup/login. Blank = no widget rendered, and Supabase won't enforce it either | [dash.cloudflare.com](https://dash.cloudflare.com) → Turnstile → Add site (free) |
 
 ## Server-only secrets
 
@@ -58,7 +59,16 @@ Rule enforced throughout the codebase: any variable **without** the
 5. **Resend** (Church Admin communications + daily reminder emails): create an
    account at [resend.com](https://resend.com), verify a sending domain, and
    generate an API key.
-6. **Hotmart** (active payment processor): create the product and one offer
+6. **Cloudflare Turnstile** (bot protection on signup/login): create a free
+   account at [dash.cloudflare.com](https://dash.cloudflare.com) → Turnstile
+   → Add site. Add your domain(s) (`localhost` works for local dev). Put the
+   **Site Key** in `NEXT_PUBLIC_TURNSTILE_SITE_KEY`. Then in the Supabase
+   Dashboard → Authentication → Attack Protection (naming varies by
+   dashboard version), enable CAPTCHA protection, choose Turnstile, and paste
+   the **Secret Key** there (never put the secret key in this app's env —
+   Supabase is the only thing that needs it, since it verifies the token
+   server-side).
+7. **Hotmart** (active payment processor): create the product and one offer
    per plan (Starter, Pro, Pro Annual). For each offer, add a tracking key
    named `plan_code` with the value `starter` or `church_pro` — this is how
    the webhook knows which plan was purchased. Copy each offer's checkout URL
