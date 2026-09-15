@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { ensureTodaysDevotional } from "@/lib/devotional/generate";
 import { sendEmail } from "@/lib/email/resend";
 import { APP_NAME } from "@/lib/config";
+import { escapeHtml } from "@/lib/utils";
 
 const VALID_SLOTS = ["morning", "afternoon", "evening"] as const;
 
@@ -39,11 +40,11 @@ export async function POST(request: Request) {
       to: profile.email,
       subject: `${APP_NAME}: ${devotional.title}`,
       html: `
-        <p>Hi ${profile.full_name ?? "there"},</p>
+        <p>Hi ${escapeHtml(profile.full_name ?? "there")},</p>
         <p>Today's devotional is ready:</p>
-        <h2>${devotional.title}</h2>
-        ${devotional.scripture_reference ? `<p><em>${devotional.scripture_reference}</em></p>` : ""}
-        <p>${devotional.body.slice(0, 280)}${devotional.body.length > 280 ? "…" : ""}</p>
+        <h2>${escapeHtml(devotional.title)}</h2>
+        ${devotional.scripture_reference ? `<p><em>${escapeHtml(devotional.scripture_reference)}</em></p>` : ""}
+        <p>${escapeHtml(devotional.body.slice(0, 280))}${devotional.body.length > 280 ? "…" : ""}</p>
         <p><a href="${process.env.NEXT_PUBLIC_SITE_URL}/devotionals">Read the full devotional</a></p>
       `,
     });

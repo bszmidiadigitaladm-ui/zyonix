@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe/client";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { PLAN_CODES } from "@/lib/config";
 
 export async function POST(request: Request) {
@@ -46,7 +47,11 @@ export async function POST(request: Request) {
     });
     customerId = customer.id;
 
-    await supabase
+    // profiles.stripe_customer_id is protected by a DB trigger (0031) — only
+    // the service-role client can write it, so RLS can't be tricked into
+    // accepting a client-supplied customer id via this same column.
+    const admin = createAdminClient();
+    await admin
       .from("profiles")
       .update({ stripe_customer_id: customerId })
       .eq("id", user.id);

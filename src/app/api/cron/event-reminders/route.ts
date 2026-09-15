@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email/resend";
+import { escapeHtml } from "@/lib/utils";
 
 function toDateOnly(d: Date): string {
   return d.toISOString().slice(0, 10);
@@ -41,8 +42,8 @@ export async function POST(request: Request) {
 
     if (recipients.length > 0) {
       const html = `
-        <p>Reminder: <strong>${event.title}</strong> is coming up on ${event.event_date}.</p>
-        ${event.description ? `<p>${event.description}</p>` : ""}
+        <p>Reminder: <strong>${escapeHtml(event.title)}</strong> is coming up on ${event.event_date}.</p>
+        ${event.description ? `<p>${escapeHtml(event.description)}</p>` : ""}
       `;
       const sent = await sendEmail({
         to: process.env.RESEND_FROM_EMAIL!,

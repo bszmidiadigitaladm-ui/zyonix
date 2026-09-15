@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireTeamOwnerId } from "@/lib/auth/session";
 import { sendEmail } from "@/lib/email/resend";
+import { escapeHtml } from "@/lib/utils";
 
 const bodySchema = z.object({
   subject: z.string().trim().min(1).max(200),
@@ -39,10 +40,13 @@ export async function POST(request: Request) {
   }
 
   // "To" is our own sending address and every real recipient is bcc'd, so no
-  // contact ever sees another contact's email address.
+  // contact ever sees another contact's email address. Escape before wrapping
+  // in <p> tags — `body` is authored by the team owner, not us, and an
+  // unescaped `<`/`>` would let arbitrary HTML/links ride along in an email
+  // sent to the whole congregation.
   const html = body
     .split("\n")
-    .map((line) => `<p>${line}</p>`)
+    .map((line) => `<p>${escapeHtml(line)}</p>`)
     .join("");
 
   const sent = await sendEmail({
