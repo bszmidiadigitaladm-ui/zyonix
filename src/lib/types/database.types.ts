@@ -233,7 +233,7 @@ export interface Database {
           user_id: string;
           team_id: string | null;
           plan_code: PlanCode;
-          feature: "bible_art" | "post_caption" | "devotional" | "spiritual_chat" | "message_outline" | "video";
+          feature: "bible_art" | "post_caption" | "devotional" | "spiritual_chat" | "message_outline" | "video" | "event_flyer";
           provider: string;
           model: string;
           input_tokens: number | null;
@@ -248,7 +248,7 @@ export interface Database {
           user_id: string;
           team_id?: string | null;
           plan_code: PlanCode;
-          feature: "bible_art" | "post_caption" | "devotional" | "spiritual_chat" | "message_outline" | "video";
+          feature: "bible_art" | "post_caption" | "devotional" | "spiritual_chat" | "message_outline" | "video" | "event_flyer";
           provider?: string;
           model: string;
           input_tokens?: number | null;
@@ -263,7 +263,7 @@ export interface Database {
           user_id?: string;
           team_id?: string | null;
           plan_code?: PlanCode;
-          feature?: "bible_art" | "post_caption" | "devotional" | "spiritual_chat" | "message_outline" | "video";
+          feature?: "bible_art" | "post_caption" | "devotional" | "spiritual_chat" | "message_outline" | "video" | "event_flyer";
           provider?: string;
           model?: string;
           input_tokens?: number | null;
@@ -896,6 +896,7 @@ export interface Database {
           event_date: string;
           reminder_days_before: number;
           reminder_sent: boolean;
+          flyer_image_url: string | null;
           created_at: string;
         };
         Insert: {
@@ -906,6 +907,7 @@ export interface Database {
           event_date: string;
           reminder_days_before?: number;
           reminder_sent?: boolean;
+          flyer_image_url?: string | null;
           created_at?: string;
         };
         Update: {
@@ -916,6 +918,7 @@ export interface Database {
           event_date?: string;
           reminder_days_before?: number;
           reminder_sent?: boolean;
+          flyer_image_url?: string | null;
           created_at?: string;
         };
         Relationships: [];

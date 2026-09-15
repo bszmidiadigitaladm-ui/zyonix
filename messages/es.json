@@ -135,7 +135,11 @@
       "date": "Fecha",
       "reminderDaysBefore": "Recordar (días antes)",
       "add": "Agregar evento",
-      "noEvents": "Aún no hay eventos próximos."
+      "noEvents": "Aún no hay eventos próximos.",
+      "generateFlyer": "Generar volante",
+      "regenerateFlyer": "Regenerar volante",
+      "generatingFlyer": "Generando…",
+      "flyerFailed": "No se pudo generar el volante. Intenta de nuevo."
     },
     "communications": {
       "templateType": "Tipo",

@@ -1,4 +1,4 @@
-import RunwayML from "@runwayml/sdk";
+import RunwayML, { TaskFailedError } from "@runwayml/sdk";
 
 // Lazily constructed for the same reason as lib/openai/client.ts and
 // lib/stripe/client.ts: Next.js imports every API route module at build time
@@ -43,5 +43,42 @@ export async function getVideoGenerationStatus(jobId: string): Promise<VideoJobS
       return { status: "failed", errorMessage: "Generation was cancelled." };
     default:
       return { status: "processing" };
+  }
+}
+
+export function buildEventFlyerPrompt(params: { title: string; description?: string | null }): string {
+  const subject = params.description ? `${params.title} — ${params.description}` : params.title;
+
+  return (
+    `A warm, inviting promotional flyer graphic for a church event: "${subject}". ` +
+    `Portrait poster composition, welcoming and community-oriented, tasteful religious ` +
+    `iconography where appropriate, generous empty space near the top and bottom for ` +
+    `overlaid event details. No readable text or lettering in the image.`
+  );
+}
+
+/**
+ * Image generation is fast enough (typically single-digit seconds) to await
+ * synchronously within the request/response cycle, unlike video generation
+ * which needs the separate job + poll flow in this module.
+ */
+export async function createEventFlyerImage(params: { prompt: string }): Promise<{ imageUrl: string }> {
+  try {
+    const task = await getRunway()
+      .textToImage.create({
+        model: "gen4_image",
+        promptText: params.prompt,
+        ratio: "1080:1440",
+      })
+      .waitForTaskOutput();
+
+    const imageUrl = task.output[0];
+    if (!imageUrl) throw new Error("Runway did not return an image");
+    return { imageUrl };
+  } catch (err) {
+    if (err instanceof TaskFailedError) {
+      throw new Error(err.taskDetails.status === "FAILED" ? err.taskDetails.failure : "Generation was cancelled.");
+    }
+    throw err;
   }
 }

@@ -135,7 +135,11 @@
       "date": "Date",
       "reminderDaysBefore": "Remind (days before)",
       "add": "Add event",
-      "noEvents": "No upcoming events yet."
+      "noEvents": "No upcoming events yet.",
+      "generateFlyer": "Generate flyer",
+      "regenerateFlyer": "Regenerate flyer",
+      "generatingFlyer": "Generating…",
+      "flyerFailed": "Couldn't generate a flyer. Please try again."
     },
     "communications": {
       "templateType": "Type",

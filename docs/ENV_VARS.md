@@ -28,7 +28,7 @@ Rule enforced throughout the codebase: any variable **without** the
 | `STRIPE_PRICE_STARTER` / `STRIPE_PRICE_CREATOR` / `STRIPE_PRICE_CHURCH_PRO` | Not read directly by the app (the `plans` table is the source of truth) — used only to fill in `supabase/seed.sql` per environment | Stripe Dashboard → Products |
 | `OPENAI_API_KEY` | GPT text, GPT Image, and Moderation endpoint calls | OpenAI Platform → API keys |
 | `OPENAI_ORG_ID` | Optional — org-scoped billing/usage attribution | OpenAI Platform → Organization settings |
-| `RUNWAY_API_KEY` | Video Studio module — AI video generation (Gen-4 Turbo) | [dev.runwayml.com](https://dev.runwayml.com) → API Keys |
+| `RUNWAY_API_KEY` | Video Studio module (AI video generation, `gen4.5`) and Church Admin event flyer images (`gen4_image`) | [dev.runwayml.com](https://dev.runwayml.com) → API Keys |
 | `RESEND_API_KEY` | Sends Church Admin communications, event reminders, and daily devotional reminder emails | [resend.com](https://resend.com) → API Keys |
 | `RESEND_FROM_EMAIL` | The verified "from" address used for all outgoing email | [resend.com](https://resend.com) → Domains (must be on a verified domain) |
 | `CRON_SECRET` | Shared secret checked by `/api/cron/*` routes | Generate any random string yourself |
