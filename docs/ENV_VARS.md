@@ -3,6 +3,11 @@
 Copy `.env.example` to `.env.local` for local development. In production
 (Netlify), set these under Site configuration → Environment variables.
 
+Netlify Functions snapshot env vars into the deployed bundle — saving a new
+value in the dashboard does **not** reach an already-published function.
+Trigger a fresh deploy (a real commit; an empty one can be skipped) after
+changing any server-only variable, then confirm via Functions → logs.
+
 Rule enforced throughout the codebase: any variable **without** the
 `NEXT_PUBLIC_` prefix is server-only and must never be imported from a
 `"use client"` component. Server-only variables are only referenced under
