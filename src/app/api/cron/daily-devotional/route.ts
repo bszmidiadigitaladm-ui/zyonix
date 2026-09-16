@@ -7,6 +7,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
+  // TEMPORARY diagnostic: names only, never values, to debug why
+  // SUPABASE_SERVICE_ROLE_KEY isn't reaching this function in production.
+  console.log(
+    "env keys containing SUPABASE:",
+    Object.keys(process.env).filter((k) => k.includes("SUPABASE")).join(", "),
+  );
+  console.log(
+    "env keys containing CRON:",
+    Object.keys(process.env).filter((k) => k.includes("CRON")).join(", "),
+  );
+
   try {
     const devotional = await ensureTodaysDevotional();
     return NextResponse.json({ devotional });
