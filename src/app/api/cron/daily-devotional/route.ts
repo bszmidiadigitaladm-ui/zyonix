@@ -13,11 +13,12 @@ export async function POST(request: Request) {
   if (new URL(request.url).searchParams.get("debug") === "1") {
     return NextResponse.json({
       hasServiceRoleKey: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
-      serviceRoleKeyLength: process.env.SUPABASE_SERVICE_ROLE_KEY?.length ?? 0,
-      hasSupabaseUrl: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),
       hasCronSecret: Boolean(process.env.CRON_SECRET),
-      envKeysWithSupabase: Object.keys(process.env).filter((k) => k.includes("SUPABASE")),
-      envKeysWithCron: Object.keys(process.env).filter((k) => k.includes("CRON")),
+      hasOpenaiKey: Boolean(process.env.OPENAI_API_KEY),
+      hasRunwayKey: Boolean(process.env.RUNWAY_API_KEY),
+      hasResendKey: Boolean(process.env.RESEND_API_KEY),
+      hasHotmartHottok: Boolean(process.env.HOTMART_HOTTOK),
+      hasResendFromEmail: Boolean(process.env.RESEND_FROM_EMAIL),
     });
   }
 
