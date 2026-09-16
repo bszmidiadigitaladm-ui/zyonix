@@ -7,6 +7,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const devotional = await ensureTodaysDevotional();
-  return NextResponse.json({ devotional });
+  try {
+    const devotional = await ensureTodaysDevotional();
+    return NextResponse.json({ devotional });
+  } catch (err) {
+    console.error("daily-devotional cron failed", err);
+    return NextResponse.json({ error: "generation_failed" }, { status: 500 });
+  }
 }
