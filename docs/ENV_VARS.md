@@ -9,7 +9,10 @@ Trigger a fresh deploy (a real commit; an empty one can be skipped) after
 changing any server-only variable, then confirm via Functions → logs.
 If a var still doesn't reach the function after a real redeploy, delete
 and re-add it (rather than just re-saving the value) — a var's scopes can
-get stuck from however it was first created.
+get stuck from however it was first created. Set multiple vars one at a
+time, never as concurrent/parallel API calls — writing several at once
+was observed to silently drop some of them even though each call reported
+success individually.
 
 Rule enforced throughout the codebase: any variable **without** the
 `NEXT_PUBLIC_` prefix is server-only and must never be imported from a
