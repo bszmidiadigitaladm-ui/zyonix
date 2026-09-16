@@ -19,3 +19,5 @@
 # devotional job (src/app/api/cron/daily-devotional/route.ts), point an external
 # scheduler (GitHub Actions cron workflow, cron-job.org, or Supabase pg_cron + pg_net)
 # at that URL once a day with header "Authorization: Bearer $CRON_SECRET" — see README.md.
+#
+# Cron jobs are configured via cron-job.org against https://zyonix.pro/api/cron/*.
