@@ -19,6 +19,7 @@ export async function POST(request: Request) {
       hasResendKey: Boolean(process.env.RESEND_API_KEY),
       hasHotmartHottok: Boolean(process.env.HOTMART_HOTTOK),
       hasResendFromEmail: Boolean(process.env.RESEND_FROM_EMAIL),
+      checkedAfter: "delete+recreate all four with explicit scopes",
     });
   }
 
