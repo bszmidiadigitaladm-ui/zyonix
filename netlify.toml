@@ -5,6 +5,15 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
+# Send anyone who lands on the raw netlify.app subdomain to the real domain.
+# Host-matched, so branch/deploy-preview subdomains (e.g. main--zyonix.netlify.app)
+# are unaffected — only the exact zyonix.netlify.app host redirects.
+[[redirects]]
+  from = "https://zyonix.netlify.app/*"
+  to = "https://zyonix.pro/:splat"
+  status = 301
+  force = true
+
 # Netlify's native Scheduled Functions feature targets standalone Netlify Functions,
 # not Next.js API routes served through the Next runtime plugin. To run the daily
 # devotional job (src/app/api/cron/daily-devotional/route.ts), point an external
