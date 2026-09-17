@@ -4,17 +4,20 @@ import { PLAN_CODES, type PlanCode } from "@/lib/config";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 
-// Best-effort shape based on Hotmart's published 2.0.0 webhook examples
-// (buyer/offer/product all live under `data`, same shape across event
-// types). Exact field names for `purchase`/`subscription` are NOT verified
-// against a real payload yet — every event is logged in full below so the
-// first real sale/test purchase can confirm or correct this.
+// Shape confirmed against a real Hotmart 2.0.0 PURCHASE_APPROVED test event
+// sent from their webhook test tool — buyer/purchase/subscription field
+// paths below are verified. `offer` lives under `data.purchase.offer`, not
+// directly under `data` (an earlier version of this code had that wrong).
+// `tracking` was absent from the sandbox test payload (it uses a generic
+// test product, not one of our configured offers with a tracking key set),
+// so that one field's path is still unconfirmed — kept as a secondary
+// fallback behind offer.code either way, so a wrong guess there just means
+// resolvePlan() falls through to the offer-code lookup instead.
 interface HotmartWebhookBody {
   event?: string;
   data?: {
     buyer?: { email?: string; name?: string };
-    offer?: { code?: string };
-    purchase?: { transaction?: string; status?: string };
+    purchase?: { transaction?: string; status?: string; offer?: { code?: string } };
     subscription?: { subscriber?: { code?: string }; status?: string };
     tracking?: Record<string, string>;
   };
@@ -158,14 +161,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid_payload" }, { status: 400 });
   }
 
-  // Full payload logged until a real event has confirmed field names —
-  // see the module-level comment above.
+  // Full payload still logged — `tracking` (the primary plan-resolution
+  // path) remains unconfirmed against a real payload; see the interface
+  // comment above.
   console.log("Hotmart webhook received:", JSON.stringify(body));
 
   const event = body.event ?? "";
   const data = body.data ?? {};
   const email = data.buyer?.email;
-  const offerCode = data.offer?.code;
+  const offerCode = data.purchase?.offer?.code;
   const trackingPlanCode = data.tracking?.plan_code;
   const transactionCode = data.purchase?.transaction;
   const subscriberCode = data.subscription?.subscriber?.code;
