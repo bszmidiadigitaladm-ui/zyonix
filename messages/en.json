@@ -121,6 +121,7 @@
       "subtitle": "Create your account to get started.",
       "fullName": "Full name",
       "email": "Email",
+      "emailHint": "Already subscribed? Use the same email you used at checkout so your plan activates automatically.",
       "password": "Password",
       "submit": "Create account",
       "submitting": "Creating account…",

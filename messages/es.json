@@ -121,6 +121,7 @@
       "subtitle": "Crea tu cuenta para comenzar.",
       "fullName": "Nombre completo",
       "email": "Correo electrónico",
+      "emailHint": "¿Ya te suscribiste? Usa el mismo correo que usaste en la compra para que tu plan se active automáticamente.",
       "password": "Contraseña",
       "submit": "Crear cuenta",
       "submitting": "Creando cuenta…",

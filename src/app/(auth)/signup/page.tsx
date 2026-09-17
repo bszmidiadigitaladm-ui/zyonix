@@ -118,6 +118,7 @@ function SignupForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
+          <p className="-mt-1 text-xs text-muted">{t("emailHint")}</p>
           <Input
             type="password"
             required
