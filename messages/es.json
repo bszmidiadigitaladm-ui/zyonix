@@ -25,10 +25,79 @@
     "team": "Equipo"
   },
   "landing": {
-    "eyebrow": "Tu fe. Infinitas posibilidades.",
-    "description": "Arte que conmueve, devocionales que te acompañan y un espacio de reflexión bíblica — todo en un solo lugar, hecho para creadores de contenido de fe.",
-    "getStarted": "Comenzar ahora",
-    "signIn": "Iniciar sesión"
+    "nav": {
+      "features": "Funciones",
+      "pricing": "Precios",
+      "faq": "Preguntas",
+      "signIn": "Iniciar sesión",
+      "getStarted": "Comenzar ahora"
+    },
+    "hero": {
+      "eyebrow": "Tu fe. Infinitas posibilidades.",
+      "titleLine1": "Contenido que toca corazones.",
+      "titleLine2": "Listo en minutos.",
+      "subtitle": "Arte que conmueve, devocionales que te acompañan y un espacio de reflexión bíblica — todo en un solo lugar, hecho para creadores de contenido de fe.",
+      "inputPlaceholder": "Crea una publicación de arte bíblico sobre...",
+      "examplePrompt1": "Crea una publicación de arte bíblico sobre la esperanza",
+      "examplePrompt2": "Escribe un bosquejo de sermón sobre la gracia",
+      "examplePrompt3": "Genera el devocional de hoy",
+      "examplePrompt4": "Diseña una publicación de Pascua",
+      "ctaButton": "Crear ahora",
+      "chip1": "Generar arte bíblico",
+      "chip2": "Escribir un bosquejo",
+      "chip3": "Preguntar al chat espiritual"
+    },
+    "features": {
+      "eyebrow": "Funciones",
+      "title": "Todo lo que necesitas para crear",
+      "subtitle": "Una sola suscripción en vez de un montón de herramientas sueltas.",
+      "bibleArt": { "title": "Arte Bíblico", "description": "Convierte un versículo o tema en arte llamativo en segundos." },
+      "socialPosts": { "title": "Posts para Redes", "description": "Textos y plantillas de temporada para feed, historia y carrusel." },
+      "devotional": { "title": "Devocional Diario", "description": "Un devocional nuevo cada día, basado en las Escrituras." },
+      "spiritualChat": { "title": "Chat Espiritual", "description": "Un acompañante bíblico para la reflexión, con cuidado ante crisis integrado." },
+      "video": { "title": "Estudio de Video", "description": "Videos cortos generados con IA para reels y shorts." },
+      "message": { "title": "Preparación de Mensajes", "description": "Bosquejos de sermones según tu tema y audiencia." },
+      "bible": { "title": "Lector de la Biblia", "description": "Lee con planes guiados y sigue tu progreso." },
+      "games": { "title": "Quiz y Juegos", "description": "Trivia bíblica para involucrar y hacer crecer a tu comunidad." },
+      "church": { "title": "Administración de Iglesia", "description": "Contactos, eventos, comunicaciones y finanzas para tu equipo." }
+    },
+    "comparison": {
+      "eyebrow": "Por qué Zyonix",
+      "title": "¿Por qué no usar ChatGPT directamente?",
+      "subtitle": "Las herramientas de IA genéricas no fueron hechas para el ministerio. Zyonix sí.",
+      "columnGeneric": "IA genérica",
+      "columnZyonix": "Zyonix",
+      "row1": "Contenido basado en las Escrituras, centrado en la fe",
+      "row2": "Formatos listos para publicar, no solo texto",
+      "row3": "Plantillas de temporada para cada fecha de la iglesia",
+      "row4": "Red de cuidado ante crisis integrada",
+      "row5": "Herramientas de equipo para toda tu iglesia",
+      "row6": "Una sola suscripción, no cinco apps distintas"
+    },
+    "pricing": {
+      "eyebrow": "Precios simples y transparentes",
+      "title": "Elige tu plan"
+    },
+    "faq": {
+      "eyebrow": "Preguntas",
+      "title": "Preguntas frecuentes",
+      "q1": "¿El contenido es realmente fiel a las Escrituras?",
+      "a1": "Sí. Cada generación se basa en las Escrituras con instrucciones diseñadas para mantenerse fiel a los principios bíblicos — siempre puedes editar antes de publicar.",
+      "q2": "¿Todo el equipo de mi iglesia puede usar una sola cuenta?",
+      "a2": "Sí, en el plan Pro. Invita a tu equipo a un espacio compartido con contactos, eventos, comunicaciones y finanzas.",
+      "q3": "¿Qué pasa si cancelo?",
+      "a3": "Mantienes el acceso hasta el final de tu período de facturación actual, y puedes volver a suscribirte cuando quieras — nada se elimina.",
+      "q4": "¿Necesito experiencia en diseño?",
+      "a4": "No. Describe lo que necesitas en lenguaje simple y Zyonix genera arte, textos y bosquejos listos para publicar.",
+      "q5": "¿Qué idiomas están disponibles?",
+      "a5": "Zyonix está disponible en inglés y español, con más idiomas en camino.",
+      "q6": "¿Cómo funcionan los créditos?",
+      "a6": "Cada plan incluye una cantidad mensual de créditos de imagen, texto y video que se renuevan cada ciclo — sin cargos sorpresa."
+    },
+    "footer": {
+      "tagline": "Tu fe. Infinitas posibilidades.",
+      "copyright": "© {year} {appName}. Todos los derechos reservados."
+    }
   },
   "auth": {
     "login": {

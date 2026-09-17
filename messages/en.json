@@ -25,10 +25,79 @@
     "team": "Team"
   },
   "landing": {
-    "eyebrow": "Your faith. Infinite possibilities.",
-    "description": "Art that moves, devotionals that walk with you, and a space for biblical reflection — all in one place, built for faith content creators.",
-    "getStarted": "Get started",
-    "signIn": "Sign in"
+    "nav": {
+      "features": "Features",
+      "pricing": "Pricing",
+      "faq": "FAQ",
+      "signIn": "Sign in",
+      "getStarted": "Get Started"
+    },
+    "hero": {
+      "eyebrow": "Your faith. Infinite possibilities.",
+      "titleLine1": "Content that moves hearts.",
+      "titleLine2": "Ready in minutes.",
+      "subtitle": "Art that moves, devotionals that walk with you, and a space for biblical reflection — all in one place, built for faith content creators.",
+      "inputPlaceholder": "Create a Bible art post about...",
+      "examplePrompt1": "Create a Bible art post about hope",
+      "examplePrompt2": "Write a sermon outline on grace",
+      "examplePrompt3": "Generate today's devotional",
+      "examplePrompt4": "Design an Easter social post",
+      "ctaButton": "Create Now",
+      "chip1": "Generate Bible art",
+      "chip2": "Write a message outline",
+      "chip3": "Ask the spiritual chat"
+    },
+    "features": {
+      "eyebrow": "Features",
+      "title": "Everything you need to create",
+      "subtitle": "One subscription instead of a pile of scattered tools.",
+      "bibleArt": { "title": "Bible Art", "description": "Turn a verse or theme into scroll-stopping art in seconds." },
+      "socialPosts": { "title": "Social Posts", "description": "Captions and seasonal templates for feed, story, and carousel." },
+      "devotional": { "title": "Daily Devotional", "description": "A fresh, Scripture-grounded devotional every day." },
+      "spiritualChat": { "title": "Spiritual Chat", "description": "A Bible-based companion for reflection, with built-in crisis care." },
+      "video": { "title": "Video Studio", "description": "Short AI-generated videos for reels and shorts." },
+      "message": { "title": "Message Prep", "description": "Sermon and message outlines built around your topic and audience." },
+      "bible": { "title": "Bible Reader", "description": "Read alongside guided plans and track your progress." },
+      "games": { "title": "Quiz & Games", "description": "Bible trivia to engage your community and grow together." },
+      "church": { "title": "Church Admin", "description": "Contacts, events, communications, and finances for your team." }
+    },
+    "comparison": {
+      "eyebrow": "Why Zyonix",
+      "title": "Why not just use ChatGPT?",
+      "subtitle": "Generic AI tools weren't built for ministry. Zyonix was.",
+      "columnGeneric": "Generic AI tools",
+      "columnZyonix": "Zyonix",
+      "row1": "Scripture-grounded, faith-first content",
+      "row2": "Ready-to-post formats, not just raw text",
+      "row3": "Seasonal templates for every church holiday",
+      "row4": "Built-in crisis-care safety net",
+      "row5": "Team tools for your whole church",
+      "row6": "One subscription, not five different apps"
+    },
+    "pricing": {
+      "eyebrow": "Simple, transparent pricing",
+      "title": "Choose your plan"
+    },
+    "faq": {
+      "eyebrow": "FAQ",
+      "title": "Frequently asked questions",
+      "q1": "Is the content actually accurate to Scripture?",
+      "a1": "Yes. Every generation is grounded in Scripture and reviewed prompts designed to stay faithful to biblical principles — you can always edit before you post.",
+      "q2": "Can my whole church team use one account?",
+      "a2": "Yes, on the Pro plan. Invite your team to a shared workspace with contacts, events, communications, and finances.",
+      "q3": "What happens if I cancel?",
+      "a3": "You keep access until the end of your current billing period, and you can resubscribe anytime — nothing is deleted.",
+      "q4": "Do I need any design experience?",
+      "a4": "No. Describe what you need in plain language and Zyonix generates ready-to-post art, captions, and outlines.",
+      "q5": "What languages are supported?",
+      "a5": "Zyonix is available in English and Spanish, with more languages on the way.",
+      "q6": "How do credits work?",
+      "a6": "Each plan includes a monthly allowance of image, text, and video credits that refresh every cycle — no surprise overage charges."
+    },
+    "footer": {
+      "tagline": "Your faith. Infinite possibilities.",
+      "copyright": "© {year} {appName}. All rights reserved."
+    }
   },
   "auth": {
     "login": {

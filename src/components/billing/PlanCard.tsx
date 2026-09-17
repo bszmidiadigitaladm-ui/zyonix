@@ -103,9 +103,16 @@ export function PlanCard({
         </div>
       )}
 
-      <p className="mt-3 text-3xl font-bold">
+      <p
+        className={cn(
+          "mt-3 font-extrabold tracking-tight",
+          highlighted
+            ? "bg-[image:var(--gradient-accent)] bg-clip-text text-5xl text-transparent sm:text-6xl"
+            : "text-4xl",
+        )}
+      >
         ${activePrice.toFixed(2)}
-        <span className="text-sm font-normal text-muted">{t("perMonth")}</span>
+        <span className="text-sm font-medium text-muted">{t("perMonth")}</span>
       </p>
       <p className="mt-1 text-xs text-muted">{isAnnual ? t("billedAnnually") : t("trialNote")}</p>
 

@@ -14,6 +14,7 @@
   --accent-foreground: #04211d;
   --danger: #f87171;
   --warning: #fbbf24;
+  --gradient-accent: linear-gradient(100deg, #eafcf8 0%, #8ff2df 45%, var(--accent) 100%);
 }
 
 @theme inline {
