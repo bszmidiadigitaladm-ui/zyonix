@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
@@ -49,7 +50,7 @@ export function Sidebar({ showTeam }: { showTeam: boolean }) {
   return (
     <nav className="flex w-56 shrink-0 flex-col gap-1 border-r border-border bg-surface/60 p-4">
       <Link href="/dashboard" className="mb-4 flex items-center gap-2 px-2 text-lg font-semibold">
-        <span className="h-2 w-2 rounded-full bg-accent shadow-[0_0_8px_var(--accent)]" />
+        <Image src="/logo-mark.png" alt="" width={22} height={22} />
         {APP_NAME}
       </Link>
       {items.map((item) => {
