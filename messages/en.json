@@ -99,6 +99,12 @@
       "copyright": "© {year} {appName}. All rights reserved."
     }
   },
+  "welcome": {
+    "title": "Payment confirmed!",
+    "subtitle": "Check your inbox for an email with a link to set up your account — or create it right now below with the same email you used at checkout.",
+    "cta": "Create your account",
+    "signInInstead": "Already have an account? Sign in"
+  },
   "auth": {
     "login": {
       "title": "Welcome back to {appName}",

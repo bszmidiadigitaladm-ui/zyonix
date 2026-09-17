@@ -659,6 +659,36 @@ export interface Database {
         };
         Relationships: [];
       };
+      pending_activations: {
+        Row: {
+          id: string;
+          email: string;
+          plan_code: string;
+          is_annual: boolean;
+          transaction_code: string | null;
+          subscriber_code: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          plan_code: string;
+          is_annual?: boolean;
+          transaction_code?: string | null;
+          subscriber_code?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          plan_code?: string;
+          is_annual?: boolean;
+          transaction_code?: string | null;
+          subscriber_code?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       teams: {
         Row: {
           id: string;

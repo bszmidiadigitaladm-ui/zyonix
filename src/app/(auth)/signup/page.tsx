@@ -29,7 +29,9 @@ function SignupForm() {
   // A team invite link forwards ?next=/team/accept/<token> so a brand-new
   // teammate lands there instead of the solo-plan checkout onboarding.
   const next = searchParams.get("next") || "/onboarding/plan";
-  const [email, setEmail] = useState("");
+  // A Hotmart activation email links here with ?email= pre-filled, since
+  // the subscription only activates once the account uses the same address.
+  const [email, setEmail] = useState(searchParams.get("email") ?? "");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [error, setError] = useState<string | null>(null);

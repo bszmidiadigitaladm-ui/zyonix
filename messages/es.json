@@ -99,6 +99,12 @@
       "copyright": "© {year} {appName}. Todos los derechos reservados."
     }
   },
+  "welcome": {
+    "title": "¡Pago confirmado!",
+    "subtitle": "Revisa tu correo para un enlace y crear tu cuenta — o créala ahora mismo abajo con el mismo correo que usaste en la compra.",
+    "cta": "Crear tu cuenta",
+    "signInInstead": "¿Ya tienes cuenta? Inicia sesión"
+  },
   "auth": {
     "login": {
       "title": "Bienvenido de nuevo a {appName}",

@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { PLAN_CODES, type PlanCode } from "@/lib/config";
+import { resolvePlan, activateSubscriptionForProfile } from "@/lib/hotmart/activation";
+import { sendEmail } from "@/lib/email/resend";
+import { escapeHtml } from "@/lib/utils";
+import { APP_NAME } from "@/lib/config";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 
@@ -26,104 +29,44 @@ interface HotmartWebhookBody {
 const ACTIVATION_KEYWORDS = ["APPROVED", "COMPLETE"];
 const CANCELLATION_KEYWORDS = ["CANCEL", "REFUND", "CHARGEBACK", "EXPIRED", "DELAYED"];
 
-async function resolvePlan(
+// Checkout is open to anyone from the pricing page — no signup required
+// first — so a purchase can easily arrive before a matching profile exists.
+// Rather than lose the activation, stash it and email the buyer a signup
+// link; /onboarding/plan applies it the moment they finish signing up.
+async function handleUnmatchedPurchase(
   admin: AdminClient,
-  trackingPlanCode: string | undefined,
-  offerCode: string | undefined,
-): Promise<{ planCode: PlanCode; isAnnual: boolean } | null> {
-  if (trackingPlanCode && (PLAN_CODES as readonly string[]).includes(trackingPlanCode)) {
-    return { planCode: trackingPlanCode as PlanCode, isAnnual: false };
-  }
-
-  if (!offerCode) return null;
-
-  const { data: plan } = await admin
-    .from("plans")
-    .select("code, hotmart_offer_code_annual")
-    .or(`hotmart_offer_code.eq.${offerCode},hotmart_offer_code_annual.eq.${offerCode}`)
-    .maybeSingle();
-
-  if (!plan) return null;
-  return { planCode: plan.code, isAnnual: plan.hotmart_offer_code_annual === offerCode };
-}
-
-async function handleActivation(
-  admin: AdminClient,
-  params: { email: string; planCode: PlanCode; isAnnual: boolean; transactionCode?: string; subscriberCode?: string },
+  params: {
+    email: string;
+    planCode: string;
+    isAnnual: boolean;
+    transactionCode?: string;
+    subscriberCode?: string;
+  },
 ) {
   const { email, planCode, isAnnual, transactionCode, subscriberCode } = params;
 
-  const { data: profile } = await admin
-    .from("profiles")
-    .select("id, email, full_name, team_id")
-    .eq("email", email)
-    .maybeSingle();
-
-  if (!profile) {
-    console.error("Hotmart webhook: no profile found for buyer email", email);
-    return;
-  }
-
-  const { data: plan } = await admin.from("plans").select("is_team_plan").eq("code", planCode).single();
-
-  let teamId = profile.team_id;
-
-  if (plan?.is_team_plan && !teamId) {
-    const { data: team, error: teamError } = await admin
-      .from("teams")
-      .insert({ name: `${profile.full_name ?? profile.email}'s Team`, owner_id: profile.id })
-      .select()
-      .single();
-    if (teamError) throw teamError;
-    teamId = team.id;
-    await admin.from("profiles").update({ team_id: teamId, team_role: "owner" }).eq("id", profile.id);
-  }
-
-  const now = new Date();
-  const periodEnd = new Date(now);
-  if (isAnnual) periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-  else periodEnd.setMonth(periodEnd.getMonth() + 1);
-
-  const creditsCycleEnd = new Date(now);
-  creditsCycleEnd.setMonth(creditsCycleEnd.getMonth() + 1);
-
-  const query = admin.from("subscriptions").select("id");
-  const { data: existing } = teamId
-    ? await query.eq("team_id", teamId).maybeSingle()
-    : await query.eq("owner_id", profile.id).is("team_id", null).maybeSingle();
-
-  const payload = {
-    owner_id: profile.id,
-    team_id: teamId,
+  const { error } = await admin.from("pending_activations").insert({
+    email,
     plan_code: planCode,
-    status: "active" as const,
-    trial_end: null,
-    current_period_start: now.toISOString(),
-    current_period_end: periodEnd.toISOString(),
-    cancel_at_period_end: false,
-    canceled_at: null,
-    billing_cycle: isAnnual ? ("annual" as const) : ("monthly" as const),
-    credits_cycle_end: creditsCycleEnd.toISOString(),
-    hotmart_transaction_code: transactionCode ?? null,
-    hotmart_subscriber_code: subscriberCode ?? null,
-  };
-
-  const { data: subscriptionRow, error } = existing
-    ? await admin.from("subscriptions").update(payload).eq("id", existing.id).select().single()
-    : await admin.from("subscriptions").insert(payload).select().single();
-
+    is_annual: isAnnual,
+    transaction_code: transactionCode ?? null,
+    subscriber_code: subscriberCode ?? null,
+  });
   if (error) throw error;
 
-  if (teamId) {
-    await admin.from("teams").update({ subscription_id: subscriptionRow.id }).eq("id", teamId);
-  }
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const signupUrl = `${siteUrl}/signup?email=${encodeURIComponent(email)}`;
 
-  const { error: resetError } = await admin.rpc("reset_credits", {
-    p_subscription_id: subscriptionRow.id,
-    p_cycle_start: now.toISOString(),
-    p_cycle_end: creditsCycleEnd.toISOString(),
+  await sendEmail({
+    to: email,
+    subject: `${APP_NAME}: Your payment is confirmed — create your account`,
+    html: `
+      <p>Thanks for subscribing to ${escapeHtml(APP_NAME)}!</p>
+      <p>Your payment went through. To start creating, create your account using this same email address:</p>
+      <p><a href="${signupUrl}">Create your ${escapeHtml(APP_NAME)} account</a></p>
+      <p>Your plan activates automatically as soon as your account is set up.</p>
+    `,
   });
-  if (resetError) throw resetError;
 }
 
 async function handleCancellation(admin: AdminClient, params: { email?: string; subscriberCode?: string }) {
@@ -183,7 +126,18 @@ export async function POST(request: Request) {
         console.error("Hotmart webhook: could not resolve plan or buyer email", { event, offerCode, email });
         return NextResponse.json({ received: true });
       }
-      await handleActivation(admin, { email, ...resolved, transactionCode, subscriberCode });
+
+      const { data: profile } = await admin
+        .from("profiles")
+        .select("id, email, full_name, team_id")
+        .eq("email", email)
+        .maybeSingle();
+
+      if (profile) {
+        await activateSubscriptionForProfile(admin, { profile, ...resolved, transactionCode, subscriberCode });
+      } else {
+        await handleUnmatchedPurchase(admin, { email, ...resolved, transactionCode, subscriberCode });
+      }
     } else if (CANCELLATION_KEYWORDS.some((k) => event.toUpperCase().includes(k))) {
       await handleCancellation(admin, { email, subscriberCode });
     }

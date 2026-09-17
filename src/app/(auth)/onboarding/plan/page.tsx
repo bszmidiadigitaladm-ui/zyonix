@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { requireUser } from "@/lib/auth/session";
+import { requireUser, getProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { activateSubscriptionForProfile } from "@/lib/hotmart/activation";
 import { PlanCard } from "@/components/billing/PlanCard";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { APP_NAME } from "@/lib/config";
@@ -31,7 +33,38 @@ function featuresFor(
 }
 
 export default async function OnboardingPlanPage() {
-  await requireUser();
+  const user = await requireUser();
+
+  // A purchase made before this account existed (checkout is open to
+  // anyone, no signup required first) is stashed in pending_activations by
+  // the Hotmart webhook. Apply it now that a matching profile finally
+  // exists, rather than making the person pick a plan they already paid for.
+  if (user.email) {
+    const admin = createAdminClient();
+    const { data: pending } = await admin
+      .from("pending_activations")
+      .select("*")
+      .eq("email", user.email)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (pending) {
+      const profile = await getProfile(user.id);
+      if (profile) {
+        await activateSubscriptionForProfile(admin, {
+          profile,
+          planCode: pending.plan_code as PlanCode,
+          isAnnual: pending.is_annual,
+          transactionCode: pending.transaction_code,
+          subscriberCode: pending.subscriber_code,
+        });
+        await admin.from("pending_activations").delete().eq("email", user.email);
+        redirect("/dashboard");
+      }
+    }
+  }
+
   const t = await getTranslations("onboarding.plan");
   const tFeatures = await getTranslations("onboarding.plan.features");
 
