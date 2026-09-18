@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { rateLimitResponse } from "@/lib/rate-limit";
 
 export async function GET() {
   const supabase = await createClient();
@@ -46,6 +47,9 @@ export async function DELETE(request: Request) {
   if (!user) {
     return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
   }
+
+  const limited = await rateLimitResponse(`team:members-remove:${user.id}`, 30, 3600);
+  if (limited) return limited;
 
   const { data: profile } = await supabase
     .from("profiles")

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { APP_NAME } from "@/lib/config";
 import { Button } from "@/components/ui/Button";
 
-// Stripe redirects here right after Checkout. The webhook (source of truth)
+// Checkout redirects here right after payment. The webhook (source of truth)
 // may land a beat later, so we poll briefly before sending the user in.
 export default function OnboardingCheckoutStatusPage() {
   const t = useTranslations("onboarding.checkout");

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimitResponse } from "@/lib/rate-limit";
 
 export async function POST(request: Request, { params }: RouteContext<"/api/bible/plans/[id]/start">) {
   const { id: planId } = await params;
@@ -12,6 +13,9 @@ export async function POST(request: Request, { params }: RouteContext<"/api/bibl
   if (!user) {
     return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
   }
+
+  const limited = await rateLimitResponse(`bible:plan-start:${user.id}`, 30, 3600);
+  if (limited) return limited;
 
   const { data: plan } = await supabase.from("reading_plans").select("id").eq("id", planId).maybeSingle();
   if (!plan) {

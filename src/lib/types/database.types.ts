@@ -659,6 +659,24 @@ export interface Database {
         };
         Relationships: [];
       };
+      hotmart_events: {
+        Row: {
+          dedupe_key: string;
+          event: string;
+          created_at: string;
+        };
+        Insert: {
+          dedupe_key: string;
+          event: string;
+          created_at?: string;
+        };
+        Update: {
+          dedupe_key?: string;
+          event?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       pending_activations: {
         Row: {
           id: string;

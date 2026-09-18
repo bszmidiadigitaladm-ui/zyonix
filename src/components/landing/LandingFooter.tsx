@@ -1,6 +1,8 @@
 import Image from "next/image";
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { APP_NAME } from "@/lib/config";
+import { SUPPORT_EMAIL } from "@/lib/legal/content";
 
 export async function LandingFooter() {
   const t = await getTranslations("landing.footer");
@@ -13,6 +15,17 @@ export async function LandingFooter() {
           {APP_NAME}
         </div>
         <p className="text-xs text-muted">{t("tagline")}</p>
+        <nav className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-xs text-muted">
+          <Link href="/terms" className="transition hover:text-foreground">
+            {t("terms")}
+          </Link>
+          <Link href="/privacy" className="transition hover:text-foreground">
+            {t("privacy")}
+          </Link>
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="transition hover:text-foreground">
+            {t("contact")}
+          </a>
+        </nav>
         <p className="mt-4 text-xs text-muted">{t("copyright", { year: new Date().getFullYear(), appName: APP_NAME })}</p>
       </div>
     </footer>

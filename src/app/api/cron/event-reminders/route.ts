@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
+import { isAuthorizedCron } from "@/lib/security";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendEmail } from "@/lib/email/resend";
+import { sendBccBatches } from "@/lib/email/resend";
 import { escapeHtml } from "@/lib/utils";
 
 function toDateOnly(d: Date): string {
@@ -11,8 +12,7 @@ function toDateOnly(d: Date): string {
 // event whose reminder is due today. CRON_SECRET-gated, same pattern as
 // daily-devotional / daily-reminder.
 export async function POST(request: Request) {
-  const auth = request.headers.get("authorization");
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isAuthorizedCron(request)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
@@ -45,13 +45,12 @@ export async function POST(request: Request) {
         <p>Reminder: <strong>${escapeHtml(event.title)}</strong> is coming up on ${event.event_date}.</p>
         ${event.description ? `<p>${escapeHtml(event.description)}</p>` : ""}
       `;
-      const sent = await sendEmail({
-        to: process.env.RESEND_FROM_EMAIL!,
-        bcc: recipients,
+      const { sent } = await sendBccBatches({
+        recipients,
         subject: `Reminder: ${event.title}`,
         html,
       });
-      if (sent) remindersSent++;
+      if (sent > 0) remindersSent++;
     }
 
     await admin.from("church_events").update({ reminder_sent: true }).eq("id", event.id);

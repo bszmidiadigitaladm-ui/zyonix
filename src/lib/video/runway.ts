@@ -1,9 +1,8 @@
 import RunwayML, { TaskFailedError } from "@runwayml/sdk";
 
-// Lazily constructed for the same reason as lib/openai/client.ts and
-// lib/stripe/client.ts: Next.js imports every API route module at build time
-// to collect its config, which would throw here if RUNWAY_API_KEY isn't
-// present in the build environment.
+// Lazily constructed for the same reason as lib/openai/client.ts: Next.js
+// imports every API route module at build time to collect its config, which
+// would throw here if RUNWAY_API_KEY isn't present in the build environment.
 let _runway: RunwayML | null = null;
 
 function getRunway(): RunwayML {

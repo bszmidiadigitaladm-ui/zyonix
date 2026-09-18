@@ -4,6 +4,7 @@ import { resolvePlan, activateSubscriptionForProfile } from "@/lib/hotmart/activ
 import { sendEmail } from "@/lib/email/resend";
 import { escapeHtml } from "@/lib/utils";
 import { APP_NAME } from "@/lib/config";
+import { safeEqual } from "@/lib/security";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 
@@ -28,6 +29,25 @@ interface HotmartWebhookBody {
 
 const ACTIVATION_KEYWORDS = ["APPROVED", "COMPLETE"];
 const CANCELLATION_KEYWORDS = ["CANCEL", "REFUND", "CHARGEBACK", "EXPIRED", "DELAYED"];
+
+type EventKind = "activation" | "cancellation";
+
+// Hotmart retries failed deliveries and sends several events per purchase
+// (APPROVED, then COMPLETE), so each (transaction, kind) pair is claimed in
+// hotmart_events before any work happens. "unavailable" (e.g. the table
+// doesn't exist yet) fails open: a missed dedupe is better than dropping a
+// real purchase.
+async function claimEvent(admin: AdminClient, key: string, event: string): Promise<"claimed" | "duplicate" | "unavailable"> {
+  const { error } = await admin.from("hotmart_events").insert({ dedupe_key: key, event });
+  if (!error) return "claimed";
+  if (error.code === "23505") return "duplicate";
+  console.error("Hotmart webhook: dedupe check failed, processing anyway", error);
+  return "unavailable";
+}
+
+async function releaseEvent(admin: AdminClient, key: string) {
+  await admin.from("hotmart_events").delete().eq("dedupe_key", key);
+}
 
 // Checkout is open to anyone from the pricing page — no signup required
 // first — so a purchase can easily arrive before a matching profile exists.
@@ -95,7 +115,8 @@ async function handleCancellation(admin: AdminClient, params: { email?: string; 
 
 export async function POST(request: Request) {
   const hottok = request.headers.get("x-hotmart-hottok");
-  if (!hottok || hottok !== process.env.HOTMART_HOTTOK) {
+  const expectedHottok = process.env.HOTMART_HOTTOK;
+  if (!hottok || !expectedHottok || !safeEqual(hottok, expectedHottok)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
@@ -119,11 +140,30 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient();
 
+  const upperEvent = event.toUpperCase();
+  const kind: EventKind | null = ACTIVATION_KEYWORDS.some((k) => upperEvent.includes(k))
+    ? "activation"
+    : CANCELLATION_KEYWORDS.some((k) => upperEvent.includes(k))
+      ? "cancellation"
+      : null;
+
+  let claimedKey: string | null = null;
+  if (kind && transactionCode) {
+    const key = `${transactionCode}:${kind}`;
+    const claim = await claimEvent(admin, key, event);
+    if (claim === "duplicate") {
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+    if (claim === "claimed") claimedKey = key;
+  }
+
   try {
-    if (ACTIVATION_KEYWORDS.some((k) => event.toUpperCase().includes(k))) {
+    if (kind === "activation") {
       const resolved = await resolvePlan(admin, trackingPlanCode, offerCode);
       if (!resolved || !email) {
         console.error("Hotmart webhook: could not resolve plan or buyer email", { event, offerCode, email });
+        // Release so a manual resend from Hotmart is processed once the plan config is fixed.
+        if (claimedKey) await releaseEvent(admin, claimedKey);
         return NextResponse.json({ received: true });
       }
 
@@ -138,11 +178,13 @@ export async function POST(request: Request) {
       } else {
         await handleUnmatchedPurchase(admin, { email, ...resolved, transactionCode, subscriberCode });
       }
-    } else if (CANCELLATION_KEYWORDS.some((k) => event.toUpperCase().includes(k))) {
+    } else if (kind === "cancellation") {
       await handleCancellation(admin, { email, subscriberCode });
     }
   } catch (err) {
     console.error(`Error handling Hotmart webhook event ${event}`, err);
+    // Let Hotmart's retry through: the failed attempt must not count as handled.
+    if (claimedKey) await releaseEvent(admin, claimedKey);
     return NextResponse.json({ error: "webhook_handler_failed" }, { status: 500 });
   }
 

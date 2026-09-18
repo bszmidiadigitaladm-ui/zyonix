@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isAuthorizedCron } from "@/lib/security";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ensureTodaysDevotional } from "@/lib/devotional/generate";
 import { sendEmail } from "@/lib/email/resend";
@@ -12,8 +13,7 @@ const VALID_SLOTS = ["morning", "afternoon", "evening"] as const;
 // daily cron, so this is called once per slot per day by an external
 // scheduler — see README.md.
 export async function POST(request: Request) {
-  const auth = request.headers.get("authorization");
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isAuthorizedCron(request)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

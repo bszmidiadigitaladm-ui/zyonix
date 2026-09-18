@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isAuthorizedCron } from "@/lib/security";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // Credits always refresh monthly, even on an annual Hotmart subscription
@@ -8,8 +9,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // credits_cycle_end has actually arrived, so running more often than
 // needed is harmless.
 export async function POST(request: Request) {
-  const auth = request.headers.get("authorization");
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isAuthorizedCron(request)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

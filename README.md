@@ -9,14 +9,14 @@ The product name lives in one place — `APP_NAME` in [`src/lib/config.ts`](src/
 ## Stack
 
 Next.js (App Router) + Tailwind · Supabase (Postgres + Auth + Storage) ·
-Stripe Subscriptions · OpenAI (GPT text + GPT Image + Moderation) · Netlify hosting.
+Hotmart subscriptions · OpenAI (GPT text + GPT Image + Moderation) · Netlify hosting.
 
 ## First-time setup
 
 1. **Install dependencies**: `npm install`
 2. **Create the accounts and env vars** — see [`docs/ENV_VARS.md`](docs/ENV_VARS.md)
    for the full checklist (Supabase project + migrations + seed + Storage
-   bucket, Stripe products + webhook, OpenAI key). Copy `.env.example` to
+   bucket, Hotmart offers + webhook, OpenAI key). Copy `.env.example` to
    `.env.local` and fill it in.
 3. **Generate real Supabase types** once your project exists (replaces the
    hand-written `src/lib/types/database.types.ts`):
@@ -27,28 +27,13 @@ Stripe Subscriptions · OpenAI (GPT text + GPT Image + Moderation) · Netlify ho
    the top of that file before hand-editing it again.
 4. **Run the dev server**: `npm run dev` → http://localhost:3000
 
-## Testing Stripe locally
+## Signup → payment flow
 
-```bash
-stripe login
-stripe listen --forward-to localhost:3000/api/stripe/webhook
-```
-
-Copy the printed webhook signing secret into `STRIPE_WEBHOOK_SECRET` in
-`.env.local`. Then trigger events to exercise each handler in
-[`src/app/api/stripe/webhook/route.ts`](src/app/api/stripe/webhook/route.ts):
-
-```bash
-stripe trigger checkout.session.completed
-stripe trigger invoice.payment_succeeded
-stripe trigger customer.subscription.updated
-stripe trigger invoice.payment_failed
-stripe trigger customer.subscription.deleted
-```
-
-Full signup flow: `/signup` → `/onboarding/plan` → Stripe Checkout (test
-card `4242 4242 4242 4242`) → 3-day trial starts → webhook lands →
-`subscriptions` + `credits_balance` are populated → redirected into `/dashboard`.
+Checkout is on Hotmart. A purchase reaches `/api/hotmart/webhook`, which
+activates the subscription for the buyer's email — immediately if a Zyonix
+account with that email exists, otherwise it is parked in `pending_activations`
+and applied the moment they sign up with the same email. Each webhook event is
+recorded in `hotmart_events` so Hotmart retries can't double-process a purchase.
 
 ## Tuning credit limits
 
@@ -94,8 +79,7 @@ the billing period.
 
 ## Hotmart payments
 
-Hotmart is the active payment processor (Stripe's checkout/portal routes are
-kept for reference but are no longer linked from onboarding). Each `plans`
+Hotmart is the payment processor. Each `plans`
 row carries its own checkout URL(s) and offer code(s)
 (`hotmart_checkout_url[_annual]`, `hotmart_offer_code[_annual]`,
 `supabase/migrations/0030_hotmart_integration.sql`) — the pricing page just
@@ -134,9 +118,9 @@ never see each other's addresses; each send is logged in `communications`.
 ```
 src/app/(auth)/       signup, login, onboarding (plan selection + Hotmart checkout links), team invite acceptance
 src/app/(app)/        the authenticated shell: dashboard, art, posts, devotionals, chat, templates, billing, team
-src/app/api/          Hotmart webhook, Stripe (legacy), AI (art/posts/devotional/chat), credits, team, cron
+src/app/api/          Hotmart webhook, AI (art/posts/devotional/chat), account export/delete, credits, team, cron
 src/lib/supabase/     server/browser/admin Supabase clients + the middleware session-refresh helper
-src/lib/stripe/       lazily-constructed Stripe client
+src/lib/security.ts    constant-time secret comparison + cron auth
 src/lib/openai/       lazily-constructed OpenAI client + art/text/chat/moderation prompt logic
 src/lib/credits/      plan_limits reader + the consume/refund credit RPC wrappers
 src/lib/safety/       crisis keyword fallback list + crisis resources/disclaimer copy

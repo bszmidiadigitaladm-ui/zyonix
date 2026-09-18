@@ -36,7 +36,15 @@ export function ContactsManager({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error === "contact_exists" ? t("alreadyExists") : t("genericError"));
+        setError(
+          data.error === "contact_exists"
+            ? t("alreadyExists")
+            : data.error === "contact_limit_reached"
+              ? t("limitReached")
+              : data.error === "rate_limited"
+                ? t("rateLimited")
+                : t("genericError"),
+        );
         return;
       }
       setContacts((prev) => [...prev, data.contact]);

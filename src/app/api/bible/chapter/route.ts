@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getChapter } from "@/lib/bible/cache";
 import { getBookMeta } from "@/lib/bible/books";
+import { rateLimitResponse } from "@/lib/rate-limit";
 
 const querySchema = z.object({
   translation: z.enum(["web", "kjv", "rva1909"]),
@@ -19,6 +20,9 @@ export async function GET(request: Request) {
   if (!user) {
     return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
   }
+
+  const limited = await rateLimitResponse(`bible:chapter:${user.id}`, 120, 60);
+  if (limited) return limited;
 
   const { searchParams } = new URL(request.url);
   const parsed = querySchema.safeParse({

@@ -17,7 +17,7 @@ success individually.
 Rule enforced throughout the codebase: any variable **without** the
 `NEXT_PUBLIC_` prefix is server-only and must never be imported from a
 `"use client"` component. Server-only variables are only referenced under
-`src/app/api/**`, `src/lib/{stripe,openai,supabase/admin}.ts`, and
+`src/app/api/**`, `src/lib/{openai,supabase/admin}.ts`, and
 `src/middleware.ts` / `src/proxy.ts`.
 
 ## Public (safe to expose in the browser bundle)
@@ -26,8 +26,7 @@ Rule enforced throughout the codebase: any variable **without** the
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | Supabase Dashboard → Project Settings → API |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anonymous key — RLS-enforced client access | Supabase Dashboard → Project Settings → API |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Reserved for a future embedded Stripe Elements flow; not required for the current Checkout-redirect flow | Stripe Dashboard → Developers → API keys |
-| `NEXT_PUBLIC_SITE_URL` | Base URL used for OAuth/Checkout/Portal redirect URLs | Set manually per environment (e.g. `http://localhost:3000`, or your Netlify URL) |
+| `NEXT_PUBLIC_SITE_URL` | Canonical public origin — used for emailed links, metadata, sitemap and robots (production: `https://zyonix.pro`) | Set manually per environment (e.g. `http://localhost:3000`, or your Netlify URL) |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Bot protection widget on signup/login. Blank = no widget rendered, and Supabase won't enforce it either | [dash.cloudflare.com](https://dash.cloudflare.com) → Turnstile → Add site (free) |
 
 ## Server-only secrets
@@ -35,15 +34,13 @@ Rule enforced throughout the codebase: any variable **without** the
 | Variable | Purpose | Where to get it |
 |---|---|---|
 | `SUPABASE_SERVICE_ROLE_KEY` | Bypasses RLS — used only in webhook/cron/admin code paths | Supabase Dashboard → Project Settings → API (**keep secret**) |
-| `STRIPE_SECRET_KEY` | Create Checkout Sessions, Portal sessions, read subscriptions | Stripe Dashboard → Developers → API keys |
-| `STRIPE_WEBHOOK_SECRET` | Verifies the `Stripe-Signature` header on incoming webhooks | Stripe Dashboard → Developers → Webhooks (or `stripe listen` for local dev) |
-| `STRIPE_PRICE_STARTER` / `STRIPE_PRICE_CREATOR` / `STRIPE_PRICE_CHURCH_PRO` | Not read directly by the app (the `plans` table is the source of truth) — used only to fill in `supabase/seed.sql` per environment | Stripe Dashboard → Products |
 | `OPENAI_API_KEY` | GPT text, GPT Image, and Moderation endpoint calls | OpenAI Platform → API keys |
 | `OPENAI_ORG_ID` | Optional — org-scoped billing/usage attribution | OpenAI Platform → Organization settings |
 | `RUNWAY_API_KEY` | Video Studio module (AI video generation, `gen4.5`) and Church Admin event flyer images (`gen4_image`) | [dev.runwayml.com](https://dev.runwayml.com) → API Keys |
 | `RESEND_API_KEY` | Sends Church Admin communications, event reminders, and daily devotional reminder emails | [resend.com](https://resend.com) → API Keys |
 | `RESEND_FROM_EMAIL` | The verified "from" address used for all outgoing email | [resend.com](https://resend.com) → Domains (must be on a verified domain) |
 | `CRON_SECRET` | Shared secret checked by `/api/cron/*` routes | Generate any random string yourself |
+| `ERROR_ALERT_WEBHOOK_URL` | Optional. Discord/Slack incoming-webhook that receives a short alert when a server error occurs (same route+message alerts at most once per 10 minutes per server instance) | Discord: channel → Integrations → Webhooks → New webhook. Slack: Incoming Webhooks app |
 | `HOTMART_HOTTOK` | Verifies the `X-HOTMART-HOTTOK` header on `/api/hotmart/webhook` | Hotmart Dashboard → Ferramentas → Webhook (HOTTOK is shown when you configure the webhook) |
 
 ## Setting up the accounts
@@ -52,16 +49,6 @@ Rule enforced throughout the codebase: any variable **without** the
    (in order) via the SQL editor or `supabase db push`, then run
    `supabase/seed.sql`. Create a **public** Storage bucket named `generations`
    (Storage → New bucket) for AI-generated art/post assets.
-2. **Stripe** (legacy — Hotmart is the active processor, see step 6 below;
-   these vars/routes are kept for reference but are no longer wired into the
-   onboarding UI): create recurring monthly Products/Prices, copy their Price
-   IDs into `supabase/seed.sql`'s `plans` insert (replacing the
-   `price_..._REPLACE_ME` placeholders) and re-run that seed. Create a
-   webhook endpoint pointing at `/api/stripe/webhook` subscribed to:
-   `checkout.session.completed`, `customer.subscription.updated`,
-   `invoice.payment_succeeded`, `invoice.payment_failed`,
-   `customer.subscription.deleted`. For local testing, use
-   `stripe listen --forward-to localhost:3000/api/stripe/webhook` instead.
 3. **OpenAI**: create an API key with access to `gpt-image-1` and a GPT chat
    model.
 4. **Runway** (Video Studio only): create an account at

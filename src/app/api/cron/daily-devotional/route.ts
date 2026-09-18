@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
+import { isAuthorizedCron } from "@/lib/security";
 import { ensureTodaysDevotional } from "@/lib/devotional/generate";
 
 export async function POST(request: Request) {
-  const auth = request.headers.get("authorization");
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isAuthorizedCron(request)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

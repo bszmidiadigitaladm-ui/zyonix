@@ -132,6 +132,20 @@ function SignupForm() {
           <Button type="submit" disabled={loading} className="w-full">
             {loading ? t("submitting") : t("submit")}
           </Button>
+          <p className="text-center text-xs text-muted">
+            {t.rich("consent", {
+              terms: (chunks) => (
+                <Link href="/terms" target="_blank" className="text-accent hover:underline">
+                  {chunks}
+                </Link>
+              ),
+              privacy: (chunks) => (
+                <Link href="/privacy" target="_blank" className="text-accent hover:underline">
+                  {chunks}
+                </Link>
+              ),
+            })}
+          </p>
         </form>
 
         <div className="my-5 flex items-center gap-3 text-xs text-muted">

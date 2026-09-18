@@ -7,6 +7,7 @@ import { ManageBillingButton } from "@/components/billing/ManageBillingButton";
 import { PlanBadge } from "@/components/billing/PlanBadge";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { SUPPORT_EMAIL } from "@/lib/legal/content";
 
 export default async function BillingPage() {
   const { profile, subscription } = await requireOnboardedUser();
@@ -37,6 +38,8 @@ export default async function BillingPage() {
         </div>
         <ManageBillingButton />
       </Card>
+
+      <p className="mb-6 -mt-3 px-1 text-xs text-muted">{t("manageHelp", { email: SUPPORT_EMAIL })}</p>
 
       {credits && limits && (
         <Card className="flex flex-col gap-4">

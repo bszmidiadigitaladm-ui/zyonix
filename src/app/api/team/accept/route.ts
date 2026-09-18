@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isPast } from "@/lib/utils";
+import { rateLimitResponse } from "@/lib/rate-limit";
 
 const bodySchema = z.object({ token: z.string().min(1) });
 
@@ -15,6 +16,9 @@ export async function POST(request: Request) {
   if (!user) {
     return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
   }
+
+  const limited = await rateLimitResponse(`team:accept:${user.id}`, 10, 3600);
+  if (limited) return limited;
 
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {

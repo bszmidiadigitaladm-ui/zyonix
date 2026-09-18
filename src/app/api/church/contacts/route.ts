@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireTeamOwnerId } from "@/lib/auth/session";
+import { rateLimitResponse } from "@/lib/rate-limit";
+
+// Keeps the contact list from being used to stage a bulk-mailing of harvested addresses.
+const MAX_CONTACTS_PER_TEAM = 1000;
 
 const bodySchema = z.object({
   name: z.string().trim().min(1).max(200),
@@ -23,9 +27,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "not_team_owner" }, { status: 403 });
   }
 
+  const limited = await rateLimitResponse(`church:contacts:${user.id}`, 100, 3600);
+  if (limited) return limited;
+
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 });
+  }
+
+  const { count } = await supabase
+    .from("church_contacts")
+    .select("id", { count: "exact", head: true })
+    .eq("team_id", teamId);
+  if ((count ?? 0) >= MAX_CONTACTS_PER_TEAM) {
+    return NextResponse.json({ error: "contact_limit_reached" }, { status: 403 });
   }
 
   const { data, error } = await supabase

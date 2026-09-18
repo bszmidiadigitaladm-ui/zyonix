@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
@@ -23,4 +24,20 @@ export async function checkRateLimit(
   }
 
   return data;
+}
+
+/**
+ * Route-handler shorthand: returns a ready 429 response when the caller is over
+ * the limit, or null when the request may proceed.
+ *
+ *   const limited = await rateLimitResponse(`prayer:${user.id}`, 60, 3600);
+ *   if (limited) return limited;
+ */
+export async function rateLimitResponse(
+  key: string,
+  maxRequests: number,
+  windowSeconds: number,
+): Promise<NextResponse | null> {
+  const allowed = await checkRateLimit(key, maxRequests, windowSeconds);
+  return allowed ? null : NextResponse.json({ error: "rate_limited" }, { status: 429 });
 }

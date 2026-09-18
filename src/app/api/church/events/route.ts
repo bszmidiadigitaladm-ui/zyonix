@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireTeamOwnerId } from "@/lib/auth/session";
+import { rateLimitResponse } from "@/lib/rate-limit";
 
 const bodySchema = z.object({
   title: z.string().trim().min(1).max(200),
@@ -19,6 +20,9 @@ export async function POST(request: Request) {
   if (!user) {
     return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
   }
+
+  const limited = await rateLimitResponse(`church:events:${user.id}`, 30, 3600);
+  if (limited) return limited;
 
   const teamId = await requireTeamOwnerId(supabase, user.id);
   if (!teamId) {

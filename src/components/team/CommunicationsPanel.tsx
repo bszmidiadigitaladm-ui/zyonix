@@ -39,7 +39,13 @@ export function CommunicationsPanel({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error === "no_contacts" ? t("noContactsError") : t("genericError"));
+        setError(
+          data.error === "no_contacts"
+            ? t("noContactsError")
+            : data.error === "rate_limited"
+              ? t("rateLimitedError")
+              : t("genericError"),
+        );
         return;
       }
       setHistory((prev) => [data.communication, ...prev]);

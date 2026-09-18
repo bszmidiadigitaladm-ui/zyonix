@@ -51,15 +51,42 @@
       "eyebrow": "Features",
       "title": "Everything you need to create",
       "subtitle": "One subscription instead of a pile of scattered tools.",
-      "bibleArt": { "title": "Bible Art", "description": "Turn a verse or theme into scroll-stopping art in seconds." },
-      "socialPosts": { "title": "Social Posts", "description": "Captions and seasonal templates for feed, story, and carousel." },
-      "devotional": { "title": "Daily Devotional", "description": "A fresh, Scripture-grounded devotional every day." },
-      "spiritualChat": { "title": "Spiritual Chat", "description": "A Bible-based companion for reflection, with built-in crisis care." },
-      "video": { "title": "Video Studio", "description": "Short AI-generated videos for reels and shorts." },
-      "message": { "title": "Message Prep", "description": "Sermon and message outlines built around your topic and audience." },
-      "bible": { "title": "Bible Reader", "description": "Read alongside guided plans and track your progress." },
-      "games": { "title": "Quiz & Games", "description": "Bible trivia to engage your community and grow together." },
-      "church": { "title": "Church Admin", "description": "Contacts, events, communications, and finances for your team." }
+      "bibleArt": {
+        "title": "Bible Art",
+        "description": "Turn a verse or theme into scroll-stopping art in seconds."
+      },
+      "socialPosts": {
+        "title": "Social Posts",
+        "description": "Captions and seasonal templates for feed, story, and carousel."
+      },
+      "devotional": {
+        "title": "Daily Devotional",
+        "description": "A fresh, Scripture-grounded devotional every day."
+      },
+      "spiritualChat": {
+        "title": "Spiritual Chat",
+        "description": "A Bible-based companion for reflection, with built-in crisis care."
+      },
+      "video": {
+        "title": "Video Studio",
+        "description": "Short AI-generated videos for reels and shorts."
+      },
+      "message": {
+        "title": "Message Prep",
+        "description": "Sermon and message outlines built around your topic and audience."
+      },
+      "bible": {
+        "title": "Bible Reader",
+        "description": "Read alongside guided plans and track your progress."
+      },
+      "games": {
+        "title": "Quiz & Games",
+        "description": "Bible trivia to engage your community and grow together."
+      },
+      "church": {
+        "title": "Church Admin",
+        "description": "Contacts, events, communications, and finances for your team."
+      }
     },
     "comparison": {
       "eyebrow": "Why Zyonix",
@@ -96,7 +123,10 @@
     },
     "footer": {
       "tagline": "Your faith. Infinite possibilities.",
-      "copyright": "© {year} {appName}. All rights reserved."
+      "copyright": "© {year} {appName}. All rights reserved.",
+      "terms": "Terms of Use",
+      "privacy": "Privacy Policy",
+      "contact": "Contact"
     }
   },
   "welcome": {
@@ -114,7 +144,9 @@
       "submit": "Sign in",
       "submitting": "Signing in…",
       "noAccount": "No account yet?",
-      "signUp": "Sign up"
+      "signUp": "Sign up",
+      "forgotPassword": "Forgot password?",
+      "callbackFailed": "That link is invalid or has expired. Please sign in, or request a new one."
     },
     "signup": {
       "title": "Create your {appName} account",
@@ -128,7 +160,29 @@
       "haveAccount": "Already have an account?",
       "signIn": "Sign in",
       "checkInboxTitle": "Check your inbox",
-      "checkInboxBody": "We sent a confirmation link to {email}. Click it to finish creating your {appName} account."
+      "checkInboxBody": "We sent a confirmation link to {email}. Click it to finish creating your {appName} account.",
+      "consent": "By creating an account you agree to our <terms>Terms of Use</terms> and <privacy>Privacy Policy</privacy>."
+    },
+    "forgot": {
+      "title": "Reset your password",
+      "subtitle": "Enter your email and we'll send you a link to choose a new password.",
+      "email": "Email",
+      "submit": "Send reset link",
+      "submitting": "Sending…",
+      "sentTitle": "Check your inbox",
+      "sentBody": "If an account exists for {email}, we just sent a link to reset the password. It expires in an hour.",
+      "backToLogin": "Back to sign in",
+      "tooMany": "Too many attempts. Please wait a few minutes and try again.",
+      "captchaFailed": "Bot check failed. Please try again."
+    },
+    "reset": {
+      "title": "Choose a new password",
+      "subtitle": "Use at least 8 characters.",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "submit": "Update password",
+      "submitting": "Updating…",
+      "mismatch": "The two passwords don't match."
     }
   },
   "onboarding": {
@@ -205,7 +259,9 @@
       "add": "Add contact",
       "noContacts": "No contacts yet.",
       "alreadyExists": "That email is already on your contact list.",
-      "genericError": "Something went wrong. Please try again."
+      "genericError": "Something went wrong. Please try again.",
+      "limitReached": "You've reached the limit of 1,000 contacts.",
+      "rateLimited": "You're adding contacts too quickly. Please wait a bit and try again."
     },
     "events": {
       "eventTitle": "Event title",
@@ -235,7 +291,8 @@
       "noHistory": "No communications sent yet.",
       "recipientCount": "{count} recipients",
       "noContactsError": "Add at least one contact before sending.",
-      "genericError": "Something went wrong. Please try again."
+      "genericError": "Something went wrong. Please try again.",
+      "rateLimitedError": "You've reached the sending limit for now (5 per hour, 20 per day). Please try again later."
     },
     "finances": {
       "currentBalance": "Current balance",
@@ -331,72 +388,72 @@
     "categoryTimeline": "Timeline",
     "categoryContext": "Context",
     "books": {
-    "gen": "Genesis",
-    "exo": "Exodus",
-    "lev": "Leviticus",
-    "num": "Numbers",
-    "deu": "Deuteronomy",
-    "jos": "Joshua",
-    "jdg": "Judges",
-    "rut": "Ruth",
-    "1sa": "1 Samuel",
-    "2sa": "2 Samuel",
-    "1ki": "1 Kings",
-    "2ki": "2 Kings",
-    "1ch": "1 Chronicles",
-    "2ch": "2 Chronicles",
-    "ezr": "Ezra",
-    "neh": "Nehemiah",
-    "est": "Esther",
-    "job": "Job",
-    "psa": "Psalms",
-    "pro": "Proverbs",
-    "ecc": "Ecclesiastes",
-    "sng": "Song of Solomon",
-    "isa": "Isaiah",
-    "jer": "Jeremiah",
-    "lam": "Lamentations",
-    "eze": "Ezekiel",
-    "dan": "Daniel",
-    "hos": "Hosea",
-    "joe": "Joel",
-    "amo": "Amos",
-    "oba": "Obadiah",
-    "jon": "Jonah",
-    "mic": "Micah",
-    "nah": "Nahum",
-    "hab": "Habakkuk",
-    "zep": "Zephaniah",
-    "hag": "Haggai",
-    "zec": "Zechariah",
-    "mal": "Malachi",
-    "mat": "Matthew",
-    "mrk": "Mark",
-    "luk": "Luke",
-    "jhn": "John",
-    "act": "Acts",
-    "rom": "Romans",
-    "1co": "1 Corinthians",
-    "2co": "2 Corinthians",
-    "gal": "Galatians",
-    "eph": "Ephesians",
-    "php": "Philippians",
-    "col": "Colossians",
-    "1th": "1 Thessalonians",
-    "2th": "2 Thessalonians",
-    "1ti": "1 Timothy",
-    "2ti": "2 Timothy",
-    "tit": "Titus",
-    "phm": "Philemon",
-    "heb": "Hebrews",
-    "jas": "James",
-    "1pe": "1 Peter",
-    "2pe": "2 Peter",
-    "1jn": "1 John",
-    "2jn": "2 John",
-    "3jn": "3 John",
-    "jud": "Jude",
-    "rev": "Revelation"
+      "gen": "Genesis",
+      "exo": "Exodus",
+      "lev": "Leviticus",
+      "num": "Numbers",
+      "deu": "Deuteronomy",
+      "jos": "Joshua",
+      "jdg": "Judges",
+      "rut": "Ruth",
+      "1sa": "1 Samuel",
+      "2sa": "2 Samuel",
+      "1ki": "1 Kings",
+      "2ki": "2 Kings",
+      "1ch": "1 Chronicles",
+      "2ch": "2 Chronicles",
+      "ezr": "Ezra",
+      "neh": "Nehemiah",
+      "est": "Esther",
+      "job": "Job",
+      "psa": "Psalms",
+      "pro": "Proverbs",
+      "ecc": "Ecclesiastes",
+      "sng": "Song of Solomon",
+      "isa": "Isaiah",
+      "jer": "Jeremiah",
+      "lam": "Lamentations",
+      "eze": "Ezekiel",
+      "dan": "Daniel",
+      "hos": "Hosea",
+      "joe": "Joel",
+      "amo": "Amos",
+      "oba": "Obadiah",
+      "jon": "Jonah",
+      "mic": "Micah",
+      "nah": "Nahum",
+      "hab": "Habakkuk",
+      "zep": "Zephaniah",
+      "hag": "Haggai",
+      "zec": "Zechariah",
+      "mal": "Malachi",
+      "mat": "Matthew",
+      "mrk": "Mark",
+      "luk": "Luke",
+      "jhn": "John",
+      "act": "Acts",
+      "rom": "Romans",
+      "1co": "1 Corinthians",
+      "2co": "2 Corinthians",
+      "gal": "Galatians",
+      "eph": "Ephesians",
+      "php": "Philippians",
+      "col": "Colossians",
+      "1th": "1 Thessalonians",
+      "2th": "2 Thessalonians",
+      "1ti": "1 Timothy",
+      "2ti": "2 Timothy",
+      "tit": "Titus",
+      "phm": "Philemon",
+      "heb": "Hebrews",
+      "jas": "James",
+      "1pe": "1 Peter",
+      "2pe": "2 Peter",
+      "1jn": "1 John",
+      "2jn": "2 John",
+      "3jn": "3 John",
+      "jud": "Jude",
+      "rev": "Revelation"
     }
   },
   "video": {
@@ -446,7 +503,23 @@
     "slot_evening": "Evening",
     "save": "Save",
     "saving": "Saving…",
-    "saved": "Saved"
+    "saved": "Saved",
+    "account": {
+      "exportTitle": "Download your data",
+      "exportSubtitle": "Get a copy of everything tied to your account — your profile, creations, prayer journal, chats and reading progress — as a JSON file.",
+      "exportButton": "Download my data",
+      "deleteTitle": "Delete account",
+      "deleteSubtitle": "Permanently deletes your account and all of your content, prayer journal, chat history and files. This cannot be undone.",
+      "subscriptionWarning": "Deleting your account does not cancel your subscription. Cancel it in Hotmart first (Billing → Manage subscription) so you aren't charged again.",
+      "deleteButton": "Delete my account",
+      "typeEmail": "Type {email} to confirm",
+      "confirmDelete": "Permanently delete",
+      "deleting": "Deleting…",
+      "cancel": "Cancel",
+      "teamHasMembers": "You own a team that still has other members. Remove them first (Team page), then delete your account.",
+      "rateLimited": "Too many attempts. Please try again later.",
+      "deleteFailed": "We couldn't delete your account. Please try again, or contact support."
+    }
   },
   "badges": {
     "title": "Badges",
@@ -510,7 +583,8 @@
     "manageBilling": "Manage billing / upgrade",
     "opening": "Opening…",
     "imageCreditsCycle": "Image credits this cycle",
-    "textCreditsCycle": "Text credits this cycle"
+    "textCreditsCycle": "Text credits this cycle",
+    "manageHelp": "Cancel, update your card or download invoices in Hotmart. Your access continues until the end of the period you've paid for. Need help? {email}"
   },
   "art": {
     "title": "Bible Art Generator",
@@ -594,5 +668,20 @@
   },
   "language": {
     "label": "Language"
+  },
+  "legal": {
+    "backHome": "Back to home"
+  },
+  "errors": {
+    "title": "Something went wrong",
+    "body": "An unexpected error occurred. You can try again, or head back home.",
+    "retry": "Try again",
+    "home": "Go home",
+    "reference": "Reference: {digest}"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "The page you're looking for doesn't exist or was moved.",
+    "home": "Back to home"
   }
 }
