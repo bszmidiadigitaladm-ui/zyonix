@@ -9,6 +9,8 @@
 // to `never` on every `.select()`/`.eq()`/etc. This matches what the real
 // codegen output always does — inline everything, never share a Row interface.
 
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+
 export type PlanCode = "starter" | "church_pro";
 export type SubscriptionStatus =
   | "trialing"
@@ -163,6 +165,7 @@ export interface Database {
           hotmart_subscriber_code: string | null;
           billing_cycle: "monthly" | "annual";
           credits_cycle_end: string | null;
+          source: "hotmart" | "admin_grant";
           plan_code: PlanCode;
           status: SubscriptionStatus;
           trial_end: string | null;
@@ -183,6 +186,7 @@ export interface Database {
           hotmart_subscriber_code?: string | null;
           billing_cycle?: "monthly" | "annual";
           credits_cycle_end?: string | null;
+          source?: "hotmart" | "admin_grant";
           plan_code: PlanCode;
           status: SubscriptionStatus;
           trial_end?: string | null;
@@ -203,6 +207,7 @@ export interface Database {
           hotmart_subscriber_code?: string | null;
           billing_cycle?: "monthly" | "annual";
           credits_cycle_end?: string | null;
+          source?: "hotmart" | "admin_grant";
           plan_code?: PlanCode;
           status?: SubscriptionStatus;
           trial_end?: string | null;
@@ -655,6 +660,60 @@ export interface Database {
           reviewed?: boolean;
           reviewed_by?: string | null;
           reviewed_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      admin_users: {
+        Row: {
+          user_id: string;
+          note: string | null;
+          created_at: string;
+        };
+        Insert: {
+          user_id: string;
+          note?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          note?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      admin_audit_log: {
+        Row: {
+          id: number;
+          admin_id: string;
+          admin_email: string;
+          action: string;
+          target_user_id: string | null;
+          target_email: string | null;
+          reason: string | null;
+          details: Json | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          admin_id: string;
+          admin_email: string;
+          action: string;
+          target_user_id?: string | null;
+          target_email?: string | null;
+          reason?: string | null;
+          details?: Json | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          admin_id?: string;
+          admin_email?: string;
+          action?: string;
+          target_user_id?: string | null;
+          target_email?: string | null;
+          reason?: string | null;
+          details?: Json | null;
           created_at?: string;
         };
         Relationships: [];

@@ -44,9 +44,16 @@ export async function activateSubscriptionForProfile(
     isAnnual: boolean;
     transactionCode?: string | null;
     subscriberCode?: string | null;
+    /**
+     * Admin-granted (complimentary) plan: explicit expiry instead of a paid billing
+     * period, and tagged so revenue figures can exclude it. The `source` column is
+     * only written for grants, so the Hotmart path keeps working even before the
+     * migration that adds the column has been applied.
+     */
+    grant?: { periodEnd: Date };
   },
 ) {
-  const { profile, planCode, isAnnual, transactionCode, subscriberCode } = params;
+  const { profile, planCode, isAnnual, transactionCode, subscriberCode, grant } = params;
 
   const { data: plan } = await admin.from("plans").select("is_team_plan").eq("code", planCode).single();
 
@@ -64,9 +71,11 @@ export async function activateSubscriptionForProfile(
   }
 
   const now = new Date();
-  const periodEnd = new Date(now);
-  if (isAnnual) periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-  else periodEnd.setMonth(periodEnd.getMonth() + 1);
+  const periodEnd = grant ? new Date(grant.periodEnd) : new Date(now);
+  if (!grant) {
+    if (isAnnual) periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+    else periodEnd.setMonth(periodEnd.getMonth() + 1);
+  }
 
   const creditsCycleEnd = new Date(now);
   creditsCycleEnd.setMonth(creditsCycleEnd.getMonth() + 1);
@@ -90,6 +99,7 @@ export async function activateSubscriptionForProfile(
     credits_cycle_end: creditsCycleEnd.toISOString(),
     hotmart_transaction_code: transactionCode ?? null,
     hotmart_subscriber_code: subscriberCode ?? null,
+    ...(grant ? { source: "admin_grant" as const } : {}),
   };
 
   const { data: subscriptionRow, error } = existing

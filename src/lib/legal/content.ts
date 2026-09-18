@@ -303,6 +303,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
         heading: "9. Security",
         paragraphs: [
           "We protect your data with encryption in transit, row-level access controls so users can only read their own data, bot and abuse protection, and restricted access to production systems. No system is perfectly secure; if a breach affecting your data occurs we will notify you and the authorities as the law requires.",
+          "Administrative access is limited and recorded. Our small authorized team can see account and subscription information (such as your email, plan and credit balance) to give you support and to handle your data requests. We do not read the content of your prayer journal, notes or spiritual chat. The only exception is a message that our system automatically flags as a possible crisis, which may be opened by an authorized person for safety review. Every administrative access or action is written to an audit log that cannot be altered, protected by two-factor authentication.",
         ],
       },
       {
@@ -319,7 +320,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
       },
       {
         heading: "12. Contact",
-        paragraphs: [`Privacy questions or requests: ${SUPPORT_EMAIL}.`],
+        paragraphs: [`Privacy questions or requests, and our data-protection contact under the LGPD: ${SUPPORT_EMAIL}.`],
       },
     ],
   },
@@ -402,6 +403,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
         heading: "9. Seguridad",
         paragraphs: [
           "Protegemos tus datos con cifrado en tránsito, controles de acceso por fila para que cada usuario solo lea sus propios datos, protección contra bots y abusos, y acceso restringido a los sistemas de producción. Ningún sistema es perfectamente seguro; si ocurre una brecha que afecte tus datos te avisaremos a ti y a las autoridades como exige la ley.",
+          "El acceso administrativo es limitado y queda registrado. Nuestro pequeño equipo autorizado puede ver información de la cuenta y la suscripción (como tu correo, plan y saldo de créditos) para darte soporte y atender tus solicitudes sobre datos. No leemos el contenido de tu diario de oración, tus notas ni el chat espiritual. La única excepción es un mensaje que nuestro sistema marca automáticamente como posible crisis, que una persona autorizada puede abrir para revisión de seguridad. Todo acceso o acción administrativa se guarda en un registro de auditoría que no puede alterarse, protegido con autenticación de dos factores.",
         ],
       },
       {
@@ -418,7 +420,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
       },
       {
         heading: "12. Contacto",
-        paragraphs: [`Preguntas o solicitudes de privacidad: ${SUPPORT_EMAIL}.`],
+        paragraphs: [`Preguntas o solicitudes de privacidad, y nuestro contacto de protección de datos según la LGPD: ${SUPPORT_EMAIL}.`],
       },
     ],
   },
