@@ -41,9 +41,9 @@ export function LandingHeader() {
           <Link href="/login" className="text-sm text-muted transition hover:text-foreground">
             {t("signIn")}
           </Link>
-          <Link href="/signup">
+          <a href="#pricing">
             <Button>{t("getStarted")}</Button>
-          </Link>
+          </a>
         </div>
 
         <button
@@ -74,9 +74,9 @@ export function LandingHeader() {
             </Link>
             <LanguageSwitcher className="w-auto py-1.5 text-xs" />
           </div>
-          <Link href="/signup">
+          <a href="#pricing" onClick={() => setMenuOpen(false)}>
             <Button className="w-full">{t("getStarted")}</Button>
-          </Link>
+          </a>
         </div>
       )}
     </header>

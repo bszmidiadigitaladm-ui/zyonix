@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ArrowRight, CalendarDays, Mail, Users, Wallet, type LucideIcon } from "lucide-react";
 import { SectionHeading } from "@/components/landing/SectionHeading";
@@ -42,13 +41,13 @@ export async function ChurchSection() {
             ))}
           </ul>
 
-          <Link
+          <a
             href="#pricing"
             className="mt-8 inline-flex items-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-medium transition hover:border-accent/50 hover:bg-surface-raised"
           >
             {t("cta")}
             <ArrowRight size={15} />
-          </Link>
+          </a>
         </div>
 
         <div className="relative">

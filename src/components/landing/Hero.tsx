@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Sparkles, ArrowRight } from "lucide-react";
 import Image from "next/image";
@@ -51,6 +50,9 @@ export function Hero() {
 
   const chips = [t("chip1"), t("chip2"), t("chip3")];
 
+  // The landing CTAs use plain <a href="#pricing"> instead of next/link: Next skips the
+  // navigation when the hash is already current, so after one click the rest stop scrolling.
+
   return (
     <section className="relative isolate overflow-hidden pt-20 sm:pt-28">
       {/* Ribbon artwork (generated with the same brand palette) fading into the page background. */}
@@ -76,8 +78,8 @@ export function Hero() {
         </h1>
         <p className="max-w-lg text-balance text-muted">{t("subtitle")}</p>
 
-        <Link
-          href="/signup"
+        <a
+          href="#pricing"
           className="mt-2 flex w-full max-w-xl items-center gap-3 rounded-full border border-border bg-surface/90 px-5 py-4 text-left shadow-[0_1px_0_0_rgba(255,255,255,0.03)_inset,0_12px_32px_-20px_rgba(0,0,0,0.6)] backdrop-blur transition hover:border-accent/50"
         >
           <Sparkles size={18} className="shrink-0 text-accent" />
@@ -89,17 +91,17 @@ export function Hero() {
             {t("ctaButton")}
             <ArrowRight size={14} />
           </span>
-        </Link>
+        </a>
 
         <div className="flex flex-wrap items-center justify-center gap-2">
           {chips.map((chip) => (
-            <Link
+            <a
               key={chip}
-              href="/signup"
+              href="#pricing"
               className="rounded-full border border-border bg-surface/60 px-3.5 py-1.5 text-xs text-muted backdrop-blur transition hover:border-accent/50 hover:text-foreground"
             >
               {chip}
-            </Link>
+            </a>
           ))}
         </div>
       </div>

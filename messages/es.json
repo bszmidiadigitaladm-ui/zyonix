@@ -144,7 +144,8 @@
       "toggleMonthly": "Mensual",
       "toggleAnnual": "Anual",
       "save": "Ahorra hasta {percent}% con el plan anual",
-      "note": "Cancela cuando quieras. Sin compromiso a largo plazo."
+      "note": "Cancela cuando quieras. Sin compromiso a largo plazo.",
+      "afterCheckout": "Después del pago, crea tu cuenta con el mismo correo con el que pagaste y tu plan se activa automáticamente."
     },
     "faq": {
       "eyebrow": "Preguntas",
@@ -283,7 +284,7 @@
       "titleLead": "Tu próximo mensaje, publicación o devocional",
       "titleAccent": "empieza aquí.",
       "subtitle": "Únete a Zyonix y crea con confianza.",
-      "button": "Crea tu cuenta",
+      "button": "Elige tu plan",
       "note": "Garantía de devolución de {days} días · Cancela cuando quieras"
     }
   },

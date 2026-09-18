@@ -144,7 +144,8 @@
       "toggleMonthly": "Monthly",
       "toggleAnnual": "Annual",
       "save": "Save up to {percent}% with annual",
-      "note": "Cancel anytime. No long-term commitment."
+      "note": "Cancel anytime. No long-term commitment.",
+      "afterCheckout": "After checkout, create your account with the same email you paid with and your plan activates automatically."
     },
     "faq": {
       "eyebrow": "FAQ",
@@ -283,7 +284,7 @@
       "titleLead": "Your next message, post or devotional",
       "titleAccent": "starts here.",
       "subtitle": "Join Zyonix and create with confidence.",
-      "button": "Create your account",
+      "button": "Choose your plan",
       "note": "{days}-day money-back guarantee · Cancel anytime"
     }
   },

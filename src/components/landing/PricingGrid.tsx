@@ -61,6 +61,7 @@ export function PricingGrid({ plans, maxSavingsPercent }: { plans: PricingPlan[]
       </div>
 
       <p className="mt-8 text-center text-xs text-muted">{t("note")}</p>
+      <p className="mt-2 text-center text-xs text-muted">{t("afterCheckout")}</p>
     </>
   );
 }

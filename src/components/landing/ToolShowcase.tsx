@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ArrowRight, BookOpen, MessageCircle, Mic, Palette, Sunrise, Users, type LucideIcon } from "lucide-react";
 import { SectionHeading } from "@/components/landing/SectionHeading";
@@ -72,13 +71,13 @@ export function ToolShowcase() {
                 {isActive && (
                   <div id={`tool-panel-${key}`} role="tabpanel" aria-labelledby={`tool-tab-${key}`} className="px-4 pb-4">
                     <p className="text-sm leading-relaxed text-muted">{t(`items.${key}.description`)}</p>
-                    <Link
-                      href="/signup"
+                    <a
+                      href="#pricing"
                       className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline"
                     >
                       {t("cta")}
                       <ArrowRight size={14} />
-                    </Link>
+                    </a>
                   </div>
                 )}
               </div>

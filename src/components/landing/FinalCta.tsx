@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 import { GUARANTEE_DAYS } from "@/lib/config";
@@ -16,13 +15,13 @@ export async function FinalCta() {
             <span className="bg-[image:var(--gradient-accent)] bg-clip-text text-transparent">{t("titleAccent")}</span>
           </h2>
           <p className="mx-auto mt-3 max-w-md text-sm text-muted">{t("subtitle")}</p>
-          <Link
-            href="/signup"
+          <a
+            href="#pricing"
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-accent px-7 py-3 text-sm font-medium text-accent-foreground shadow-[0_0_32px_-8px_var(--accent)] transition hover:brightness-110"
           >
             {t("button")}
             <ArrowRight size={16} />
-          </Link>
+          </a>
           <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-muted">
             <ShieldCheck size={14} className="text-accent" aria-hidden />
             {t("note", { days: GUARANTEE_DAYS })}
