@@ -13,3 +13,7 @@ export const HOTMART_MANAGE_URL = "https://consumer.hotmart.com/";
 // Canonical public origin, used for metadata, sitemap and robots. Falls back to
 // the production domain so those files are right even if the env var is unset.
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://zyonix.pro").replace(/\/$/, "");
+
+// Money-back window shown on pricing and in the FAQ. Hotmart enforces its own
+// guarantee period per product — keep this in sync with the product's setting.
+export const GUARANTEE_DAYS = 7;

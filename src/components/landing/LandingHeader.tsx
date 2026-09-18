@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/Button";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 
 const ANCHOR_LINKS = [
-  { href: "#features", key: "features" },
+  { href: "#tools", key: "tools" },
+  { href: "#compare", key: "compare" },
   { href: "#pricing", key: "pricing" },
   { href: "#faq", key: "faq" },
 ] as const;

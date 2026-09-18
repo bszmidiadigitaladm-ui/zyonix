@@ -1,45 +1,65 @@
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
-import { Check, X } from "lucide-react";
-import { Eyebrow } from "@/components/ui/Eyebrow";
+import { BookOpen, Check, HandHeart, ImageIcon, MessageSquareText, Users, type LucideIcon } from "lucide-react";
+import { SectionHeading } from "@/components/landing/SectionHeading";
+import { APP_NAME } from "@/lib/config";
 
-const ROW_KEYS = ["row1", "row2", "row3", "row4", "row5", "row6"] as const;
+const ROWS: { key: string; icon: LucideIcon }[] = [
+  { key: "study", icon: BookOpen },
+  { key: "messages", icon: MessageSquareText },
+  { key: "visual", icon: ImageIcon },
+  { key: "church", icon: Users },
+  { key: "faith", icon: HandHeart },
+];
 
+// Framed as "one tool for many things vs a studio for one thing" rather than a
+// column of ✗ marks — a general-purpose assistant genuinely can do part of each row.
 export async function ComparisonSection() {
   const t = await getTranslations("landing.comparison");
 
   return (
-    <section className="mx-auto max-w-3xl px-6 py-20">
-      <div className="mb-10 flex flex-col items-center text-center">
-        <Eyebrow className="mb-3">{t("eyebrow")}</Eyebrow>
-        <h2 className="mb-2 text-3xl font-semibold sm:text-4xl">{t("title")}</h2>
-        <p className="max-w-md text-sm text-muted">{t("subtitle")}</p>
-      </div>
+    <section id="compare" className="mx-auto max-w-5xl scroll-mt-20 px-6 py-24">
+      <SectionHeading
+        eyebrow={t("eyebrow")}
+        lead={t("titleLead")}
+        accent={t("titleAccent")}
+        subtitle={t("subtitle")}
+        className="mb-12"
+      />
 
-      <div className="overflow-hidden rounded-2xl border border-border">
-        <div className="grid grid-cols-[1fr_auto_auto] items-center gap-x-4 bg-surface-raised/60 px-5 py-3 text-xs font-medium text-muted">
-          <span />
-          <span className="w-20 text-center">{t("columnGeneric")}</span>
-          <span className="w-20 rounded-full bg-accent-soft px-2 py-1 text-center text-accent">
-            {t("columnZyonix")}
-          </span>
+      <div className="overflow-hidden rounded-3xl border border-border">
+        <div className="grid md:grid-cols-2">
+          <div className="bg-surface/60 p-6 sm:p-8">
+            <h3 className="text-lg font-semibold">{t("generalTitle")}</h3>
+            <p className="mt-1 text-sm text-muted">{t("generalDescription")}</p>
+          </div>
+          <div className="border-t border-accent/20 bg-gradient-to-br from-accent-soft/50 via-surface to-surface p-6 sm:p-8 md:border-l md:border-t-0">
+            <h3 className="flex items-center gap-2 text-lg font-semibold">
+              <Image src="/logo-mark.png" alt="" width={22} height={22} />
+              {APP_NAME}
+            </h3>
+            <p className="mt-1 text-sm text-accent/90">{t("zyonixDescription")}</p>
+          </div>
         </div>
-        {ROW_KEYS.map((key, i) => (
-          <div
-            key={key}
-            className={`grid grid-cols-[1fr_auto_auto] items-center gap-x-4 px-5 py-4 text-sm ${
-              i % 2 === 0 ? "bg-surface/40" : ""
-            }`}
-          >
-            <span className="text-foreground/90">{t(key)}</span>
-            <span className="flex w-20 justify-center">
-              <X size={16} className="text-muted" />
-            </span>
-            <span className="flex w-20 justify-center">
-              <Check size={16} className="text-accent" />
-            </span>
+
+        {ROWS.map(({ key, icon: Icon }) => (
+          <div key={key} className="grid border-t border-border md:grid-cols-2">
+            <div className="p-6 sm:px-8">
+              <h4 className="flex items-center gap-2 text-sm font-semibold">
+                <Icon size={15} className="text-muted" aria-hidden />
+                {t(`rows.${key}.title`)}
+              </h4>
+              <p className="mt-1.5 text-sm text-muted">{t(`rows.${key}.general`)}</p>
+            </div>
+            <div className="flex gap-3 bg-accent-soft/15 p-6 pt-0 sm:px-8 md:border-l md:border-accent/15 md:pt-6">
+              <Check size={16} className="mt-0.5 shrink-0 text-accent" aria-hidden />
+              <p className="text-sm text-foreground/90">{t(`rows.${key}.zyonix`)}</p>
+            </div>
           </div>
         ))}
       </div>
+
+      <p className="mt-6 text-center text-xs text-muted">{t("footnote")}</p>
     </section>
   );
 }

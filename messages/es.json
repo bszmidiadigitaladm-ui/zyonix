@@ -30,13 +30,15 @@
       "pricing": "Precios",
       "faq": "Preguntas",
       "signIn": "Iniciar sesión",
-      "getStarted": "Comenzar ahora"
+      "getStarted": "Comenzar ahora",
+      "tools": "Herramientas",
+      "compare": "vs ChatGPT"
     },
     "hero": {
       "eyebrow": "Tu fe. Infinitas posibilidades.",
       "titleLine1": "Contenido que toca corazones.",
       "titleLine2": "Listo en minutos.",
-      "subtitle": "Arte que conmueve, devocionales que te acompañan y un espacio de reflexión bíblica — todo en un solo lugar, hecho para creadores de contenido de fe.",
+      "subtitle": "Arte bíblico, bosquejos de mensajes, devocionales y un acompañante espiritual: todo lo que un creador de fe o una iglesia necesita, en un solo estudio.",
       "inputPlaceholder": "Crea una publicación de arte bíblico sobre...",
       "examplePrompt1": "Crea una publicación de arte bíblico sobre la esperanza",
       "examplePrompt2": "Escribe un bosquejo de sermón sobre la gracia",
@@ -45,7 +47,8 @@
       "ctaButton": "Crear ahora",
       "chip1": "Generar arte bíblico",
       "chip2": "Escribir un bosquejo",
-      "chip3": "Preguntar al chat espiritual"
+      "chip3": "Preguntar al chat espiritual",
+      "mockupAlt": "La galería de Arte Bíblico de Zyonix con cuatro piezas generadas con IA"
     },
     "features": {
       "eyebrow": "Funciones",
@@ -89,9 +92,9 @@
       }
     },
     "comparison": {
-      "eyebrow": "Por qué Zyonix",
+      "eyebrow": "Zyonix vs ChatGPT",
       "title": "¿Por qué no usar ChatGPT directamente?",
-      "subtitle": "Las herramientas de IA genéricas no fueron hechas para el ministerio. Zyonix sí.",
+      "subtitle": "Mira qué ofrece cada opción y cómo Zyonix reúne las herramientas de un creador de fe.",
       "columnGeneric": "IA genérica",
       "columnZyonix": "Zyonix",
       "row1": "Contenido basado en las Escrituras, centrado en la fe",
@@ -99,11 +102,49 @@
       "row3": "Plantillas de temporada para cada fecha de la iglesia",
       "row4": "Red de cuidado ante crisis integrada",
       "row5": "Herramientas de equipo para toda tu iglesia",
-      "row6": "Una sola suscripción, no cinco apps distintas"
+      "row6": "Una sola suscripción, no cinco apps distintas",
+      "titleLead": "Tu fe merece",
+      "titleAccent": "un estudio propio.",
+      "generalTitle": "IA de propósito general",
+      "generalDescription": "Un asistente para muchos temas.",
+      "zyonixDescription": "Tu estudio de creación para contenido de fe.",
+      "footnote": "Basado en asistentes de IA de propósito general como ChatGPT. Las funciones y los límites varían según el plan.",
+      "rows": {
+        "study": {
+          "title": "Estudiar e investigar",
+          "general": "Respuestas y explicaciones sobre muchos temas.",
+          "zyonix": "Lector de la Biblia con planes guiados y progreso, más un chat espiritual basado en las Escrituras."
+        },
+        "messages": {
+          "title": "Preparar mensajes",
+          "general": "Redacta y edita textos según las instrucciones que escribes.",
+          "zyonix": "Preparar Mensaje con campos de tema, audiencia, duración, estilo y tono, con bosquejos estructurados y versículos."
+        },
+        "visual": {
+          "title": "Crear contenido visual",
+          "general": "Genera y edita imágenes a partir de descripciones.",
+          "zyonix": "Arte Bíblico y Publicaciones con plantillas de temporada, en formatos listos para feed, historias y carrusel."
+        },
+        "church": {
+          "title": "Servir a tu iglesia",
+          "general": "Centrado en la conversación, no en tu congregación.",
+          "zyonix": "Espacio de equipo con contactos, recordatorios de eventos, boletines por correo y un registro financiero simple."
+        },
+        "faith": {
+          "title": "Crecer en la fe cada día",
+          "general": "Conversaciones adaptadas al contexto que compartes.",
+          "zyonix": "Devocional diario con recordatorios opcionales por correo, diario de oración e insignias para mantener el ritmo."
+        }
+      }
     },
     "pricing": {
       "eyebrow": "Precios simples y transparentes",
-      "title": "Elige tu plan"
+      "title": "Elige tu plan",
+      "cycleLabel": "Período de facturación",
+      "toggleMonthly": "Mensual",
+      "toggleAnnual": "Anual",
+      "save": "Ahorra hasta {percent}% con el plan anual",
+      "note": "Cancela cuando quieras. Sin compromiso a largo plazo."
     },
     "faq": {
       "eyebrow": "Preguntas",
@@ -119,7 +160,11 @@
       "q5": "¿Qué idiomas están disponibles?",
       "a5": "Zyonix está disponible en inglés y español, con más idiomas en camino.",
       "q6": "¿Cómo funcionan los créditos?",
-      "a6": "Cada plan incluye una cantidad mensual de créditos de imagen, texto y video que se renuevan cada ciclo — sin cargos sorpresa."
+      "a6": "Cada plan incluye una cantidad mensual de créditos de imagen, texto y video que se renuevan cada ciclo — sin cargos sorpresa.",
+      "q7": "¿Hay garantía de devolución del dinero?",
+      "a7": "Sí. Todos los planes incluyen una garantía de devolución de {days} días. Si Zyonix no es para ti, solicita el reembolso dentro de los {days} días posteriores a la compra a través de Hotmart o escribiendo a support@zyonix.pro.",
+      "q8": "¿Son privados mi diario de oración y el chat espiritual?",
+      "a8": "Sí. Solo los ves tú, nunca tus compañeros de equipo ni los administradores del equipo, incluso en el plan Pro. Puedes descargar o eliminar todo desde Configuración en cualquier momento."
     },
     "footer": {
       "tagline": "Tu fe. Infinitas posibilidades.",
@@ -127,6 +172,119 @@
       "terms": "Términos de Uso",
       "privacy": "Política de Privacidad",
       "contact": "Contacto"
+    },
+    "audience": {
+      "label": "Hecho para",
+      "churches": "Iglesias y ministerios",
+      "pastors": "Pastores y líderes",
+      "kids": "Ministerio infantil y juvenil",
+      "creators": "Creadores cristianos"
+    },
+    "gallery": {
+      "eyebrow": "Creaciones reales",
+      "titleLead": "Cada versículo,",
+      "titleAccent": "hecho realidad.",
+      "subtitle": "Arte creado con el generador de Arte Bíblico de Zyonix, desde escenas cinematográficas hasta cuentos infantiles.",
+      "badge": "Hecho con Zyonix",
+      "footnote": "Piezas reales creadas con el generador de Arte Bíblico de Zyonix.",
+      "items": {
+        "shepherd": {
+          "ref": "Salmo 23",
+          "style": "Cinematográfico",
+          "line": "Paz en cada valle."
+        },
+        "water": {
+          "ref": "Mateo 14",
+          "style": "Cinematográfico",
+          "line": "Fe sobre la tormenta."
+        },
+        "tomb": {
+          "ref": "Lucas 24",
+          "style": "Acuarela",
+          "line": "Ha resucitado."
+        },
+        "jonah": {
+          "ref": "Jonás",
+          "style": "Cuento 3D",
+          "line": "Historias bíblicas que los niños aman."
+        }
+      }
+    },
+    "tools": {
+      "eyebrow": "El estudio",
+      "titleLead": "Un estudio.",
+      "titleAccent": "Todas las herramientas que necesitas.",
+      "subtitle": "Elige una herramienta y mírala en acción. Son pantallas reales de la aplicación.",
+      "cta": "Pruébalo ahora",
+      "alsoIncluded": "También incluye:",
+      "also": {
+        "video": "Estudio de Video",
+        "posts": "Publicaciones",
+        "games": "Quiz y Juegos",
+        "prayer": "Diario de Oración",
+        "badges": "Insignias",
+        "templates": "Plantillas de temporada"
+      },
+      "items": {
+        "art": {
+          "title": "Arte Bíblico",
+          "description": "Convierte un versículo o tema en arte en segundos (cinematográfico, acuarela, 3D y más), listo para feed e historias."
+        },
+        "message": {
+          "title": "Preparar Mensaje",
+          "description": "Indica el tema, la audiencia, la duración y el tono. Recibe un bosquejo estructurado con puntos y versículos de apoyo."
+        },
+        "devotional": {
+          "title": "Devocional Diario",
+          "description": "Un devocional nuevo cada día, basado en las Escrituras, con espacio para tus notas y un recordatorio opcional por correo."
+        },
+        "chat": {
+          "title": "Chat Espiritual",
+          "description": "Un acompañante basado en la Biblia para reflexionar y orar. Privado para ti, con cuidado ante crisis integrado."
+        },
+        "bible": {
+          "title": "Lector de la Biblia",
+          "description": "Lee en inglés o español, sigue planes guiados, guarda tus pasajes favoritos y registra tu progreso."
+        },
+        "church": {
+          "title": "Espacio de Iglesia",
+          "description": "Contactos, boletines por correo, recordatorios de eventos y un registro financiero simple para todo tu equipo."
+        }
+      }
+    },
+    "church": {
+      "eyebrow": "Para iglesias",
+      "titleLead": "Pensado para toda la iglesia,",
+      "titleAccent": "no solo para el pastor.",
+      "subtitle": "El plan Pro da a tu equipo un espacio compartido: una sola suscripción, créditos compartidos y todas las herramientas en un solo lugar.",
+      "photoAlt": "Un equipo ministerial de la iglesia planificando junto en una mesa con una laptop y una Biblia abierta",
+      "caption": "Espacio compartido · Plan Pro",
+      "cta": "Ver el plan Pro",
+      "items": {
+        "workspace": {
+          "title": "Espacio de equipo compartido",
+          "description": "Invita a tu equipo. Todos crean con el mismo fondo de créditos y comparten una sola biblioteca de arte y bosquejos."
+        },
+        "contacts": {
+          "title": "Contactos y boletines por correo",
+          "description": "Mantén tu lista de miembros y envía boletines y recordatorios con un clic. Cada dirección permanece privada."
+        },
+        "events": {
+          "title": "Eventos y volantes",
+          "description": "Planifica servicios y eventos, envía recordatorios automáticos y genera un volante con IA."
+        },
+        "finances": {
+          "title": "Finanzas simples",
+          "description": "Registra ofrendas y gastos con un balance claro, sin hojas de cálculo."
+        }
+      }
+    },
+    "cta": {
+      "titleLead": "Tu próximo mensaje, publicación o devocional",
+      "titleAccent": "empieza aquí.",
+      "subtitle": "Únete a Zyonix y crea con confianza.",
+      "button": "Crea tu cuenta",
+      "note": "Garantía de devolución de {days} días · Cancela cuando quieras"
     }
   },
   "welcome": {
@@ -207,8 +365,15 @@
         "chatUnlimited": "Chat espiritual ilimitado",
         "allFormats": "Todos los formatos: feed, historia, carrusel",
         "templateLibrary": "Biblioteca de plantillas estacionales",
-        "teamWorkspace": "Espacio de equipo (hasta {seats} miembros)"
-      }
+        "teamWorkspace": "Espacio de equipo (hasta {seats} miembros)",
+        "imageCredits": "{count} créditos de imagen / mes",
+        "textCredits": "{count} créditos de texto / mes",
+        "videoCredits": "{count} créditos de video / mes"
+      },
+      "billedMonthly": "Facturación mensual de {price}",
+      "billedAnnuallyTotal": "Facturación de {total} por año",
+      "saveBadge": "Ahorra {amount} al año",
+      "guarantee": "Garantía de devolución de {days} días"
     },
     "checkout": {
       "settingUp": "Configurando tu cuenta de {appName}…",

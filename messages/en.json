@@ -30,13 +30,15 @@
       "pricing": "Pricing",
       "faq": "FAQ",
       "signIn": "Sign in",
-      "getStarted": "Get Started"
+      "getStarted": "Get Started",
+      "tools": "Tools",
+      "compare": "vs ChatGPT"
     },
     "hero": {
       "eyebrow": "Your faith. Infinite possibilities.",
       "titleLine1": "Content that moves hearts.",
       "titleLine2": "Ready in minutes.",
-      "subtitle": "Art that moves, devotionals that walk with you, and a space for biblical reflection — all in one place, built for faith content creators.",
+      "subtitle": "Bible art, sermon outlines, devotionals and a spiritual companion: everything a faith creator or church needs, in one studio.",
       "inputPlaceholder": "Create a Bible art post about...",
       "examplePrompt1": "Create a Bible art post about hope",
       "examplePrompt2": "Write a sermon outline on grace",
@@ -45,7 +47,8 @@
       "ctaButton": "Create Now",
       "chip1": "Generate Bible art",
       "chip2": "Write a message outline",
-      "chip3": "Ask the spiritual chat"
+      "chip3": "Ask the spiritual chat",
+      "mockupAlt": "The Zyonix Bible Art gallery with four AI-generated pieces"
     },
     "features": {
       "eyebrow": "Features",
@@ -89,9 +92,9 @@
       }
     },
     "comparison": {
-      "eyebrow": "Why Zyonix",
+      "eyebrow": "Zyonix vs ChatGPT",
       "title": "Why not just use ChatGPT?",
-      "subtitle": "Generic AI tools weren't built for ministry. Zyonix was.",
+      "subtitle": "See what each option offers and how Zyonix brings a faith creator's tools together.",
       "columnGeneric": "Generic AI tools",
       "columnZyonix": "Zyonix",
       "row1": "Scripture-grounded, faith-first content",
@@ -99,11 +102,49 @@
       "row3": "Seasonal templates for every church holiday",
       "row4": "Built-in crisis-care safety net",
       "row5": "Team tools for your whole church",
-      "row6": "One subscription, not five different apps"
+      "row6": "One subscription, not five different apps",
+      "titleLead": "Your faith deserves",
+      "titleAccent": "a studio of its own.",
+      "generalTitle": "General-purpose AI",
+      "generalDescription": "One assistant for many topics.",
+      "zyonixDescription": "Your creation studio for faith content.",
+      "footnote": "Based on general-purpose AI assistants such as ChatGPT. Features and limits vary by plan.",
+      "rows": {
+        "study": {
+          "title": "Study & research",
+          "general": "Answers and explanations on many subjects.",
+          "zyonix": "Bible Reader with guided plans and progress, plus a spiritual chat grounded in Scripture."
+        },
+        "messages": {
+          "title": "Prepare messages",
+          "general": "Drafts and edits text from the instructions you type.",
+          "zyonix": "Message Prep with fields for topic, audience, duration, style and tone, delivering structured outlines with verses."
+        },
+        "visual": {
+          "title": "Create visual content",
+          "general": "Generates and edits images from descriptions.",
+          "zyonix": "Bible Art and Social Posts with seasonal templates, in formats ready for feed, story and carousel."
+        },
+        "church": {
+          "title": "Serve your church",
+          "general": "Focused on the conversation, not on your congregation.",
+          "zyonix": "Team workspace with contacts, event reminders, email bulletins and a simple finance ledger."
+        },
+        "faith": {
+          "title": "Grow in daily faith",
+          "general": "Conversations adapted to the context you share.",
+          "zyonix": "Daily devotional with optional email reminders, a prayer journal and badges to keep you going."
+        }
+      }
     },
     "pricing": {
       "eyebrow": "Simple, transparent pricing",
-      "title": "Choose your plan"
+      "title": "Choose your plan",
+      "cycleLabel": "Billing period",
+      "toggleMonthly": "Monthly",
+      "toggleAnnual": "Annual",
+      "save": "Save up to {percent}% with annual",
+      "note": "Cancel anytime. No long-term commitment."
     },
     "faq": {
       "eyebrow": "FAQ",
@@ -119,7 +160,11 @@
       "q5": "What languages are supported?",
       "a5": "Zyonix is available in English and Spanish, with more languages on the way.",
       "q6": "How do credits work?",
-      "a6": "Each plan includes a monthly allowance of image, text, and video credits that refresh every cycle — no surprise overage charges."
+      "a6": "Each plan includes a monthly allowance of image, text, and video credits that refresh every cycle — no surprise overage charges.",
+      "q7": "Is there a money-back guarantee?",
+      "a7": "Yes. Every plan includes a {days}-day money-back guarantee. If Zyonix isn't for you, request a refund within {days} days of purchase through Hotmart or by writing to support@zyonix.pro.",
+      "q8": "Are my prayer journal and spiritual chat private?",
+      "a8": "Yes. They are visible only to you, never to teammates or team admins, even on the Pro plan. You can download or delete everything from Settings at any time."
     },
     "footer": {
       "tagline": "Your faith. Infinite possibilities.",
@@ -127,6 +172,119 @@
       "terms": "Terms of Use",
       "privacy": "Privacy Policy",
       "contact": "Contact"
+    },
+    "audience": {
+      "label": "Built for",
+      "churches": "Churches & ministries",
+      "pastors": "Pastors & leaders",
+      "kids": "Kids & youth ministries",
+      "creators": "Christian creators"
+    },
+    "gallery": {
+      "eyebrow": "Real creations",
+      "titleLead": "Every verse,",
+      "titleAccent": "brought to life.",
+      "subtitle": "Artwork made with the Zyonix Bible Art generator, from cinematic scenes to children's storybooks.",
+      "badge": "Made with Zyonix",
+      "footnote": "Real pieces created with the Zyonix Bible Art generator.",
+      "items": {
+        "shepherd": {
+          "ref": "Psalm 23",
+          "style": "Cinematic",
+          "line": "Peace for every valley."
+        },
+        "water": {
+          "ref": "Matthew 14",
+          "style": "Cinematic",
+          "line": "Faith over the storm."
+        },
+        "tomb": {
+          "ref": "Luke 24",
+          "style": "Watercolor",
+          "line": "He is risen."
+        },
+        "jonah": {
+          "ref": "Jonah",
+          "style": "3D storybook",
+          "line": "Bible stories kids love."
+        }
+      }
+    },
+    "tools": {
+      "eyebrow": "The studio",
+      "titleLead": "One studio.",
+      "titleAccent": "Every tool you need.",
+      "subtitle": "Pick a tool and see it in action. These are real screens from the app.",
+      "cta": "Try it now",
+      "alsoIncluded": "Also included:",
+      "also": {
+        "video": "Video Studio",
+        "posts": "Social Posts",
+        "games": "Quiz & Games",
+        "prayer": "Prayer Journal",
+        "badges": "Badges",
+        "templates": "Seasonal templates"
+      },
+      "items": {
+        "art": {
+          "title": "Bible Art",
+          "description": "Turn a verse or theme into artwork in seconds (cinematic, watercolor, 3D and more), ready for feed and story."
+        },
+        "message": {
+          "title": "Message Prep",
+          "description": "Give it the topic, audience, duration and tone. Get a structured outline with points and supporting verses."
+        },
+        "devotional": {
+          "title": "Daily Devotional",
+          "description": "A fresh, Scripture-grounded devotional every day, with space for your own notes and an optional email reminder."
+        },
+        "chat": {
+          "title": "Spiritual Chat",
+          "description": "A Bible-based companion for reflection and prayer. Private to you, with built-in crisis care."
+        },
+        "bible": {
+          "title": "Bible Reader",
+          "description": "Read in English or Spanish, follow guided plans, save favorite passages and track your progress."
+        },
+        "church": {
+          "title": "Church Workspace",
+          "description": "Contacts, email bulletins, event reminders and a simple finance ledger for your whole team."
+        }
+      }
+    },
+    "church": {
+      "eyebrow": "For churches",
+      "titleLead": "Built for the whole church,",
+      "titleAccent": "not just the pastor.",
+      "subtitle": "The Pro plan gives your team one shared space: one subscription, shared credits and every tool in one place.",
+      "photoAlt": "A church ministry team planning together around a table with a laptop and an open Bible",
+      "caption": "Shared workspace · Pro plan",
+      "cta": "See the Pro plan",
+      "items": {
+        "workspace": {
+          "title": "Shared team workspace",
+          "description": "Invite your team. Everyone creates from the same pool of credits and shares one library of art and outlines."
+        },
+        "contacts": {
+          "title": "Contacts & email bulletins",
+          "description": "Keep your member list and send bulletins and reminders in one click. Every address stays private."
+        },
+        "events": {
+          "title": "Events & flyers",
+          "description": "Plan services and events, send automatic reminders and generate a flyer with AI."
+        },
+        "finances": {
+          "title": "Simple finances",
+          "description": "Track offerings and expenses with a clear balance, without a spreadsheet."
+        }
+      }
+    },
+    "cta": {
+      "titleLead": "Your next message, post or devotional",
+      "titleAccent": "starts here.",
+      "subtitle": "Join Zyonix and create with confidence.",
+      "button": "Create your account",
+      "note": "{days}-day money-back guarantee · Cancel anytime"
     }
   },
   "welcome": {
@@ -207,8 +365,15 @@
         "chatUnlimited": "Unlimited spiritual chat",
         "allFormats": "All formats: feed, story, carousel",
         "templateLibrary": "Seasonal template library",
-        "teamWorkspace": "Team workspace (up to {seats} seats)"
-      }
+        "teamWorkspace": "Team workspace (up to {seats} seats)",
+        "imageCredits": "{count} image credits / month",
+        "textCredits": "{count} text credits / month",
+        "videoCredits": "{count} video credits / month"
+      },
+      "billedMonthly": "Billed monthly at {price}",
+      "billedAnnuallyTotal": "Billed {total} per year",
+      "saveBadge": "Save {amount} per year",
+      "guarantee": "{days}-day money-back guarantee"
     },
     "checkout": {
       "settingUp": "Setting up your {appName} account…",

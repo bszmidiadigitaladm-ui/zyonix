@@ -8,29 +8,7 @@ import { PlanCard } from "@/components/billing/PlanCard";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { APP_NAME } from "@/lib/config";
 import type { PlanCode } from "@/lib/config";
-
-type FeatureTranslator = (key: string, values?: Record<string, string | number>) => string;
-
-function featuresFor(
-  code: PlanCode,
-  limits: {
-    allow_carousel_export: boolean;
-    allow_seasonal_templates: boolean;
-    watermark: boolean;
-    max_team_seats: number | null;
-  },
-  t: FeatureTranslator,
-) {
-  const base = [
-    limits.watermark ? t("artWatermarked") : t("artNoWatermark"),
-    t("dailyDevotional"),
-    code === "starter" ? t("chatLimited") : t("chatUnlimited"),
-  ];
-  if (limits.allow_carousel_export) base.push(t("allFormats"));
-  if (limits.allow_seasonal_templates) base.push(t("templateLibrary"));
-  if (limits.max_team_seats) base.push(t("teamWorkspace", { seats: limits.max_team_seats }));
-  return base;
-}
+import { featuresFor } from "@/lib/plans/features";
 
 export default async function OnboardingPlanPage() {
   const user = await requireUser();

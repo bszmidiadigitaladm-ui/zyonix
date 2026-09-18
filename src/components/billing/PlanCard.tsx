@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import type { PlanCode } from "@/lib/config";
+import { GUARANTEE_DAYS, type PlanCode } from "@/lib/config";
 
 interface PlanCardProps {
   code: PlanCode;
@@ -17,7 +18,14 @@ interface PlanCardProps {
   checkoutUrl: string | null;
   checkoutUrlAnnual: string | null;
   annualPriceUsd: number | null;
+  /**
+   * When provided, the billing cycle is controlled by the parent (the landing
+   * page shows one shared toggle above all cards) and the card's own toggle is hidden.
+   */
+  billingCycle?: "monthly" | "annual";
 }
+
+const usd = (amount: number) => `$${amount.toFixed(2)}`;
 
 export function PlanCard({
   code,
@@ -28,17 +36,22 @@ export function PlanCard({
   checkoutUrl,
   checkoutUrlAnnual,
   annualPriceUsd,
+  billingCycle: controlledCycle,
 }: PlanCardProps) {
   const t = useTranslations("onboarding.plan");
   const router = useRouter();
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
+  const [ownCycle, setOwnCycle] = useState<"monthly" | "annual">("monthly");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isControlled = controlledCycle !== undefined;
+  const billingCycle = isControlled ? controlledCycle : ownCycle;
 
   const hasAnnual = Boolean(checkoutUrlAnnual && annualPriceUsd);
   const isAnnual = hasAnnual && billingCycle === "annual";
   const activeUrl = isAnnual ? checkoutUrlAnnual : checkoutUrl;
   const activePrice = isAnnual && annualPriceUsd ? annualPriceUsd : priceUsd;
+  const yearlySavings = hasAnnual && annualPriceUsd ? Math.max(0, (priceUsd - annualPriceUsd) * 12) : 0;
 
   async function handleDevActivate() {
     setLoading(true);
@@ -78,11 +91,11 @@ export function PlanCard({
       )}
       <h3 className="text-lg font-semibold">{displayName}</h3>
 
-      {hasAnnual && (
+      {hasAnnual && !isControlled && (
         <div className="mt-3 inline-flex w-fit gap-1 rounded-full border border-border bg-surface p-1 text-xs">
           <button
             type="button"
-            onClick={() => setBillingCycle("monthly")}
+            onClick={() => setOwnCycle("monthly")}
             className={cn(
               "rounded-full px-3 py-1 font-medium transition",
               !isAnnual ? "bg-accent text-accent-foreground" : "text-muted hover:text-foreground",
@@ -92,7 +105,7 @@ export function PlanCard({
           </button>
           <button
             type="button"
-            onClick={() => setBillingCycle("annual")}
+            onClick={() => setOwnCycle("annual")}
             className={cn(
               "rounded-full px-3 py-1 font-medium transition",
               isAnnual ? "bg-accent text-accent-foreground" : "text-muted hover:text-foreground",
@@ -111,10 +124,19 @@ export function PlanCard({
             : "text-4xl",
         )}
       >
-        ${activePrice.toFixed(2)}
+        {usd(activePrice)}
         <span className="text-sm font-medium text-muted">{t("perMonth")}</span>
       </p>
-      <p className="mt-1 text-xs text-muted">{isAnnual ? t("billedAnnually") : t("trialNote")}</p>
+      <p className="mt-1 text-xs text-muted">
+        {isAnnual && annualPriceUsd
+          ? t("billedAnnuallyTotal", { total: usd(annualPriceUsd * 12) })
+          : t("billedMonthly", { price: usd(priceUsd) })}
+      </p>
+      {isAnnual && yearlySavings > 0 && (
+        <span className="mt-2 w-fit rounded-full border border-accent/30 bg-accent-soft/60 px-2.5 py-0.5 text-[11px] font-medium text-accent">
+          {t("saveBadge", { amount: usd(yearlySavings) })}
+        </span>
+      )}
 
       <ul className="my-6 flex flex-1 flex-col gap-2 text-sm text-foreground/90">
         {features.map((f) => (
@@ -146,6 +168,11 @@ export function PlanCard({
           {t("startTrial")}
         </Button>
       )}
+
+      <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted">
+        <ShieldCheck size={14} className="text-accent" aria-hidden />
+        {t("guarantee", { days: GUARANTEE_DAYS })}
+      </p>
 
       {process.env.NODE_ENV !== "production" && (
         <button

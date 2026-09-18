@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Sparkles, ArrowRight } from "lucide-react";
+import Image from "next/image";
 import { Eyebrow } from "@/components/ui/Eyebrow";
-import { GlowBackdrop } from "@/components/ui/GlowBackdrop";
+import { AppFrame } from "@/components/landing/AppFrame";
 
 const TYPING_SPEED_MS = 45;
 const HOLD_MS = 1800;
@@ -51,20 +52,33 @@ export function Hero() {
   const chips = [t("chip1"), t("chip2"), t("chip3")];
 
   return (
-    <section className="relative flex flex-col items-center overflow-hidden px-6 pb-20 pt-20 text-center sm:pt-28">
-      <GlowBackdrop />
-      <div className="relative z-10 flex max-w-2xl flex-col items-center gap-6">
+    <section className="relative isolate overflow-hidden pt-20 sm:pt-28">
+      {/* Ribbon artwork (generated with the same brand palette) fading into the page background. */}
+      <Image
+        src="/landing/hero-bg.webp"
+        alt=""
+        fill
+        priority
+        unoptimized
+        sizes="100vw"
+        className="-z-20 object-cover object-top opacity-80"
+      />
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_20%,transparent_0%,var(--background)_80%)]" aria-hidden />
+      <div className="absolute left-1/2 top-0 -z-10 h-[28rem] w-[44rem] -translate-x-1/2 rounded-full bg-accent/15 blur-[120px]" aria-hidden />
+      <div className="absolute inset-x-0 bottom-0 -z-10 h-56 bg-gradient-to-b from-transparent to-background" aria-hidden />
+
+      <div className="relative z-10 mx-auto flex max-w-2xl flex-col items-center gap-6 px-6 text-center">
         <Eyebrow>{t("eyebrow")}</Eyebrow>
         <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-6xl">
           {t("titleLine1")}
           <br />
-          <span className="text-accent">{t("titleLine2")}</span>
+          <span className="bg-[image:var(--gradient-accent)] bg-clip-text text-transparent">{t("titleLine2")}</span>
         </h1>
         <p className="max-w-lg text-balance text-muted">{t("subtitle")}</p>
 
         <Link
           href="/signup"
-          className="mt-2 flex w-full max-w-xl items-center gap-3 rounded-full border border-border bg-surface px-5 py-4 text-left shadow-[0_1px_0_0_rgba(255,255,255,0.03)_inset,0_12px_32px_-20px_rgba(0,0,0,0.6)] transition hover:border-accent/50"
+          className="mt-2 flex w-full max-w-xl items-center gap-3 rounded-full border border-border bg-surface/90 px-5 py-4 text-left shadow-[0_1px_0_0_rgba(255,255,255,0.03)_inset,0_12px_32px_-20px_rgba(0,0,0,0.6)] backdrop-blur transition hover:border-accent/50"
         >
           <Sparkles size={18} className="shrink-0 text-accent" />
           <span className="flex-1 truncate text-sm text-foreground/90">
@@ -82,12 +96,17 @@ export function Hero() {
             <Link
               key={chip}
               href="/signup"
-              className="rounded-full border border-border bg-surface/60 px-3.5 py-1.5 text-xs text-muted transition hover:border-accent/50 hover:text-foreground"
+              className="rounded-full border border-border bg-surface/60 px-3.5 py-1.5 text-xs text-muted backdrop-blur transition hover:border-accent/50 hover:text-foreground"
             >
               {chip}
             </Link>
           ))}
         </div>
+      </div>
+
+      {/* Product shot emerging from the fold: real screen, faded at the bottom. */}
+      <div className="relative z-10 mx-auto mt-14 max-w-5xl px-6 [mask-image:linear-gradient(to_bottom,black_65%,transparent)]">
+        <AppFrame src="/landing/app-art.webp" alt={t("mockupAlt")} priority aspect={2} />
       </div>
     </section>
   );
