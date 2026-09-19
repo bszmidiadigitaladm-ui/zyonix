@@ -33,6 +33,7 @@ function LoginForm() {
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   // /auth/callback bounces here with ?error= when an emailed link is expired or already used.
   const callbackFailed = searchParams.get("error") === "auth_callback_failed";
+  const callbackReason = searchParams.get("reason");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -96,7 +97,12 @@ function LoginForm() {
             {t("forgotPassword")}
           </Link>
           <Turnstile onVerify={setCaptchaToken} />
-          {callbackFailed && !error && <p className="text-sm text-danger">{t("callbackFailed")}</p>}
+          {callbackFailed && !error && (
+            <div className="text-sm text-danger">
+              <p>{t("callbackFailed")}</p>
+              {callbackReason && <p className="mt-1 text-xs opacity-80">{t("callbackReason", { reason: callbackReason })}</p>}
+            </div>
+          )}
           {error && <p className="text-sm text-danger">{error}</p>}
           <Button type="submit" disabled={loading} className="w-full">
             {loading ? t("submitting") : t("submit")}

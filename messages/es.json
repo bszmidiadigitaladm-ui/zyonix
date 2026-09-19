@@ -305,7 +305,8 @@
       "noAccount": "¿Aún no tienes cuenta?",
       "signUp": "Regístrate",
       "forgotPassword": "¿Olvidaste tu contraseña?",
-      "callbackFailed": "Ese enlace no es válido o ya expiró. Inicia sesión o solicita uno nuevo."
+      "callbackFailed": "Ese enlace no es válido o ya expiró. Inicia sesión o solicita uno nuevo.",
+      "callbackReason": "Detalle: {reason}"
     },
     "signup": {
       "title": "Crea tu cuenta de {appName}",

@@ -305,7 +305,8 @@
       "noAccount": "No account yet?",
       "signUp": "Sign up",
       "forgotPassword": "Forgot password?",
-      "callbackFailed": "That link is invalid or has expired. Please sign in, or request a new one."
+      "callbackFailed": "That link is invalid or has expired. Please sign in, or request a new one.",
+      "callbackReason": "Details: {reason}"
     },
     "signup": {
       "title": "Create your {appName} account",
