@@ -353,6 +353,8 @@
       "eyebrow": "Simple, transparent pricing",
       "title": "Choose your {appName} plan",
       "subtitle": "Cancel anytime — no long-term commitment.",
+      "signedInAs": "Signed in as {email}",
+      "alreadyPaid": "Already paid? Make sure you're signed in with the same email you used at checkout, and your plan activates automatically. Using a different email? Sign out and sign in with the right one.",
       "mostPopular": "Most popular",
       "perMonth": "/mo",
       "monthly": "Monthly",

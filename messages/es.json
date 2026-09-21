@@ -353,6 +353,8 @@
       "eyebrow": "Precios simples y transparentes",
       "title": "Elige tu plan de {appName}",
       "subtitle": "Cancela cuando quieras — sin compromiso a largo plazo.",
+      "signedInAs": "Sesión iniciada como {email}",
+      "alreadyPaid": "¿Ya pagaste? Verifica que iniciaste sesión con el mismo correo que usaste al pagar y tu plan se activa automáticamente. ¿Usas otro correo? Cierra sesión e inicia con el correcto.",
       "mostPopular": "Más popular",
       "perMonth": "/mes",
       "monthly": "Mensual",

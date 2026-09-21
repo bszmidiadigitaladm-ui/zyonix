@@ -85,6 +85,7 @@ async function handleUnmatchedPurchase(
       <p>Your payment went through. To start creating, create your account using this same email address:</p>
       <p><a href="${signupUrl}">Create your ${escapeHtml(APP_NAME)} account</a></p>
       <p>Your plan activates automatically as soon as your account is set up.</p>
+      <p>Already created your account? <a href="${siteUrl}/login">Sign in</a> with this same email address and your plan activates automatically.</p>
     `,
   });
 }

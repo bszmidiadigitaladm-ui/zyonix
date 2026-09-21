@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { activateSubscriptionForProfile } from "@/lib/hotmart/activation";
 import { PlanCard } from "@/components/billing/PlanCard";
+import { SignOutButton } from "@/components/nav/SignOutButton";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { APP_NAME } from "@/lib/config";
 import type { PlanCode } from "@/lib/config";
@@ -62,10 +63,17 @@ export default async function OnboardingPlanPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-16">
+      {/* Someone who paid with another email would otherwise be stuck here with no way out. */}
+      <div className="mb-8 flex flex-wrap items-center justify-end gap-3 text-xs text-muted">
+        {user.email && <span>{t("signedInAs", { email: user.email })}</span>}
+        <SignOutButton />
+      </div>
+
       <div className="mb-10 flex flex-col items-center text-center">
         <Eyebrow className="mb-3">{t("eyebrow")}</Eyebrow>
         <h1 className="mb-2 text-3xl font-semibold">{t("title", { appName: APP_NAME })}</h1>
         <p className="text-sm text-muted">{t("subtitle")}</p>
+        <p className="mt-4 max-w-md text-xs leading-relaxed text-muted">{t("alreadyPaid")}</p>
       </div>
 
       <div className="mx-auto grid max-w-2xl gap-6 sm:grid-cols-2">
