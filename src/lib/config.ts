@@ -14,6 +14,12 @@ export const HOTMART_MANAGE_URL = "https://consumer.hotmart.com/";
 // the production domain so those files are right even if the env var is unset.
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://zyonix.pro").replace(/\/$/, "");
 
+// Meta (Facebook/Instagram) Pixel for ad campaigns. A pixel ID is public by design
+// (it ships to every visitor's browser), so it lives here rather than in an env var
+// that would need to be set at build time on Netlify. It only loads after consent —
+// see src/components/analytics/TrackingConsent.tsx.
+export const META_PIXEL_ID = "3309931505858975";
+
 // Money-back window shown on pricing and in the FAQ. Hotmart enforces its own
 // guarantee period per product — keep this in sync with the product's setting.
 export const GUARANTEE_DAYS = 7;

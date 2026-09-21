@@ -8,6 +8,10 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseHost = supabaseUrl ? new URL(supabaseUrl).host : "*.supabase.co";
 const TURNSTILE = "https://challenges.cloudflare.com";
+// Meta Pixel (loaded only after cookie consent): the library comes from
+// connect.facebook.net and events are sent to www.facebook.com/tr.
+const META_SCRIPT = "https://connect.facebook.net";
+const META_EVENTS = "https://www.facebook.com";
 
 // Directives that are safe to enforce today: they don't depend on which
 // scripts/styles/images a page pulls in, only on things the app never does.
@@ -25,12 +29,12 @@ const ENFORCED_CSP = [
 // style tags until nonces are wired through the proxy.
 const REPORT_ONLY_CSP = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' ${TURNSTILE}`,
+  `script-src 'self' 'unsafe-inline' ${TURNSTILE} ${META_SCRIPT}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: https://${supabaseHost}`,
+  `img-src 'self' data: blob: https://${supabaseHost} ${META_EVENTS}`,
   `media-src 'self' blob: https://${supabaseHost}`,
   "font-src 'self' data:",
-  `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} ${TURNSTILE}`,
+  `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} ${TURNSTILE} ${META_SCRIPT} ${META_EVENTS}`,
   `frame-src ${TURNSTILE}`,
   "worker-src 'self' blob:",
 ].join("; ");

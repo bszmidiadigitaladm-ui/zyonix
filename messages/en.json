@@ -172,7 +172,8 @@
       "copyright": "© {year} {appName}. All rights reserved.",
       "terms": "Terms of Use",
       "privacy": "Privacy Policy",
-      "contact": "Contact"
+      "contact": "Contact",
+      "cookies": "Cookie preferences"
     },
     "audience": {
       "label": "Built for",
@@ -835,6 +836,12 @@
   },
   "language": {
     "label": "Language"
+  },
+  "consent": {
+    "title": "Cookies, your choice",
+    "body": "With your permission, we use Meta's cookies to measure our ads and reach people who visited Zyonix. They're optional, and Zyonix works the same if you decline. <privacy>Privacy Policy</privacy>",
+    "accept": "Accept",
+    "decline": "Decline"
   },
   "legal": {
     "backHome": "Back to home"

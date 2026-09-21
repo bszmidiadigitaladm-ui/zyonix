@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { APP_NAME } from "@/lib/config";
 import { SUPPORT_EMAIL } from "@/lib/legal/content";
+import { CookiePreferencesButton } from "@/components/analytics/CookiePreferencesButton";
 
 export async function LandingFooter() {
   const t = await getTranslations("landing.footer");
@@ -22,6 +23,7 @@ export async function LandingFooter() {
           <Link href="/privacy" className="transition hover:text-foreground">
             {t("privacy")}
           </Link>
+          <CookiePreferencesButton label={t("cookies")} />
           <a href={`mailto:${SUPPORT_EMAIL}`} className="transition hover:text-foreground">
             {t("contact")}
           </a>

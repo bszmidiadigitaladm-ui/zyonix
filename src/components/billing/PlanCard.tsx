@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { GUARANTEE_DAYS, type PlanCode } from "@/lib/config";
+import { trackMeta } from "@/lib/analytics/meta";
 
 interface PlanCardProps {
   code: PlanCode;
@@ -154,6 +155,14 @@ export function PlanCard({
       {activeUrl ? (
         <a
           href={activeUrl}
+          onClick={() =>
+            trackMeta("InitiateCheckout", {
+              value: isAnnual && annualPriceUsd ? annualPriceUsd * 12 : priceUsd,
+              currency: "USD",
+              content_name: displayName,
+              content_category: isAnnual ? "annual" : "monthly",
+            })
+          }
           className={cn(
             "inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition",
             highlighted

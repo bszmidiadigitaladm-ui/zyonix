@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { APP_NAME } from "@/lib/config";
+import { trackMeta } from "@/lib/analytics/meta";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -60,6 +61,9 @@ function SignupForm() {
       setError(error.message);
       return;
     }
+
+    // No-op unless the visitor accepted advertising cookies.
+    trackMeta("CompleteRegistration");
 
     // If email confirmation is required, there is no session yet.
     if (!data.session) {

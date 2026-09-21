@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { APP_NAME, SITE_URL } from "@/lib/config";
+import { TrackingConsent } from "@/components/analytics/TrackingConsent";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -36,6 +37,9 @@ export const metadata: Metadata = {
     title: `${APP_NAME} — Your faith. Infinite possibilities.`,
     description: DESCRIPTION,
   },
+  // Proves to Meta Business Manager that we own zyonix.pro (needed for ad
+  // conversion tracking). Public by design; must stay in the server-rendered <head>.
+  other: { "facebook-domain-verification": "t48805p1ykqiba8aczk9ae0yndc2ec" },
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
@@ -50,6 +54,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
+          <TrackingConsent />
         </NextIntlClientProvider>
       </body>
     </html>
