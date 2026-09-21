@@ -17,6 +17,9 @@ export async function LandingFooter() {
         </div>
         <p className="text-xs text-muted">{t("tagline")}</p>
         <nav className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-xs text-muted">
+          <Link href="/login" className="transition hover:text-foreground">
+            {t("signIn")}
+          </Link>
           <Link href="/terms" className="transition hover:text-foreground">
             {t("terms")}
           </Link>

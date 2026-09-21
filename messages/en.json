@@ -145,7 +145,8 @@
       "toggleAnnual": "Annual",
       "save": "Save up to {percent}% with annual",
       "note": "Cancel anytime. No long-term commitment.",
-      "afterCheckout": "After checkout, create your account with the same email you paid with and your plan activates automatically."
+      "afterCheckout": "After checkout, create your account with the same email you paid with and your plan activates automatically.",
+      "alreadySubscribed": "Already a subscriber? <login>Sign in</login>"
     },
     "faq": {
       "eyebrow": "FAQ",
@@ -170,6 +171,7 @@
     "footer": {
       "tagline": "Your faith. Infinite possibilities.",
       "copyright": "© {year} {appName}. All rights reserved.",
+      "signIn": "Sign in",
       "terms": "Terms of Use",
       "privacy": "Privacy Policy",
       "contact": "Contact",

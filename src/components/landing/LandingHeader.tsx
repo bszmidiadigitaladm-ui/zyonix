@@ -38,22 +38,31 @@ export function LandingHeader() {
 
         <div className="hidden items-center gap-3 md:flex">
           <LanguageSwitcher className="w-auto py-1.5 text-xs" />
-          <Link href="/login" className="text-sm text-muted transition hover:text-foreground">
-            {t("signIn")}
+          <Link href="/login">
+            <Button variant="secondary">{t("signIn")}</Button>
           </Link>
           <a href="#pricing">
             <Button>{t("getStarted")}</Button>
           </a>
         </div>
 
-        <button
-          type="button"
-          aria-label="Menu"
-          className="text-foreground md:hidden"
-          onClick={() => setMenuOpen((open) => !open)}
-        >
-          {menuOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
+        {/* Existing customers must find "Sign in" without opening the menu on a phone. */}
+        <div className="flex items-center gap-4 md:hidden">
+          <Link
+            href="/login"
+            className="rounded-full border border-border bg-surface px-4 py-1.5 text-sm font-medium text-foreground transition hover:border-accent/50"
+          >
+            {t("signIn")}
+          </Link>
+          <button
+            type="button"
+            aria-label="Menu"
+            className="text-foreground"
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            {menuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
       </div>
 
       {menuOpen && (
@@ -68,12 +77,7 @@ export function LandingHeader() {
               {t(link.key)}
             </a>
           ))}
-          <div className="flex items-center justify-between">
-            <Link href="/login" className="text-sm text-muted">
-              {t("signIn")}
-            </Link>
-            <LanguageSwitcher className="w-auto py-1.5 text-xs" />
-          </div>
+          <LanguageSwitcher className="w-auto self-start py-1.5 text-xs" />
           <a href="#pricing" onClick={() => setMenuOpen(false)}>
             <Button className="w-full">{t("getStarted")}</Button>
           </a>

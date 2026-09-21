@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { PlanCard } from "@/components/billing/PlanCard";
 import { cn } from "@/lib/utils";
@@ -62,6 +63,15 @@ export function PricingGrid({ plans, maxSavingsPercent }: { plans: PricingPlan[]
 
       <p className="mt-8 text-center text-xs text-muted">{t("note")}</p>
       <p className="mt-2 text-center text-xs text-muted">{t("afterCheckout")}</p>
+      <p className="mt-2 text-center text-xs text-muted">
+        {t.rich("alreadySubscribed", {
+          login: (chunks) => (
+            <Link href="/login" className="font-medium text-accent hover:underline">
+              {chunks}
+            </Link>
+          ),
+        })}
+      </p>
     </>
   );
 }

@@ -145,7 +145,8 @@
       "toggleAnnual": "Anual",
       "save": "Ahorra hasta {percent}% con el plan anual",
       "note": "Cancela cuando quieras. Sin compromiso a largo plazo.",
-      "afterCheckout": "Después del pago, crea tu cuenta con el mismo correo con el que pagaste y tu plan se activa automáticamente."
+      "afterCheckout": "Después del pago, crea tu cuenta con el mismo correo con el que pagaste y tu plan se activa automáticamente.",
+      "alreadySubscribed": "¿Ya eres suscriptor? <login>Inicia sesión</login>"
     },
     "faq": {
       "eyebrow": "Preguntas",
@@ -170,6 +171,7 @@
     "footer": {
       "tagline": "Tu fe. Infinitas posibilidades.",
       "copyright": "© {year} {appName}. Todos los derechos reservados.",
+      "signIn": "Iniciar sesión",
       "terms": "Términos de Uso",
       "privacy": "Política de Privacidad",
       "contact": "Contacto",
