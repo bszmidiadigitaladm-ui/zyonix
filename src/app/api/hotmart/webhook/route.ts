@@ -90,14 +90,31 @@ async function handleUnmatchedPurchase(
   });
 }
 
-async function handleCancellation(admin: AdminClient, params: { email?: string; subscriberCode?: string }) {
-  const { email, subscriberCode } = params;
+// An ordinary cancellation keeps access until the period the customer already
+// paid for runs out (see isBillable in lib/auth/session.ts). A refund or chargeback
+// gives the money back, so access must end immediately instead: current_period_end
+// is pulled to "now". Otherwise a refunded annual plan would stay usable for a year.
+async function handleCancellation(
+  admin: AdminClient,
+  params: { email?: string; subscriberCode?: string; transactionCode?: string; revokeNow: boolean },
+) {
+  const { email, subscriberCode, transactionCode, revokeNow } = params;
+  const nowIso = new Date().toISOString();
+  const changes = {
+    status: "canceled" as const,
+    canceled_at: nowIso,
+    ...(revokeNow ? { current_period_end: nowIso, cancel_at_period_end: false } : {}),
+  };
+
+  // A purchase refunded before the buyer ever created an account is still waiting in
+  // pending_activations; drop it so the plan doesn't switch on when they sign up later.
+  if (revokeNow) {
+    if (transactionCode) await admin.from("pending_activations").delete().eq("transaction_code", transactionCode);
+    if (subscriberCode) await admin.from("pending_activations").delete().eq("subscriber_code", subscriberCode);
+  }
 
   if (subscriberCode) {
-    const { error } = await admin
-      .from("subscriptions")
-      .update({ status: "canceled", canceled_at: new Date().toISOString() })
-      .eq("hotmart_subscriber_code", subscriberCode);
+    const { error } = await admin.from("subscriptions").update(changes).eq("hotmart_subscriber_code", subscriberCode);
     if (!error) return;
   }
 
@@ -106,9 +123,7 @@ async function handleCancellation(admin: AdminClient, params: { email?: string; 
   const { data: profile } = await admin.from("profiles").select("id, team_id").eq("email", email).maybeSingle();
   if (!profile) return;
 
-  const query = admin
-    .from("subscriptions")
-    .update({ status: "canceled", canceled_at: new Date().toISOString() });
+  const query = admin.from("subscriptions").update(changes);
 
   if (profile.team_id) await query.eq("team_id", profile.team_id);
   else await query.eq("owner_id", profile.id).is("team_id", null);
@@ -150,7 +165,10 @@ export async function POST(request: Request) {
 
   let claimedKey: string | null = null;
   if (kind && transactionCode) {
-    const key = `${transactionCode}:${kind}`;
+    // Cancellation keys carry the exact event name: "cancel, then refund" produces two
+    // different events for the same transaction, and the refund must not be swallowed
+    // as a duplicate of the cancellation. A retry of the same event still dedupes.
+    const key = kind === "cancellation" ? `${transactionCode}:cancellation:${upperEvent}` : `${transactionCode}:${kind}`;
     const claim = await claimEvent(admin, key, event);
     if (claim === "duplicate") {
       return NextResponse.json({ received: true, duplicate: true });
@@ -180,7 +198,12 @@ export async function POST(request: Request) {
         await handleUnmatchedPurchase(admin, { email, ...resolved, transactionCode, subscriberCode });
       }
     } else if (kind === "cancellation") {
-      await handleCancellation(admin, { email, subscriberCode });
+      await handleCancellation(admin, {
+        email,
+        subscriberCode,
+        transactionCode,
+        revokeNow: upperEvent.includes("REFUND") || upperEvent.includes("CHARGEBACK"),
+      });
     }
   } catch (err) {
     console.error(`Error handling Hotmart webhook event ${event}`, err);
