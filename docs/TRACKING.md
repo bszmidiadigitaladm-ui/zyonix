@@ -7,13 +7,19 @@ Pixel ID: `META_PIXEL_ID` in `src/lib/config.ts` (public by design, not a secret
 - **Consent first.** Nothing from Meta loads until the visitor clicks Accept in the cookie
   banner. The choice is stored in `localStorage` (`zyonix-tracking-consent`). Declining is as
   easy as accepting, and "Cookie preferences" in the footer reopens the banner.
-- **Public pages only.** The pixel and banner run only on `/`, `/terms`, `/privacy`,
-  `/welcome` and `/signup` (`TRACKED_PATHS` in `src/components/analytics/TrackingConsent.tsx`).
+- **Public pages only (plus plan selection).** The pixel and banner run only on `/`, `/terms`,
+  `/privacy`, `/welcome`, `/signup` and `/onboarding/plan` (`TRACKED_PATHS` in
+  `src/components/analytics/TrackingConsent.tsx`). `/onboarding/plan` is signed-in but is where
+  people land after sign-up to click a plan, so `InitiateCheckout` would be lost without it.
   Signed-in screens, `/login`, password reset and `/auth/callback` are excluded because their
   URLs can carry one-time codes or error details. Add a path to that list only if its URL is safe
   to send to a third party.
 - **Only the events we choose.** Meta's own automatic PageView-on-navigation and Automatic
   Configuration are switched off (`src/lib/analytics/meta.ts`); PageView is sent once per allowed page.
+
+- **Ad click id survives navigation.** `?fbclid=` from an ad is parked in `sessionStorage`
+  (`zyonix-fbclid`, never sent anywhere) so that if the visitor accepts on a later page the `_fbc`
+  cookie is recreated before the pixel loads. Declining deletes it.
 
 ## Events sent (only after consent)
 

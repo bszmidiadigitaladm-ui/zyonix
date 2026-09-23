@@ -50,9 +50,58 @@ export function loadMetaPixel(pixelId: string): void {
   fbq("init", pixelId);
 }
 
+// Ad clicks arrive with ?fbclid=… in the URL. The pixel turns that into the _fbc
+// cookie, which is how Meta ties a visit back to the ad — but only if the pixel
+// loads while fbclid is still in the URL. Someone who browses to another page
+// before accepting would lose it, so it's parked in this tab's sessionStorage
+// (never sent anywhere) until they choose.
+const CLICK_ID_KEY = "zyonix-fbclid";
+
+function siteCookieDomain(): string | undefined {
+  const host = window.location.hostname;
+  return host.includes(".") ? `.${host.replace(/^www\./, "")}` : undefined;
+}
+
+/** Remembers the ad click id from the current URL, if there is one. */
+export function captureAdClickId(): void {
+  const id = new URLSearchParams(window.location.search).get("fbclid");
+  if (!id) return;
+  try {
+    window.sessionStorage.setItem(CLICK_ID_KEY, JSON.stringify({ id, ts: Date.now() }));
+  } catch {
+    // storage blocked: the pixel can still pick it up if they accept on this page
+  }
+}
+
+/**
+ * After consent, recreates the _fbc cookie from a remembered ad click when the
+ * visitor has since left the page that carried fbclid. Call before loadMetaPixel.
+ */
+export function restoreAdClickCookie(): void {
+  if (new URLSearchParams(window.location.search).has("fbclid")) return;
+  if (document.cookie.split("; ").some((c) => c.startsWith("_fbc="))) return;
+  let stored: { id?: unknown; ts?: unknown } | null = null;
+  try {
+    stored = JSON.parse(window.sessionStorage.getItem(CLICK_ID_KEY) ?? "null");
+  } catch {
+    return;
+  }
+  if (!stored || typeof stored.id !== "string" || typeof stored.ts !== "number") return;
+  // Meta's format: fb.<subdomain index>.<click time in ms>.<fbclid>
+  const value = `fb.1.${stored.ts}.${stored.id}`;
+  const domain = siteCookieDomain();
+  const secure = window.location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `_fbc=${value}; Max-Age=${90 * 24 * 60 * 60}; path=/; SameSite=Lax${domain ? `; domain=${domain}` : ""}${secure}`;
+}
+
 /** Withdraws consent for the current page session and clears Meta's cookies. */
 export function revokeMetaPixel(): void {
   window.fbq?.("consent", "revoke");
+  try {
+    window.sessionStorage.removeItem(CLICK_ID_KEY);
+  } catch {
+    // ignore
+  }
   const host = window.location.hostname;
   const domains = [undefined, host, `.${host.replace(/^www\./, "")}`];
   for (const name of ["_fbp", "_fbc"]) {
