@@ -6,7 +6,12 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Bebas_Neue, Dancing_Script, Fredoka, Montserrat, Playfair_Display } from "next/font/google";
 import { ART_JOB_STARTED_EVENT } from "@/lib/art/client";
-import { downloadPosterPng, fetchPosterJobs, resizePhoto } from "@/lib/posters/client";
+import {
+  downloadPosterPng,
+  fetchPosterJobs,
+  resizeImage,
+  type PosterFormat,
+} from "@/lib/posters/client";
 import {
   FONT_STYLES,
   templateThumbUrl,
@@ -44,24 +49,46 @@ const COLOR_LABEL: Record<ColorKey, string> = {
 
 const POLL_MS = 4000;
 const POLL_GIVE_UP_MS = 7 * 60 * 1000;
-const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-export function PosterEditor({ template }: { template: PosterTemplate }) {
+export interface PosterEditorInitial {
+  fields?: Partial<Record<TemplateField, string>>;
+  instructions?: string;
+  colors?: Partial<Record<ColorKey, string>>;
+  font?: FontStyleKey | null;
+  format?: PosterFormat;
+}
+
+interface Upload {
+  file: File;
+  preview: string;
+  consent: boolean;
+}
+
+export function PosterEditor({
+  template,
+  initial,
+}: {
+  template: PosterTemplate;
+  initial?: PosterEditorInitial;
+}) {
   const t = useTranslations("templates");
   const router = useRouter();
 
-  const [values, setValues] = useState<Partial<Record<TemplateField, string>>>({});
-  const [instructions, setInstructions] = useState("");
-  const [colors, setColors] = useState<Partial<Record<ColorKey, string>>>({});
-  const [font, setFont] = useState<FontStyleKey | null>(null);
-  const [photo, setPhoto] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [photoConsent, setPhotoConsent] = useState(false);
+  const [values, setValues] = useState<Partial<Record<TemplateField, string>>>(initial?.fields ?? {});
+  const [instructions, setInstructions] = useState(initial?.instructions ?? "");
+  const [colors, setColors] = useState<Partial<Record<ColorKey, string>>>(initial?.colors ?? {});
+  const [font, setFont] = useState<FontStyleKey | null>(initial?.font ?? null);
+  const [format, setFormat] = useState<PosterFormat>(initial?.format ?? "feed");
+  const [photo, setPhoto] = useState<Upload | null>(null);
+  const [logo, setLogo] = useState<Upload | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [waitingFor, setWaitingFor] = useState<string | null>(null);
-  const [resultUrl, setResultUrl] = useState<string | null>(null);
+  const [result, setResult] = useState<{ url: string; format: PosterFormat } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [downloadError, setDownloadError] = useState(false);
+  // The format the running job was created with, so its result is shown correctly.
+  const jobFormatRef = useRef<PosterFormat>("feed");
   // Read by the unmount cleanup: leaving mid-generation hands the job to the notifier.
   const waitingRef = useRef<string | null>(null);
 
@@ -76,7 +103,7 @@ export function PosterEditor({ template }: { template: PosterTemplate }) {
       if (cancelled) return;
       const job = jobs?.find((j) => j.id === waitingFor);
       if (job?.status === "completed" && job.image_url) {
-        setResultUrl(job.image_url);
+        setResult({ url: job.image_url, format: jobFormatRef.current });
         setWaitingFor(null);
         router.refresh();
       } else if (job?.status === "failed" || Date.now() - startedAt > POLL_GIVE_UP_MS) {
@@ -102,34 +129,43 @@ export function PosterEditor({ template }: { template: PosterTemplate }) {
     [],
   );
 
+  const photoPreview = photo?.preview;
   useEffect(() => {
     return () => {
       if (photoPreview) URL.revokeObjectURL(photoPreview);
     };
   }, [photoPreview]);
 
-  async function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
+  const logoPreview = logo?.preview;
+  useEffect(() => {
+    return () => {
+      if (logoPreview) URL.revokeObjectURL(logoPreview);
+    };
+  }, [logoPreview]);
+
+  async function handleUpload(
+    e: React.ChangeEvent<HTMLInputElement>,
+    kind: "photo" | "logo",
+  ) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    if (!PHOTO_TYPES.includes(file.type)) {
-      setError(t("photoInvalid"));
+    if (!IMAGE_TYPES.includes(file.type)) {
+      setError(t("imageInvalid"));
       return;
     }
     setError(null);
     try {
-      const small = await resizePhoto(file);
-      setPhoto(small);
-      setPhotoPreview(URL.createObjectURL(small));
+      const small =
+        kind === "logo"
+          ? await resizeImage(file, { maxSize: 768, keepTransparency: true })
+          : await resizeImage(file, { maxSize: 1024 });
+      const upload: Upload = { file: small, preview: URL.createObjectURL(small), consent: false };
+      if (kind === "logo") setLogo(upload);
+      else setPhoto(upload);
     } catch {
-      setError(t("photoInvalid"));
+      setError(t("imageInvalid"));
     }
-  }
-
-  function removePhoto() {
-    setPhoto(null);
-    setPhotoPreview(null);
-    setPhotoConsent(false);
   }
 
   function toggleColor(key: ColorKey, on: boolean) {
@@ -141,16 +177,15 @@ export function PosterEditor({ template }: { template: PosterTemplate }) {
     });
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function generate(nextFormat: PosterFormat) {
     setError(null);
 
     if (!instructions.trim()) {
       setError(t("instructionsRequired"));
       return;
     }
-    if (photo && !photoConsent) {
-      setError(t("photoConsentRequired"));
+    if ((photo && !photo.consent) || (logo && !logo.consent)) {
+      setError(t("consentRequired"));
       return;
     }
 
@@ -159,8 +194,10 @@ export function PosterEditor({ template }: { template: PosterTemplate }) {
     body.set("instructions", instructions.trim());
     body.set("fields", JSON.stringify(values));
     body.set("colors", JSON.stringify(colors));
+    body.set("format", nextFormat);
     if (font) body.set("font", font);
-    if (photo) body.set("photo", photo);
+    if (photo) body.set("photo", photo.file);
+    if (logo) body.set("logo", logo.file);
 
     setSubmitting(true);
     try {
@@ -174,8 +211,10 @@ export function PosterEditor({ template }: { template: PosterTemplate }) {
         return;
       }
 
-      setResultUrl(null);
+      setResult(null);
       setDownloadError(false);
+      setFormat(nextFormat);
+      jobFormatRef.current = nextFormat;
       setWaitingFor(data.generation.id);
     } catch {
       setError(t("genericError"));
@@ -185,17 +224,65 @@ export function PosterEditor({ template }: { template: PosterTemplate }) {
   }
 
   async function handleDownload() {
-    if (!resultUrl) return;
+    if (!result) return;
     setDownloadError(false);
-    const ok = await downloadPosterPng(resultUrl, `${template.slug}.png`);
+    const ok = await downloadPosterPng(result.url, `${template.slug}-${result.format}.png`, result.format);
     if (!ok) setDownloadError(true);
   }
 
   const busy = submitting || waitingFor !== null;
 
+  function renderUpload(kind: "photo" | "logo") {
+    const upload = kind === "photo" ? photo : logo;
+    const set = kind === "photo" ? setPhoto : setLogo;
+    return (
+      <div>
+        <h3 className="mb-1 text-sm font-semibold">{t(kind === "photo" ? "photo" : "logo")}</h3>
+        <p className="mb-2 text-xs text-muted">{t(kind === "photo" ? "photoHint" : "logoHint")}</p>
+        {upload ? (
+          <div className="flex items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={upload.preview}
+              alt=""
+              className={cn("h-16 w-16 rounded-lg", kind === "logo" ? "bg-white object-contain p-1" : "object-cover")}
+            />
+            <button type="button" onClick={() => set(null)} className="text-xs text-muted hover:text-foreground">
+              {t("uploadRemove")}
+            </button>
+          </div>
+        ) : (
+          <input
+            type="file"
+            accept={IMAGE_TYPES.join(",")}
+            onChange={(e) => handleUpload(e, kind)}
+            className="text-xs text-muted file:mr-3 file:rounded-full file:border file:border-border file:bg-surface file:px-3 file:py-1.5 file:text-xs file:text-foreground"
+          />
+        )}
+        {upload && (
+          <label className="mt-2 flex items-center gap-2 text-xs text-muted">
+            <input
+              type="checkbox"
+              checked={upload.consent}
+              onChange={(e) => set({ ...upload, consent: e.target.checked })}
+              className="accent-[var(--accent)]"
+            />
+            {t(kind === "photo" ? "photoConsent" : "logoConsent")}
+          </label>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void generate(format);
+        }}
+        className="flex flex-col gap-5"
+      >
         <div>
           <label className="mb-1 block text-sm font-medium">{t("instructions")}</label>
           <Textarea
@@ -205,6 +292,26 @@ export function PosterEditor({ template }: { template: PosterTemplate }) {
             onChange={(e) => setInstructions(e.target.value)}
             placeholder={t("instructionsHint")}
           />
+        </div>
+
+        <div>
+          <h3 className="mb-2 text-sm font-semibold">{t("format")}</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {(["feed", "story"] as const).map((key) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setFormat(key)}
+                className={cn(
+                  "rounded-xl border p-3 text-left text-xs transition",
+                  format === key ? "border-accent bg-accent/5" : "border-border hover:border-accent/40",
+                )}
+              >
+                <span className="block text-sm font-medium">{t(key === "feed" ? "formatFeed" : "formatStory")}</span>
+                <span className="text-muted">{t(key === "feed" ? "formatFeedHint" : "formatStoryHint")}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {template.fields.length > 0 && (
@@ -226,39 +333,8 @@ export function PosterEditor({ template }: { template: PosterTemplate }) {
           </div>
         )}
 
-        {template.photoSlot && (
-          <div>
-            <h3 className="mb-1 text-sm font-semibold">{t("photo")}</h3>
-            <p className="mb-2 text-xs text-muted">{t("photoHint")}</p>
-            {photoPreview ? (
-              <div className="flex items-center gap-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={photoPreview} alt="" className="h-16 w-16 rounded-lg object-cover" />
-                <button type="button" onClick={removePhoto} className="text-xs text-muted hover:text-foreground">
-                  {t("photoRemove")}
-                </button>
-              </div>
-            ) : (
-              <input
-                type="file"
-                accept={PHOTO_TYPES.join(",")}
-                onChange={handlePhoto}
-                className="text-xs text-muted file:mr-3 file:rounded-full file:border file:border-border file:bg-surface file:px-3 file:py-1.5 file:text-xs file:text-foreground"
-              />
-            )}
-            {photo && (
-              <label className="mt-2 flex items-center gap-2 text-xs text-muted">
-                <input
-                  type="checkbox"
-                  checked={photoConsent}
-                  onChange={(e) => setPhotoConsent(e.target.checked)}
-                  className="accent-[var(--accent)]"
-                />
-                {t("photoConsent")}
-              </label>
-            )}
-          </div>
-        )}
+        {template.photoSlot && renderUpload("photo")}
+        {renderUpload("logo")}
 
         <div>
           <h3 className="mb-2 text-sm font-semibold">{t("colors")}</h3>
@@ -339,12 +415,26 @@ export function PosterEditor({ template }: { template: PosterTemplate }) {
 
       <div className="flex flex-col gap-3">
         <Card className="p-3">
-          {resultUrl ? (
+          {result ? (
             <div className="flex flex-col gap-3">
-              <PosterImage src={resultUrl} />
+              <PosterImage src={result.url} format={result.format} />
               <Button type="button" onClick={handleDownload}>
                 {t("download")}
               </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button type="button" variant="secondary" disabled={busy} onClick={() => generate(result.format)}>
+                  {t("createAgain")}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={busy}
+                  onClick={() => generate(result.format === "feed" ? "story" : "feed")}
+                >
+                  {t(result.format === "feed" ? "makeStory" : "makeFeed")}
+                </Button>
+              </div>
+              <p className="text-xs text-muted">{t("createAgainHint")}</p>
               {downloadError && <p className="text-xs text-danger">{t("downloadError")}</p>}
               <p className="text-xs text-muted">{t("proofread")}</p>
               <Link href="/templates/mine" className="text-xs font-medium text-accent hover:underline">

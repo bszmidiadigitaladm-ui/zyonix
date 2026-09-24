@@ -11,8 +11,8 @@ import { MAX_PENDING_POSTERS, failPosterJob, failStalePosterJobs } from "@/lib/p
 import { FONT_STYLES, TEMPLATE_FIELDS, getTemplate, templateInputPath } from "@/lib/templates/catalog";
 import { HEX_COLOR, buildPosterPrompt } from "@/lib/templates/prompt";
 
-const MAX_PHOTO_BYTES = 4 * 1024 * 1024;
-const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 const hexColor = z.string().regex(HEX_COLOR).optional();
 
@@ -24,6 +24,7 @@ const bodySchema = z.object({
     .object({ background: hexColor, text: hexColor, accent: hexColor })
     .default({}),
   font: z.enum(FONT_STYLES.map((f) => f.key) as [string, ...string[]]).optional(),
+  format: z.enum(["feed", "story"]).default("feed"),
 });
 
 function parseJsonField(value: FormDataEntryValue | null): unknown {
@@ -60,11 +61,12 @@ export async function POST(request: Request) {
     fields: parseJsonField(form.get("fields")),
     colors: parseJsonField(form.get("colors")),
     font: form.get("font") || undefined,
+    format: form.get("format") || undefined,
   });
   if (!parsed.success) {
     return NextResponse.json({ error: "invalid_request", details: parsed.error.flatten() }, { status: 400 });
   }
-  const { instructions, colors, font } = parsed.data;
+  const { instructions, colors, font, format } = parsed.data;
 
   const template = getTemplate(parsed.data.template);
   if (!template) {
@@ -78,16 +80,21 @@ export async function POST(request: Request) {
     if (value && template.fields.includes(key)) fields[key] = value;
   }
 
-  let photo: { buffer: Buffer; contentType: string } | undefined;
-  const photoEntry = form.get("photo");
-  if (photoEntry instanceof File && photoEntry.size > 0) {
-    if (!template.photoSlot) {
-      return NextResponse.json({ error: "photo_not_supported" }, { status: 400 });
-    }
-    if (!PHOTO_TYPES.includes(photoEntry.type) || photoEntry.size > MAX_PHOTO_BYTES) {
-      return NextResponse.json({ error: "invalid_photo" }, { status: 400 });
-    }
-    photo = { buffer: Buffer.from(await photoEntry.arrayBuffer()), contentType: photoEntry.type };
+  // Uploaded images are read now, before the response is sent, and are never stored.
+  async function readUpload(name: string): Promise<{ buffer: Buffer; contentType: string } | undefined | "invalid"> {
+    const entry = form!.get(name);
+    if (!(entry instanceof File) || entry.size === 0) return undefined;
+    if (!IMAGE_TYPES.includes(entry.type) || entry.size > MAX_UPLOAD_BYTES) return "invalid";
+    return { buffer: Buffer.from(await entry.arrayBuffer()), contentType: entry.type };
+  }
+
+  const photo = await readUpload("photo");
+  const logo = await readUpload("logo");
+  if (photo === "invalid" || logo === "invalid") {
+    return NextResponse.json({ error: "invalid_image" }, { status: 400 });
+  }
+  if (photo && !template.photoSlot) {
+    return NextResponse.json({ error: "photo_not_supported" }, { status: 400 });
   }
 
   const profile = await getProfile(user.id);
@@ -123,10 +130,12 @@ export async function POST(request: Request) {
     instructions,
     colors,
     font: FONT_STYLES.find((f) => f.key === font)?.key,
+    format,
     hasPhoto: Boolean(photo),
+    hasLogo: Boolean(logo),
   });
 
-  const options: Record<string, string> = { ...colors };
+  const options: Record<string, string> = { ...colors, format };
   if (font) options.font = font;
 
   const { data: job, error: insertError } = await admin
@@ -139,7 +148,7 @@ export async function POST(request: Request) {
       options,
       instructions,
       prompt_used: prompt,
-      used_photo: Boolean(photo),
+      used_photo: Boolean(photo || logo),
       status: "pending",
     })
     .select()
@@ -165,7 +174,8 @@ export async function POST(request: Request) {
       const png = await generatePoster({
         prompt,
         template: { buffer: templateBuffer, contentType: "image/jpeg" },
-        photo,
+        // Same order the prompt refers to them: speaker photo first, then the logo.
+        extras: [photo, logo].filter((img): img is NonNullable<typeof img> => img !== undefined),
       });
       const imageUrl = await uploadGeneratedImage({ userId: user.id, buffer: png });
 

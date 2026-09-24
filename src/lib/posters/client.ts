@@ -20,10 +20,19 @@ export async function fetchPosterJobs(): Promise<PosterJobStatus[] | null> {
   }
 }
 
-// Posters are generated as 2:3 (1024x1536) but designed as 4:5, so what people see
-// and download is the centered 4:5 crop.
-const OUTPUT_W = 1080;
-const OUTPUT_H = 1350;
+export type PosterFormat = "feed" | "story";
+
+export function toPosterFormat(value: unknown): PosterFormat {
+  return value === "story" ? "story" : "feed";
+}
+
+// Posters are generated as 2:3 (1024x1536). A feed poster is designed at 4:5 and a
+// Story at 9:16, so what people see and download is the centered crop of that shape:
+// top and bottom trimmed for feed, the sides trimmed for Story.
+const OUTPUT_SIZE: Record<PosterFormat, { w: number; h: number }> = {
+  feed: { w: 1080, h: 1350 },
+  story: { w: 1080, h: 1920 },
+};
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -35,20 +44,21 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-/** Crops the generated poster to 4:5 and saves it as a PNG. Returns false if it could not be exported. */
-export async function downloadPosterPng(url: string, filename: string): Promise<boolean> {
+/** Crops the generated poster to its format and saves it as a PNG. Returns false if it could not be exported. */
+export async function downloadPosterPng(url: string, filename: string, format: PosterFormat): Promise<boolean> {
   try {
+    const { w, h } = OUTPUT_SIZE[format];
     const img = await loadImage(url);
     const canvas = document.createElement("canvas");
-    canvas.width = OUTPUT_W;
-    canvas.height = OUTPUT_H;
+    canvas.width = w;
+    canvas.height = h;
     const ctx = canvas.getContext("2d");
     if (!ctx) return false;
 
-    const scale = Math.max(OUTPUT_W / img.width, OUTPUT_H / img.height);
+    const scale = Math.max(w / img.width, h / img.height);
     const drawW = img.width * scale;
     const drawH = img.height * scale;
-    ctx.drawImage(img, (OUTPUT_W - drawW) / 2, (OUTPUT_H - drawH) / 2, drawW, drawH);
+    ctx.drawImage(img, (w - drawW) / 2, (h - drawH) / 2, drawW, drawH);
 
     const link = document.createElement("a");
     link.href = canvas.toDataURL("image/png");
@@ -60,8 +70,14 @@ export async function downloadPosterPng(url: string, filename: string): Promise<
   }
 }
 
-/** Shrinks a photo so the upload stays small; returns a JPEG. */
-export async function resizePhoto(file: File, maxSize = 1024): Promise<File> {
+/**
+ * Shrinks an uploaded image so the upload stays small. Photos become JPEGs; logos
+ * stay PNGs so transparent backgrounds are kept.
+ */
+export async function resizeImage(
+  file: File,
+  options: { maxSize: number; keepTransparency?: boolean },
+): Promise<File> {
   const objectUrl = URL.createObjectURL(file);
   try {
     const img = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -70,14 +86,16 @@ export async function resizePhoto(file: File, maxSize = 1024): Promise<File> {
       el.onerror = reject;
       el.src = objectUrl;
     });
-    const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+    const scale = Math.min(1, options.maxSize / Math.max(img.width, img.height));
     const canvas = document.createElement("canvas");
     canvas.width = Math.round(img.width * scale);
     canvas.height = Math.round(img.height * scale);
     canvas.getContext("2d")?.drawImage(img, 0, 0, canvas.width, canvas.height);
-    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.88));
+
+    const type = options.keepTransparency ? "image/png" : "image/jpeg";
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, 0.88));
     if (!blob) return file;
-    return new File([blob], "speaker.jpg", { type: "image/jpeg" });
+    return new File([blob], options.keepTransparency ? "logo.png" : "speaker.jpg", { type });
   } finally {
     URL.revokeObjectURL(objectUrl);
   }

@@ -6,20 +6,23 @@ export interface PosterImageInput {
   contentType: string;
 }
 
+const EXTENSION: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+
 /**
- * Re-renders a poster template with the person's details. `template` is the
- * padded 2:3 image; `photo` (optional) is the speaker's photo, sent as image 2.
- * Returns a 1024x1536 PNG.
+ * Re-renders a poster template with the person's details. `template` is the padded
+ * 2:3 image (image 1); `extras` are the optional speaker photo and church logo, in
+ * the order the prompt refers to them. Returns a 1024x1536 PNG.
  */
 export async function generatePoster(params: {
   prompt: string;
   template: PosterImageInput;
-  photo?: PosterImageInput;
+  extras?: PosterImageInput[];
 }): Promise<Buffer> {
   const openai = getOpenAI();
   const images = [await toFile(params.template.buffer, "template.jpg", { type: params.template.contentType })];
-  if (params.photo) {
-    images.push(await toFile(params.photo.buffer, "speaker.jpg", { type: params.photo.contentType }));
+  for (const [i, extra] of (params.extras ?? []).entries()) {
+    const ext = EXTENSION[extra.contentType] ?? "jpg";
+    images.push(await toFile(extra.buffer, `extra-${i + 1}.${ext}`, { type: extra.contentType }));
   }
 
   const response = await openai.images.edit({

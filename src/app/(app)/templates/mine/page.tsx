@@ -13,7 +13,7 @@ export default async function MyPostersPage() {
 
   const query = supabase
     .from("poster_generations")
-    .select("id, template_slug, image_url, status, created_at")
+    .select("id, template_slug, image_url, status, options, created_at")
     .neq("status", "failed")
     .order("created_at", { ascending: false })
     .limit(60);
