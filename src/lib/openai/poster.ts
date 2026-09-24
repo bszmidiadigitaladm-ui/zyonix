@@ -1,5 +1,5 @@
 import { toFile } from "openai";
-import { getOpenAI } from "@/lib/openai/client";
+import { getOpenAIDirect } from "@/lib/openai/client";
 
 export interface PosterImageInput {
   buffer: Buffer;
@@ -18,7 +18,8 @@ export async function generatePoster(params: {
   template: PosterImageInput;
   extras?: PosterImageInput[];
 }): Promise<Buffer> {
-  const openai = getOpenAI();
+  // Uploads files, so it must not go through a JSON-only gateway (see client.ts).
+  const openai = getOpenAIDirect();
   const images = [await toFile(params.template.buffer, "template.jpg", { type: params.template.contentType })];
   for (const [i, extra] of (params.extras ?? []).entries()) {
     const ext = EXTENSION[extra.contentType] ?? "jpg";

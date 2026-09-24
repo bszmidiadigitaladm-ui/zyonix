@@ -36,6 +36,7 @@ Rule enforced throughout the codebase: any variable **without** the
 | `SUPABASE_SERVICE_ROLE_KEY` | Bypasses RLS — used only in webhook/cron/admin code paths | Supabase Dashboard → Project Settings → API (**keep secret**) |
 | `OPENAI_API_KEY` | GPT text, GPT Image, and Moderation endpoint calls | OpenAI Platform → API keys |
 | `OPENAI_ORG_ID` | Optional — org-scoped billing/usage attribution | OpenAI Platform → Organization settings |
+| `OPENAI_DIRECT_API_KEY` | Optional — a real OpenAI key used for poster image edits, which upload files and must skip Netlify's AI Gateway (JSON only). Set it if `OPENAI_API_KEY` is a gateway-issued token | OpenAI Platform → API keys |
 | `RUNWAY_API_KEY` | Video Studio module (AI video generation, `gen4.5`) and Church Admin event flyer images (`gen4_image`) | [dev.runwayml.com](https://dev.runwayml.com) → API Keys |
 | `RESEND_API_KEY` | Sends Church Admin communications, event reminders, and daily devotional reminder emails | [resend.com](https://resend.com) → API Keys |
 | `RESEND_FROM_EMAIL` | The verified "from" address used for all outgoing email | [resend.com](https://resend.com) → Domains (must be on a verified domain) |
