@@ -56,6 +56,14 @@ export function buildPosterPrompt(template: PosterTemplate, input: PosterEditInp
       lines.push(`- ${FIELD_LABEL[field]}: "${input.fields[field]!.trim()}"`);
     }
   }
+  // Left to itself the model keeps "ADD ... HERE" wording or invents details, so name
+  // exactly what was not provided and say what to do about it.
+  const missing = template.fields.filter((f) => !input.fields[f]?.trim());
+  if (missing.length > 0) {
+    lines.push(
+      `No value was given for: ${missing.map((f) => FIELD_LABEL[f]).join(", ")}. Remove those elements completely (the placeholder text together with its icon, label or box) and rebalance the layout. Never keep placeholder wording such as "ADD ... HERE" or "YOUR CHURCH NAME", and never invent names, dates, times, addresses or links.`,
+    );
+  }
   lines.push(
     "Any placeholder text that has no detail listed here must be removed cleanly, together with its icon or box, so the layout stays balanced and no 'ADD ... HERE' wording remains.",
     "Keep the main headline and its main subtitle unless the client's instructions say otherwise. Any other tiny decorative text, taglines or handwritten words that are not listed here must be removed cleanly, leaving plain background.",
