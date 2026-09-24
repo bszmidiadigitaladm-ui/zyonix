@@ -23,8 +23,7 @@ export default async function PostsPage({
     .order("created_at", { ascending: false })
     .limit(24);
 
-  const [{ data: templates }, { data: limits }, { data: arts }] = await Promise.all([
-    supabase.from("seasonal_templates").select("*").order("created_at"),
+  const [{ data: limits }, { data: arts }] = await Promise.all([
     supabase.from("plan_limits").select("*").eq("plan_code", subscription!.plan_code).single(),
     profile.team_id
       ? artQuery.or(`user_id.eq.${profile.id},team_id.eq.${profile.team_id}`)
@@ -35,10 +34,8 @@ export default async function PostsPage({
     <div className="mx-auto max-w-4xl">
       <PageHeader icon={Layers} title={t("title")} />
       <PostComposer
-        templates={templates ?? []}
         arts={(arts ?? []) as ComposerArt[]}
         initialArtId={initialArtId}
-        allowSeasonalTemplates={limits?.allow_seasonal_templates ?? false}
         allowCarouselExport={limits?.allow_carousel_export ?? false}
       />
     </div>

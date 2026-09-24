@@ -274,7 +274,7 @@ export interface Database {
           user_id: string;
           team_id: string | null;
           plan_code: PlanCode;
-          feature: "bible_art" | "post_caption" | "devotional" | "spiritual_chat" | "message_outline" | "video" | "event_flyer";
+          feature: "bible_art" | "post_caption" | "devotional" | "spiritual_chat" | "message_outline" | "video" | "event_flyer" | "poster";
           provider: string;
           model: string;
           input_tokens: number | null;
@@ -289,7 +289,7 @@ export interface Database {
           user_id: string;
           team_id?: string | null;
           plan_code: PlanCode;
-          feature: "bible_art" | "post_caption" | "devotional" | "spiritual_chat" | "message_outline" | "video" | "event_flyer";
+          feature: "bible_art" | "post_caption" | "devotional" | "spiritual_chat" | "message_outline" | "video" | "event_flyer" | "poster";
           provider?: string;
           model: string;
           input_tokens?: number | null;
@@ -304,7 +304,7 @@ export interface Database {
           user_id?: string;
           team_id?: string | null;
           plan_code?: PlanCode;
-          feature?: "bible_art" | "post_caption" | "devotional" | "spiritual_chat" | "message_outline" | "video" | "event_flyer";
+          feature?: "bible_art" | "post_caption" | "devotional" | "spiritual_chat" | "message_outline" | "video" | "event_flyer" | "poster";
           provider?: string;
           model?: string;
           input_tokens?: number | null;
@@ -369,6 +369,51 @@ export interface Database {
           status?: "pending" | "completed" | "failed";
           quality?: "low" | "medium" | "high" | null;
           source_generation_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      poster_generations: {
+        Row: {
+          id: string;
+          user_id: string;
+          team_id: string | null;
+          template_slug: string;
+          fields: Record<string, string>;
+          options: Record<string, string>;
+          instructions: string;
+          prompt_used: string;
+          used_photo: boolean;
+          image_url: string | null;
+          status: "pending" | "completed" | "failed";
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          team_id?: string | null;
+          template_slug: string;
+          fields?: Record<string, string>;
+          options?: Record<string, string>;
+          instructions: string;
+          prompt_used: string;
+          used_photo?: boolean;
+          image_url?: string | null;
+          status?: "pending" | "completed" | "failed";
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          team_id?: string | null;
+          template_slug?: string;
+          fields?: Record<string, string>;
+          options?: Record<string, string>;
+          instructions?: string;
+          prompt_used?: string;
+          used_photo?: boolean;
+          image_url?: string | null;
+          status?: "pending" | "completed" | "failed";
           created_at?: string;
         };
         Relationships: [];
@@ -1238,6 +1283,7 @@ export type PlanLimits = Database["public"]["Tables"]["plan_limits"]["Row"];
 export type Subscription = Database["public"]["Tables"]["subscriptions"]["Row"];
 export type CreditsBalance = Database["public"]["Tables"]["credits_balance"]["Row"];
 export type AiUsageLog = Database["public"]["Tables"]["ai_usage_log"]["Row"];
+export type PosterGeneration = Database["public"]["Tables"]["poster_generations"]["Row"];
 export type BibleArtGeneration = Database["public"]["Tables"]["bible_art_generations"]["Row"];
 export type SocialPostGeneration = Database["public"]["Tables"]["social_post_generations"]["Row"];
 export type SeasonalTemplate = Database["public"]["Tables"]["seasonal_templates"]["Row"];

@@ -242,6 +242,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
         bullets: [
           "Account data: your name, email address and password (stored only as a secure hash), or your Google profile basics if you sign in with Google.",
           "Content you create and store: generated images, posts, devotional notes, message outlines, videos, prayer requests, Bible favorites and reading progress, quiz results, and badges.",
+          "Photos you upload for poster templates (for example a speaker photo): the photo is sent to OpenAI to create your poster and is not kept by us. The finished poster, which may show the likeness of the person in the photo, is stored in your account. Only upload photos of people who have agreed to it.",
           "Spiritual chat: your conversations, and — when crisis-related language is detected — a safety flag linked to your account for human review. It is never used to penalize you.",
           "Subscription data: your plan, billing cycle, status and credit balance, and the identifiers Hotmart sends us for your purchase (transaction and subscriber codes, buyer name and email). We do not receive or store your card number.",
           "Church workspace data (if you use it): team members, contact names and emails, events, sent-message history and finance entries.",
@@ -348,6 +349,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
         bullets: [
           "Datos de cuenta: tu nombre, correo y contraseña (almacenada solo como un hash seguro), o los datos básicos de tu perfil de Google si inicias sesión con Google.",
           "Contenido que creas y guardas: imágenes generadas, publicaciones, notas devocionales, bosquejos de mensajes, videos, peticiones de oración, favoritos bíblicos y progreso de lectura, resultados de cuestionarios e insignias.",
+          "Fotos que subes para las plantillas de carteles (por ejemplo, la foto de un orador): la foto se envía a OpenAI para crear tu cartel y no la conservamos. El cartel terminado, que puede mostrar el rostro de la persona de la foto, se guarda en tu cuenta. Sube solo fotos de personas que estén de acuerdo.",
           "Chat espiritual: tus conversaciones y, cuando se detecta lenguaje relacionado con una crisis, una alerta de seguridad vinculada a tu cuenta para revisión humana. Nunca se usa para penalizarte.",
           "Datos de suscripción: tu plan, ciclo de facturación, estado y saldo de créditos, y los identificadores que Hotmart nos envía sobre tu compra (códigos de transacción y suscriptor, nombre y correo del comprador). No recibimos ni almacenamos el número de tu tarjeta.",
           "Datos del espacio de iglesia (si lo usas): miembros del equipo, nombres y correos de contactos, eventos, historial de mensajes enviados y movimientos financieros.",

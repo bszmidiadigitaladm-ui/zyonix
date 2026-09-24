@@ -4,13 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { TemplatePicker } from "@/components/posts/TemplatePicker";
 import { PostCanvas } from "@/components/posts/PostCanvas";
 import { CopyCaptionButton } from "@/components/posts/CopyCaptionButton";
 import { Input, Select, Textarea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import type { SeasonalTemplate } from "@/lib/types/database.types";
 
 type Format = "feed" | "story" | "carousel";
 
@@ -22,19 +20,13 @@ export interface ComposerArt {
   output_format: "square" | "story";
 }
 
-type Background = { kind: "art"; art: ComposerArt } | { kind: "template"; template: SeasonalTemplate } | null;
-
 export function PostComposer({
-  templates,
   arts,
   initialArtId,
-  allowSeasonalTemplates,
   allowCarouselExport,
 }: {
-  templates: SeasonalTemplate[];
   arts: ComposerArt[];
   initialArtId?: string;
-  allowSeasonalTemplates: boolean;
   allowCarouselExport: boolean;
 }) {
   const t = useTranslations("posts");
@@ -43,14 +35,7 @@ export function PostComposer({
   const router = useRouter();
 
   const startingArt = arts.find((a) => a.id === initialArtId) ?? arts[0] ?? null;
-  const [background, setBackground] = useState<Background>(
-    startingArt
-      ? { kind: "art", art: startingArt }
-      : templates[0]
-        ? { kind: "template", template: templates[0] }
-        : null,
-  );
-  const [tab, setTab] = useState<"art" | "templates">(startingArt || !templates[0] ? "art" : "templates");
+  const [background, setBackground] = useState<ComposerArt | null>(startingArt);
   const [overlayText, setOverlayText] = useState("");
   const [occasion, setOccasion] = useState("");
   const [verseReference, setVerseReference] = useState(startingArt?.verse_reference ?? "");
@@ -60,7 +45,7 @@ export function PostComposer({
   const [error, setError] = useState<string | null>(null);
 
   function pickArt(art: ComposerArt) {
-    setBackground({ kind: "art", art });
+    setBackground(art);
     setFormat(art.output_format === "story" ? "story" : "feed");
     if (!verseReference.trim() && art.verse_reference) setVerseReference(art.verse_reference);
   }
@@ -78,8 +63,7 @@ export function PostComposer({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          template_id: background?.kind === "template" ? background.template.id : undefined,
-          art_generation_id: background?.kind === "art" ? background.art.id : undefined,
+          art_generation_id: background?.id,
           overlay_text: overlayText.trim() || undefined,
           occasion: occasion.trim(),
           verse_reference: verseReference.trim() || undefined,
@@ -106,67 +90,45 @@ export function PostComposer({
     }
   }
 
-  const backgroundUrl =
-    background?.kind === "art" ? background.art.image_url : (background?.template.asset_url ?? null);
+  const backgroundUrl = background?.image_url ?? null;
 
   return (
     <div className="grid gap-8 md:grid-cols-2">
       <div className="flex flex-col gap-4">
         <div>
           <label className="mb-1 block text-sm font-medium">{t("background")}</label>
-          <div className="mb-2 flex gap-2">
-            {(["art", "templates"] as const).map((key) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setTab(key)}
-                className={cn(
-                  "rounded-full border px-3 py-1 text-xs font-medium transition",
-                  tab === key ? "border-accent text-accent" : "border-border text-muted hover:text-foreground",
-                )}
-              >
-                {key === "art" ? t("myArt") : t("templatesTab")}
-              </button>
-            ))}
-          </div>
-
-          {tab === "art" ? (
-            arts.length === 0 ? (
-              <p className="text-sm text-muted">
-                {t("noArtYet")}{" "}
-                <Link href="/art" className="font-medium text-accent hover:underline">
-                  {t("createArtLink")}
-                </Link>
-              </p>
-            ) : (
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                {arts.map((art) => (
-                  <button
-                    key={art.id}
-                    type="button"
-                    onClick={() => pickArt(art)}
-                    aria-label={art.verse_reference ?? art.theme ?? tArt("fallbackLabel")}
-                    className={cn(
-                      "overflow-hidden rounded-lg border",
-                      background?.kind === "art" && background.art.id === art.id
-                        ? "border-accent"
-                        : "border-border",
-                    )}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={art.image_url} alt="" className="aspect-square w-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            )
+          {arts.length === 0 ? (
+            <p className="text-sm text-muted">
+              {t("noArtYet")}{" "}
+              <Link href="/art" className="font-medium text-accent hover:underline">
+                {t("createArtLink")}
+              </Link>
+            </p>
           ) : (
-            <TemplatePicker
-              templates={templates}
-              allowExclusive={allowSeasonalTemplates}
-              selectedId={background?.kind === "template" ? background.template.id : null}
-              onSelect={(template) => setBackground({ kind: "template", template })}
-            />
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+              {arts.map((art) => (
+                <button
+                  key={art.id}
+                  type="button"
+                  onClick={() => pickArt(art)}
+                  aria-label={art.verse_reference ?? art.theme ?? tArt("fallbackLabel")}
+                  className={cn(
+                    "overflow-hidden rounded-lg border",
+                    background?.id === art.id ? "border-accent" : "border-border",
+                  )}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={art.image_url} alt="" className="aspect-square w-full object-cover" />
+                </button>
+              ))}
+            </div>
           )}
+          <p className="mt-2 text-xs text-muted">
+            {t("posterTemplatesHint")}{" "}
+            <Link href="/templates" className="font-medium text-accent hover:underline">
+              {t("posterTemplatesLink")}
+            </Link>
+          </p>
         </div>
 
         <div>
