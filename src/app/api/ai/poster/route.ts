@@ -7,7 +7,7 @@ import { consumeCredit, refundCredit } from "@/lib/credits/consume";
 import { generatePoster } from "@/lib/openai/poster";
 import { uploadGeneratedImage } from "@/lib/supabase/storage";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { MAX_PENDING_POSTERS, failPosterJob, failStalePosterJobs } from "@/lib/posters/jobs";
+import { MAX_PENDING_POSTERS, describeError, failPosterJob, failStalePosterJobs } from "@/lib/posters/jobs";
 import { FONT_STYLES, TEMPLATE_FIELDS, getTemplate, templateInputPath } from "@/lib/templates/catalog";
 import { HEX_COLOR, buildPosterPrompt } from "@/lib/templates/prompt";
 
@@ -195,7 +195,7 @@ export async function POST(request: Request) {
       });
     } catch (err) {
       console.error("Poster generation failed", err);
-      await failPosterJob(job.id, ownerId).catch((refundErr) =>
+      await failPosterJob(job.id, ownerId, { message: describeError(err), options }).catch((refundErr) =>
         console.error("Poster refund failed", refundErr),
       );
     }
