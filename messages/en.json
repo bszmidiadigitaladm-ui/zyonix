@@ -800,7 +800,8 @@
     "notifyDismiss": "Dismiss",
     "galleryPending": "Generating…",
     "createVariation": "Create variation",
-    "variationNotice": "Creating a variation of your art. Adjust anything you like, then generate."
+    "variationNotice": "Creating a variation of your art. Adjust anything you like, then generate.",
+    "makePost": "Make a post"
   },
   "posts": {
     "title": "Social Post Generator",
@@ -816,14 +817,27 @@
     "formatStory": "Story",
     "formatCarousel": "Carousel",
     "carouselLocked": "(upgrade to unlock)",
-    "suggestCaption": "Suggest caption",
+    "suggestCaption": "Suggest caption with AI",
     "writingCaption": "Writing caption…",
     "enterOccasion": "Enter a theme or occasion for the caption.",
     "outOfCredits": "You're out of text credits for this cycle.",
     "captionPlaceholder": "Your caption will appear here",
     "downloadPng": "Download PNG",
     "downloadImageError": "Couldn't load the template image for export — downloading text only.",
-    "downloadCorsError": "This image can't be exported due to cross-origin restrictions."
+    "downloadCorsError": "This image can't be exported due to cross-origin restrictions.",
+    "background": "Background",
+    "myArt": "My art",
+    "templatesTab": "Templates",
+    "noArtYet": "You haven't created any art yet.",
+    "createArtLink": "Create Bible art",
+    "textOnImage": "Text on the image (optional)",
+    "textOnImagePlaceholder": "e.g. The Lord is close to the brokenhearted",
+    "overlayPlaceholder": "Your text will appear on the image",
+    "captionLabel": "Caption",
+    "captionWritePlaceholder": "Write your caption here, or let AI suggest one below.",
+    "occasionForAi": "Theme / occasion (used to suggest a caption)",
+    "copyCaption": "Copy caption",
+    "copied": "Copied"
   },
   "devotionals": {
     "today": "Today's Devotional",

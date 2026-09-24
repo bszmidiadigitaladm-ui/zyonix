@@ -3,16 +3,32 @@ import { Layers } from "lucide-react";
 import { requireOnboardedUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { PostComposer } from "@/components/posts/PostComposer";
+import { PostComposer, type ComposerArt } from "@/components/posts/PostComposer";
 
-export default async function PostsPage() {
-  const { subscription } = await requireOnboardedUser();
+export default async function PostsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ art?: string }>;
+}) {
+  const { profile, subscription } = await requireOnboardedUser();
+  const { art: initialArtId } = await searchParams;
   const t = await getTranslations("posts");
   const supabase = await createClient();
 
-  const [{ data: templates }, { data: limits }] = await Promise.all([
+  const artQuery = supabase
+    .from("bible_art_generations")
+    .select("id, image_url, verse_reference, theme, output_format")
+    .eq("status", "completed")
+    .not("image_url", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(24);
+
+  const [{ data: templates }, { data: limits }, { data: arts }] = await Promise.all([
     supabase.from("seasonal_templates").select("*").order("created_at"),
     supabase.from("plan_limits").select("*").eq("plan_code", subscription!.plan_code).single(),
+    profile.team_id
+      ? artQuery.or(`user_id.eq.${profile.id},team_id.eq.${profile.team_id}`)
+      : artQuery.eq("user_id", profile.id),
   ]);
 
   return (
@@ -20,6 +36,8 @@ export default async function PostsPage() {
       <PageHeader icon={Layers} title={t("title")} />
       <PostComposer
         templates={templates ?? []}
+        arts={(arts ?? []) as ComposerArt[]}
+        initialArtId={initialArtId}
         allowSeasonalTemplates={limits?.allow_seasonal_templates ?? false}
         allowCarouselExport={limits?.allow_carousel_export ?? false}
       />

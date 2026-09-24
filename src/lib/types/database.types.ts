@@ -383,6 +383,8 @@ export interface Database {
           caption_text: string | null;
           verse_reference: string | null;
           export_url: string | null;
+          art_generation_id: string | null;
+          overlay_text: string | null;
           created_at: string;
         };
         Insert: {
@@ -394,6 +396,8 @@ export interface Database {
           caption_text?: string | null;
           verse_reference?: string | null;
           export_url?: string | null;
+          art_generation_id?: string | null;
+          overlay_text?: string | null;
           created_at?: string;
         };
         Update: {
@@ -405,6 +409,8 @@ export interface Database {
           caption_text?: string | null;
           verse_reference?: string | null;
           export_url?: string | null;
+          art_generation_id?: string | null;
+          overlay_text?: string | null;
           created_at?: string;
         };
         Relationships: [];

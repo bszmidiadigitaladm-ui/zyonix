@@ -11,6 +11,8 @@ import { checkRateLimit } from "@/lib/rate-limit";
 
 const bodySchema = z.object({
   template_id: z.string().uuid().optional(),
+  art_generation_id: z.string().uuid().optional(),
+  overlay_text: z.string().trim().max(400).optional(),
   occasion: z.string().trim().min(1).max(200),
   verse_reference: z.string().trim().max(200).optional(),
   format: z.enum(["feed", "story", "carousel"]),
@@ -38,7 +40,7 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  const { template_id, occasion, verse_reference, format } = parsed.data;
+  const { template_id, art_generation_id, overlay_text, occasion, verse_reference, format } = parsed.data;
 
   const profile = await getProfile(user.id);
   if (!profile) {
@@ -68,6 +70,19 @@ export async function POST(request: Request) {
     }
   }
 
+  // The user-scoped client only returns art this person may see (own or team), so
+  // a made-up or foreign id simply resolves to no background.
+  let artId: string | null = null;
+  if (art_generation_id) {
+    const { data: art } = await supabase
+      .from("bible_art_generations")
+      .select("id")
+      .eq("id", art_generation_id)
+      .eq("status", "completed")
+      .maybeSingle();
+    artId = art?.id ?? null;
+  }
+
   const ownerId = resolveCreditOwnerId(profile);
   const { success, remaining } = await consumeCredit(ownerId, "text", 1);
   if (!success) {
@@ -85,6 +100,8 @@ export async function POST(request: Request) {
         user_id: user.id,
         team_id: profile.team_id,
         template_id: template_id ?? null,
+        art_generation_id: artId,
+        overlay_text: overlay_text ?? null,
         format,
         caption_text: captionText,
         verse_reference: verse_reference ?? null,

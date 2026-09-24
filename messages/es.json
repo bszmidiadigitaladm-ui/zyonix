@@ -800,7 +800,8 @@
     "notifyDismiss": "Cerrar",
     "galleryPending": "Generando…",
     "createVariation": "Crear variación",
-    "variationNotice": "Creando una variación de tu arte. Ajusta lo que quieras y genera."
+    "variationNotice": "Creando una variación de tu arte. Ajusta lo que quieras y genera.",
+    "makePost": "Crear publicación"
   },
   "posts": {
     "title": "Generador de Publicaciones",
@@ -816,14 +817,27 @@
     "formatStory": "Historia",
     "formatCarousel": "Carrusel",
     "carouselLocked": "(mejora tu plan para desbloquear)",
-    "suggestCaption": "Sugerir descripción",
+    "suggestCaption": "Sugerir descripción con IA",
     "writingCaption": "Escribiendo descripción…",
     "enterOccasion": "Ingresa un tema u ocasión para la descripción.",
     "outOfCredits": "Te quedaste sin créditos de texto este ciclo.",
     "captionPlaceholder": "Tu descripción aparecerá aquí",
     "downloadPng": "Descargar PNG",
     "downloadImageError": "No se pudo cargar la imagen de la plantilla — descargando solo el texto.",
-    "downloadCorsError": "Esta imagen no se puede exportar debido a restricciones de origen cruzado."
+    "downloadCorsError": "Esta imagen no se puede exportar debido a restricciones de origen cruzado.",
+    "background": "Fondo",
+    "myArt": "Mi arte",
+    "templatesTab": "Plantillas",
+    "noArtYet": "Aún no has creado ningún arte.",
+    "createArtLink": "Crear arte bíblico",
+    "textOnImage": "Texto en la imagen (opcional)",
+    "textOnImagePlaceholder": "ej. El Señor está cerca de los quebrantados de corazón",
+    "overlayPlaceholder": "Tu texto aparecerá en la imagen",
+    "captionLabel": "Descripción",
+    "captionWritePlaceholder": "Escribe aquí tu descripción, o deja que la IA sugiera una abajo.",
+    "occasionForAi": "Tema / ocasión (para sugerir una descripción)",
+    "copyCaption": "Copiar descripción",
+    "copied": "Copiado"
   },
   "devotionals": {
     "today": "Devocional de Hoy",

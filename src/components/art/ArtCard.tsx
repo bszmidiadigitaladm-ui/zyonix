@@ -19,10 +19,13 @@ export function ArtCard({ generation }: { generation: BibleArtGeneration }) {
         // eslint-disable-next-line @next/next/no-img-element
         <img src={imageUrl} alt="" className="aspect-square w-full object-cover" />
       )}
-      <div className="flex items-center justify-between gap-2 p-2 text-xs text-muted">
+      <div className="flex flex-col gap-1 p-2 text-xs text-muted">
         <span className="truncate">{label}</span>
         {generation.status === "completed" && generation.image_url && (
-          <span className="flex shrink-0 items-center gap-3">
+          <span className="flex flex-wrap gap-x-3 gap-y-1">
+            <Link href={`/posts?art=${generation.id}`} className="font-medium text-accent hover:underline">
+              {t("makePost")}
+            </Link>
             <Link href={`/art?variation=${generation.id}`} className="font-medium text-accent hover:underline">
               {t("createVariation")}
             </Link>

@@ -4,27 +4,44 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 
-const CANVAS_SIZE: Record<"feed" | "story" | "carousel", { w: number; h: number }> = {
+type PostFormat = "feed" | "story" | "carousel";
+
+const CANVAS_SIZE: Record<PostFormat, { w: number; h: number }> = {
   feed: { w: 1080, h: 1080 },
   story: { w: 1080, h: 1920 },
   carousel: { w: 1080, h: 1080 },
 };
 
+const REFERENCE_SIZE = 34;
+
+// Text size in canvas pixels, so a short verse is large and a paragraph still fits.
+function overlayFontSize(text: string): number {
+  if (text.length <= 60) return 72;
+  if (text.length <= 140) return 58;
+  return 46;
+}
+
+/**
+ * The image people post: background art (or template) with an optional short text
+ * on top. The caption is written separately and is not part of the image.
+ */
 export function PostCanvas({
   imageUrl,
-  captionText,
+  overlayText,
   verseReference,
   format,
 }: {
   imageUrl: string | null;
-  captionText: string;
+  overlayText?: string;
   verseReference?: string;
-  format: "feed" | "story" | "carousel";
+  format: PostFormat;
 }) {
   const t = useTranslations("posts");
   const [downloadError, setDownloadError] = useState<string | null>(null);
-  const dims = CANVAS_SIZE[format as keyof typeof CANVAS_SIZE] ?? CANVAS_SIZE.feed;
-  const aspect = dims.w / dims.h;
+  const dims = CANVAS_SIZE[format] ?? CANVAS_SIZE.feed;
+  const text = overlayText?.trim() ?? "";
+  const fontSize = overlayFontSize(text);
+  const hasContent = Boolean(imageUrl || text || verseReference);
 
   async function handleDownload() {
     setDownloadError(null);
@@ -35,27 +52,40 @@ export function PostCanvas({
     if (!ctx) return;
 
     ctx.fillStyle = "#171717";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, dims.w, dims.h);
 
     if (imageUrl) {
       try {
         const img = await loadImage(imageUrl);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "rgba(0,0,0,0.35)";
-        ctx.fillRect(0, canvas.height * 0.6, canvas.width, canvas.height * 0.4);
+        drawCover(ctx, img, dims.w, dims.h);
       } catch {
         setDownloadError(t("downloadImageError"));
       }
     }
 
+    if (text || verseReference) {
+      ctx.fillStyle = "rgba(0,0,0,0.35)";
+      ctx.fillRect(0, 0, dims.w, dims.h);
+    }
+
     ctx.fillStyle = "#ffffff";
     ctx.textAlign = "center";
-    ctx.font = "600 44px sans-serif";
-    wrapText(ctx, captionText, canvas.width / 2, canvas.height * 0.72, canvas.width * 0.85, 54);
+    ctx.textBaseline = "middle";
+    ctx.shadowColor = "rgba(0,0,0,0.6)";
+    ctx.shadowBlur = 14;
+
+    if (text) {
+      ctx.font = `700 ${fontSize}px sans-serif`;
+      const lines = wrapLines(ctx, text, dims.w * 0.8);
+      const lineHeight = fontSize * 1.25;
+      lines.forEach((line, i) => {
+        ctx.fillText(line, dims.w / 2, dims.h / 2 + (i - (lines.length - 1) / 2) * lineHeight);
+      });
+    }
 
     if (verseReference) {
-      ctx.font = "italic 32px sans-serif";
-      ctx.fillText(verseReference, canvas.width / 2, canvas.height * 0.93);
+      ctx.font = `italic ${REFERENCE_SIZE}px sans-serif`;
+      ctx.fillText(verseReference, dims.w / 2, dims.h * 0.9);
     }
 
     let dataUrl: string;
@@ -76,21 +106,48 @@ export function PostCanvas({
     <div className="flex flex-col items-center gap-3">
       <div
         className="relative w-full max-w-xs overflow-hidden rounded-lg bg-surface-raised"
-        style={{ aspectRatio: aspect }}
+        style={{ aspectRatio: dims.w / dims.h, containerType: "inline-size" }}
       >
         {imageUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
         )}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 pt-10 text-center text-white">
-          <p className="text-sm font-semibold">{captionText || t("captionPlaceholder")}</p>
-          {verseReference && <p className="mt-1 text-xs italic text-neutral-300">{verseReference}</p>}
-        </div>
+        {(text || verseReference) && <div className="absolute inset-0 bg-black/35" />}
+        {text ? (
+          <p
+            className="absolute inset-0 flex items-center justify-center px-[10%] text-center font-bold text-white"
+            style={{
+              fontSize: `calc(${fontSize / dims.w} * 100cqw)`,
+              lineHeight: 1.25,
+              textShadow: "0 1px 12px rgba(0,0,0,0.6)",
+            }}
+          >
+            <span>{text}</span>
+          </p>
+        ) : (
+          !imageUrl && (
+            <p className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-muted">
+              {t("overlayPlaceholder")}
+            </p>
+          )
+        )}
+        {verseReference && (
+          <p
+            className="absolute inset-x-0 text-center italic text-white"
+            style={{
+              bottom: "6%",
+              fontSize: `calc(${REFERENCE_SIZE / dims.w} * 100cqw)`,
+              textShadow: "0 1px 8px rgba(0,0,0,0.6)",
+            }}
+          >
+            {verseReference}
+          </p>
+        )}
       </div>
 
       {downloadError && <p className="text-xs text-danger">{downloadError}</p>}
 
-      <Button onClick={handleDownload} disabled={!captionText}>
+      <Button onClick={handleDownload} disabled={!hasContent}>
         {t("downloadPng")}
       </Button>
     </div>
@@ -107,27 +164,28 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-function wrapText(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  x: number,
-  y: number,
-  maxWidth: number,
-  lineHeight: number,
-) {
-  const words = text.split(" ");
-  let line = "";
-  let cursorY = y;
+// Fills the canvas with the image, cropping the overflow instead of stretching it.
+function drawCover(ctx: CanvasRenderingContext2D, img: HTMLImageElement, w: number, h: number) {
+  const scale = Math.max(w / img.width, h / img.height);
+  const drawW = img.width * scale;
+  const drawH = img.height * scale;
+  ctx.drawImage(img, (w - drawW) / 2, (h - drawH) / 2, drawW, drawH);
+}
 
-  for (const word of words) {
-    const testLine = line ? `${line} ${word}` : word;
-    if (ctx.measureText(testLine).width > maxWidth && line) {
-      ctx.fillText(line, x, cursorY);
-      line = word;
-      cursorY += lineHeight;
-    } else {
-      line = testLine;
+function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+  const lines: string[] = [];
+  for (const paragraph of text.split("\n")) {
+    let line = "";
+    for (const word of paragraph.split(" ")) {
+      const candidate = line ? `${line} ${word}` : word;
+      if (ctx.measureText(candidate).width > maxWidth && line) {
+        lines.push(line);
+        line = word;
+      } else {
+        line = candidate;
+      }
     }
+    lines.push(line);
   }
-  if (line) ctx.fillText(line, x, cursorY);
+  return lines;
 }
