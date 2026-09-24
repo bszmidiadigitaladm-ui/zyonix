@@ -22,8 +22,12 @@ export async function sendEmail(params: {
   to: string | string[];
   subject: string;
   html: string;
+  /** Plain-text alternative; mail with both parts is filtered as spam less often. */
+  text?: string;
   bcc?: string | string[];
   replyTo?: string;
+  /** Extra headers, e.g. List-Unsubscribe for marketing mail. */
+  headers?: Record<string, string>;
 }): Promise<boolean> {
   try {
     const { error } = await getResend().emails.send({
@@ -31,8 +35,10 @@ export async function sendEmail(params: {
       to: params.to,
       subject: params.subject,
       html: params.html,
+      text: params.text,
       bcc: params.bcc,
       replyTo: params.replyTo,
+      headers: params.headers,
     });
     if (error) {
       console.error("Resend send failed", error);

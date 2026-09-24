@@ -13,7 +13,7 @@ export interface LegalDocument {
   sections: LegalSection[];
 }
 
-export const LEGAL_LAST_UPDATED = "2026-09-23";
+export const LEGAL_LAST_UPDATED = "2026-09-24";
 export const SUPPORT_EMAIL = "support@zyonix.pro";
 
 const TERMS: Record<Locale, LegalDocument> = {
@@ -258,6 +258,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
           "To keep the Service safe: fraud and abuse prevention, rate limiting, crisis-safety review (legitimate interest and, for safety flags, vital interests).",
           "For sensitive data such as religious beliefs, we process it only to provide the features you use, on the basis of your explicit consent when you choose to enter that content.",
           "To measure and improve our advertising through the Meta Pixel — only with your consent, which you can withdraw at any time from \"Cookie preferences\" in the site footer.",
+          "To send you at most one reminder email if you create an account but haven't chosen a plan within a few days. It carries an unsubscribe link, and we stop as soon as you use it (legitimate interest; you can object at any time).",
         ],
       },
       {
@@ -363,6 +364,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
           "Para mantener seguro el Servicio: prevención de fraude y abuso, límites de frecuencia y revisión de seguridad ante crisis (interés legítimo y, en las alertas de seguridad, intereses vitales).",
           "Los datos sensibles, como las creencias religiosas, los tratamos solo para ofrecer las funciones que usas, con base en tu consentimiento explícito cuando decides introducir ese contenido.",
           "Para medir y mejorar nuestra publicidad mediante el Píxel de Meta, solo con tu consentimiento, que puedes retirar en cualquier momento desde \"Preferencias de cookies\" en el pie del sitio.",
+          "Para enviarte como máximo un correo recordatorio si creas una cuenta pero no eliges un plan en unos días. Incluye un enlace para darte de baja y dejamos de enviarlo en cuanto lo usas (interés legítimo; puedes oponerte en cualquier momento).",
         ],
       },
       {

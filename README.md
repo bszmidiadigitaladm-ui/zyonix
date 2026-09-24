@@ -71,6 +71,13 @@ Both require `RESEND_API_KEY` and `RESEND_FROM_EMAIL` to actually send;
 without them the routes still run but every send fails (and is logged, not
 thrown — one bad address never aborts the whole batch).
 
+A fifth job, `POST /api/cron/signup-reminder`, sends ONE reminder email to people who
+created an account (email confirmed) 1-7 days ago and never picked a plan. Once a day,
+same `CRON_SECRET` header. It needs migration `0040_signup_reminder.sql`, and it sends
+nothing until `BUSINESS_POSTAL_ADDRESS` in `src/lib/config.ts` is filled in (the address
+goes in the email footer). `?dry=1` lists who would get it without sending anything.
+Recipients unsubscribe through `/api/email/unsubscribe`.
+
 A fourth job, `POST /api/cron/monthly-credit-refresh`, uses the same
 scheduler + `CRON_SECRET` pattern but runs once a day rather than on a fixed
 slot: it refreshes credits for any subscription whose `credits_cycle_end` has

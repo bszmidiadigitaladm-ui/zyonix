@@ -20,6 +20,12 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://zyonix.pro
 // see src/components/analytics/TrackingConsent.tsx.
 export const META_PIXEL_ID = "3309931505858975";
 
+// Postal address printed in the footer of marketing email (CAN-SPAM requires a valid
+// one). Marketing sends are switched off while this is empty — see
+// src/app/api/cron/signup-reminder/route.ts. Use an address you're happy to publish
+// (a PO box or virtual mailbox works).
+export const BUSINESS_POSTAL_ADDRESS = "";
+
 // Money-back window shown on pricing and in the FAQ. Hotmart enforces its own
 // guarantee period per product — keep this in sync with the product's setting.
 export const GUARANTEE_DAYS = 7;

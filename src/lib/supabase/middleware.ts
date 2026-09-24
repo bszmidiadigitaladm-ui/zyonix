@@ -19,6 +19,8 @@ function isPublicPath(pathname: string) {
     pathname === "/" ||
     pathname.startsWith("/api/hotmart/webhook") ||
     pathname.startsWith("/api/cron") ||
+    // Opt-out link from an email: no login, protected by the unguessable per-account token.
+    pathname.startsWith("/api/email/unsubscribe") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon")
   );

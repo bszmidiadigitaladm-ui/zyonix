@@ -39,6 +39,9 @@ export interface Database {
           team_role: TeamRole | null;
           daily_reminder_enabled: boolean;
           reminder_slot: ReminderSlot;
+          marketing_opt_out: boolean;
+          signup_reminder_sent_at: string | null;
+          unsubscribe_token: string;
           created_at: string;
           updated_at: string;
         };
@@ -52,6 +55,9 @@ export interface Database {
           team_role?: TeamRole | null;
           daily_reminder_enabled?: boolean;
           reminder_slot?: ReminderSlot;
+          marketing_opt_out?: boolean;
+          signup_reminder_sent_at?: string | null;
+          unsubscribe_token?: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -65,6 +71,9 @@ export interface Database {
           team_role?: TeamRole | null;
           daily_reminder_enabled?: boolean;
           reminder_slot?: ReminderSlot;
+          marketing_opt_out?: boolean;
+          signup_reminder_sent_at?: string | null;
+          unsubscribe_token?: string;
           created_at?: string;
           updated_at?: string;
         };
