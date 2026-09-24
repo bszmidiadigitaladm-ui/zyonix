@@ -20,6 +20,32 @@ a{color:#16d6c5}</style></head>
   });
 }
 
+// "reminders" = the one-time sign-up reminder (profiles.marketing_opt_out);
+// "devotional" = the daily devotional email (profiles.daily_reminder_enabled, the same
+// switch as in Settings).
+type List = "reminders" | "devotional";
+
+function listFrom(request: Request): List {
+  return new URL(request.url).searchParams.get("list") === "devotional" ? "devotional" : "reminders";
+}
+
+const COPY: Record<List, { ask: string; askBody: string; done: string; doneBody: string; button: string }> = {
+  reminders: {
+    ask: `Unsubscribe from ${APP_NAME} reminders?`,
+    askBody: "We'll stop sending you these reminder emails. You can still use your account as usual.",
+    done: "You're unsubscribed",
+    doneBody: `You won't get these reminder emails from ${APP_NAME} again.`,
+    button: "Unsubscribe",
+  },
+  devotional: {
+    ask: "Turn off the daily devotional email?",
+    askBody: "We'll stop sending the daily devotional email. You can turn it back on any time in Settings.",
+    done: "Daily devotional email turned off",
+    doneBody: "You won't get the daily devotional email anymore. You can turn it back on any time in Settings.",
+    button: "Turn it off",
+  },
+};
+
 function tokenFrom(request: Request): string | null {
   const token = new URL(request.url).searchParams.get("token");
   return token && UUID.test(token) ? token : null;
@@ -39,11 +65,13 @@ export async function GET(request: Request) {
   const token = tokenFrom(request);
   if (!token) return html("Link not valid", `<h1>This link isn't valid</h1><p>It may be incomplete. If you keep getting emails you don't want, write to us and we'll stop them.</p>`, 400);
 
+  const list = listFrom(request);
+  const copy = COPY[list];
   return html(
     "Unsubscribe",
-    `<h1>Unsubscribe from ${APP_NAME} reminders?</h1>
-     <p>We'll stop sending you these reminder emails. You can still use your account as usual.</p>
-     <form method="post" action="/api/email/unsubscribe?token=${token}"><button type="submit">Unsubscribe</button></form>`,
+    `<h1>${copy.ask}</h1>
+     <p>${copy.askBody}</p>
+     <form method="post" action="/api/email/unsubscribe?token=${token}&list=${list}"><button type="submit">${copy.button}</button></form>`,
   );
 }
 
@@ -56,10 +84,11 @@ export async function POST(request: Request) {
   const token = tokenFrom(request);
   if (!token) return html("Link not valid", `<h1>This link isn't valid</h1><p>It may be incomplete. If you keep getting emails you don't want, write to us and we'll stop them.</p>`, 400);
 
+  const list = listFrom(request);
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("profiles")
-    .update({ marketing_opt_out: true })
+    .update(list === "devotional" ? { daily_reminder_enabled: false } : { marketing_opt_out: true })
     .eq("unsubscribe_token", token)
     .select("id");
 
@@ -71,5 +100,5 @@ export async function POST(request: Request) {
     return html("Link not valid", `<h1>This link isn't valid</h1><p>We couldn't find that subscription.</p>`, 404);
   }
 
-  return html("Unsubscribed", `<h1>You're unsubscribed</h1><p>You won't get these reminder emails from ${APP_NAME} again.</p>`);
+  return html("Unsubscribed", `<h1>${COPY[list].done}</h1><p>${COPY[list].doneBody}</p>`);
 }

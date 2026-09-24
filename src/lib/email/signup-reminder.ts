@@ -54,7 +54,7 @@ export function buildSignupReminder({ fullName, siteUrl, unsubscribeUrl, postalA
           <tr><td style="border-top:1px solid #e3e8e6;padding-top:16px;font-size:12px;color:#5b6b68;">
             <p style="margin:0 0 6px;">You're getting this one-time reminder because you created a ${escapeHtml(APP_NAME)} account. We won't send it again.</p>
             <p style="margin:0 0 6px;"><a href="${escapeHtml(unsubscribeUrl)}" style="color:#5b6b68;">Unsubscribe</a> from these reminders.</p>
-            <p style="margin:0;">${escapeHtml(postalAddress)}</p>
+            ${postalAddress ? `<p style="margin:0;">${escapeHtml(postalAddress)}</p>` : ""}
           </td></tr>
         </table>
       </td></tr>
@@ -78,7 +78,7 @@ export function buildSignupReminder({ fullName, siteUrl, unsubscribeUrl, postalA
     "",
     `You're getting this one-time reminder because you created a ${APP_NAME} account. We won't send it again.`,
     `Unsubscribe: ${unsubscribeUrl}`,
-    postalAddress,
+    ...(postalAddress ? [postalAddress] : []),
   ].join("\n");
 
   return { subject, html, text };

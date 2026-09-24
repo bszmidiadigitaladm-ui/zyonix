@@ -3,8 +3,8 @@ import { isAuthorizedCron } from "@/lib/security";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ensureTodaysDevotional } from "@/lib/devotional/generate";
 import { sendEmail } from "@/lib/email/resend";
-import { APP_NAME } from "@/lib/config";
-import { escapeHtml } from "@/lib/utils";
+import { buildDevotionalReminder } from "@/lib/email/devotional-reminder";
+import { BUSINESS_POSTAL_ADDRESS, SITE_URL } from "@/lib/config";
 
 const VALID_SLOTS = ["morning", "afternoon", "evening"] as const;
 
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   const admin = createAdminClient();
   const { data: profiles } = await admin
     .from("profiles")
-    .select("email, full_name")
+    .select("email, full_name, unsubscribe_token")
     .eq("daily_reminder_enabled", true)
     .eq("reminder_slot", slot);
 
@@ -36,17 +36,24 @@ export async function POST(request: Request) {
   let failed = 0;
 
   for (const profile of profiles ?? []) {
+    const unsubscribeUrl = `${SITE_URL}/api/email/unsubscribe?token=${profile.unsubscribe_token}&list=devotional`;
+    const { subject, html, text } = buildDevotionalReminder({
+      fullName: profile.full_name,
+      devotional,
+      siteUrl: SITE_URL,
+      unsubscribeUrl,
+      postalAddress: BUSINESS_POSTAL_ADDRESS,
+    });
+
     const ok = await sendEmail({
       to: profile.email,
-      subject: `${APP_NAME}: ${devotional.title}`,
-      html: `
-        <p>Hi ${escapeHtml(profile.full_name ?? "there")},</p>
-        <p>Today's devotional is ready:</p>
-        <h2>${escapeHtml(devotional.title)}</h2>
-        ${devotional.scripture_reference ? `<p><em>${escapeHtml(devotional.scripture_reference)}</em></p>` : ""}
-        <p>${escapeHtml(devotional.body.slice(0, 280))}${devotional.body.length > 280 ? "…" : ""}</p>
-        <p><a href="${process.env.NEXT_PUBLIC_SITE_URL}/devotionals">Read the full devotional</a></p>
-      `,
+      subject,
+      html,
+      text,
+      headers: {
+        "List-Unsubscribe": `<${unsubscribeUrl}>`,
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      },
     });
     if (ok) sent++;
     else failed++;

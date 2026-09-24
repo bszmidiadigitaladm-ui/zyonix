@@ -3,7 +3,7 @@ import { isAuthorizedCron } from "@/lib/security";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email/resend";
 import { buildSignupReminder } from "@/lib/email/signup-reminder";
-import { BUSINESS_POSTAL_ADDRESS, SITE_URL } from "@/lib/config";
+import { BUSINESS_POSTAL_ADDRESS, SEND_MARKETING_WITHOUT_POSTAL_ADDRESS, SITE_URL } from "@/lib/config";
 import { SUPPORT_EMAIL } from "@/lib/legal/content";
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -11,7 +11,10 @@ const HOUR_MS = 60 * 60 * 1000;
 // timely nudge, not a way to reach back into old sign-ups.
 const MIN_AGE_MS = 24 * HOUR_MS;
 const MAX_AGE_MS = 7 * 24 * HOUR_MS;
-const MAX_PER_RUN = 50;
+// Sends run one after another inside a serverless function with a short time limit.
+// A run killed mid-way would leave claimed-but-unsent accounts, so keep batches small;
+// anyone left over is picked up by the next daily run.
+const MAX_PER_RUN = 20;
 
 const mask = (email: string) => {
   const [user, domain] = email.split("@");
@@ -29,11 +32,15 @@ export async function POST(request: Request) {
 
   const dry = new URL(request.url).searchParams.get("dry") === "1";
 
-  // Marketing email needs a postal address in the footer; until one is configured
-  // nothing is sent (a dry run still works, so the audience can be checked first).
+  // Marketing email should carry a postal address in the footer. Sending without one is
+  // allowed only while SEND_MARKETING_WITHOUT_POSTAL_ADDRESS is on (a deliberate, temporary
+  // choice); otherwise nothing is sent. A dry run always works.
   if (!dry && !BUSINESS_POSTAL_ADDRESS) {
-    console.warn("signup-reminder: BUSINESS_POSTAL_ADDRESS is empty, not sending");
-    return NextResponse.json({ sent: 0, skipped: "missing_postal_address" });
+    if (!SEND_MARKETING_WITHOUT_POSTAL_ADDRESS) {
+      console.warn("signup-reminder: BUSINESS_POSTAL_ADDRESS is empty, not sending");
+      return NextResponse.json({ sent: 0, skipped: "missing_postal_address" });
+    }
+    console.warn("signup-reminder: sending WITHOUT a postal address (SEND_MARKETING_WITHOUT_POSTAL_ADDRESS is on)");
   }
 
   const admin = createAdminClient();

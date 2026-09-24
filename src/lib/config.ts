@@ -21,10 +21,15 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://zyonix.pro
 export const META_PIXEL_ID = "3309931505858975";
 
 // Postal address printed in the footer of marketing email (CAN-SPAM requires a valid
-// one). Marketing sends are switched off while this is empty — see
-// src/app/api/cron/signup-reminder/route.ts. Use an address you're happy to publish
-// (a PO box or virtual mailbox works).
+// one). Use an address you're happy to publish (a PO box or virtual mailbox works).
 export const BUSINESS_POSTAL_ADDRESS = "";
+
+// TEMPORARY, founder's decision (2026-09-24): let the sign-up reminder go out even
+// though BUSINESS_POSTAL_ADDRESS is empty. That leaves the email without the postal
+// address CAN-SPAM requires on commercial email to US recipients — a known compliance
+// gap, accepted for now. Fill in the address and set this to false to switch the guard
+// back on (src/app/api/cron/signup-reminder/route.ts).
+export const SEND_MARKETING_WITHOUT_POSTAL_ADDRESS = true;
 
 // Money-back window shown on pricing and in the FAQ. Hotmart enforces its own
 // guarantee period per product — keep this in sync with the product's setting.
