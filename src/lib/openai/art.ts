@@ -6,6 +6,11 @@ export type ArtStyle = (typeof ART_STYLES)[number];
 export const OUTPUT_FORMATS = ["square", "story"] as const;
 export type OutputFormat = (typeof OUTPUT_FORMATS)[number];
 
+// What a person can pick when their plan allows it. "low" is the fixed quality of
+// plans that get reduced-quality art, so it is never offered as a choice.
+export const ART_QUALITY_CHOICES = ["medium", "high"] as const;
+export type ArtQualityChoice = (typeof ART_QUALITY_CHOICES)[number];
+
 const STYLE_PROMPT_HINTS: Record<ArtStyle, string> = {
   cinematic: "cinematic lighting, dramatic composition, film still",
   "3d_illustration": "3D rendered illustration, soft studio lighting, Pixar-like style",
@@ -22,6 +27,7 @@ export function buildArtPrompt(params: {
   verseReference?: string;
   theme?: string;
   style: ArtStyle;
+  variation?: boolean;
 }): string {
   const subject = params.verseReference
     ? `the Bible verse ${params.verseReference}`
@@ -35,6 +41,9 @@ export function buildArtPrompt(params: {
   return (
     `A beautiful, reverent piece of Christian devotional art inspired by ${subject}. ` +
     `${STYLE_PROMPT_HINTS[params.style]}. No text or lettering in the image. ` +
+    (params.variation
+      ? "Create a fresh variation with a different composition and framing, keeping the same subject and mood. "
+      : "") +
     `Wholesome, uplifting, suitable for sharing on social media.`
   );
 }

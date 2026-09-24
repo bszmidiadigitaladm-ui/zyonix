@@ -326,10 +326,13 @@ export interface Database {
           style: string;
           output_format: "square" | "story";
           prompt_used: string;
-          image_url: string;
+          image_url: string | null;
           thumbnail_url: string | null;
           resolution: string;
           watermarked: boolean;
+          status: "pending" | "completed" | "failed";
+          quality: "low" | "medium" | "high" | null;
+          source_generation_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -341,10 +344,13 @@ export interface Database {
           style: string;
           output_format: "square" | "story";
           prompt_used: string;
-          image_url: string;
+          image_url?: string | null;
           thumbnail_url?: string | null;
           resolution: string;
           watermarked?: boolean;
+          status?: "pending" | "completed" | "failed";
+          quality?: "low" | "medium" | "high" | null;
+          source_generation_id?: string | null;
           created_at?: string;
         };
         Update: {
@@ -356,10 +362,13 @@ export interface Database {
           style?: string;
           output_format?: "square" | "story";
           prompt_used?: string;
-          image_url?: string;
+          image_url?: string | null;
           thumbnail_url?: string | null;
           resolution?: string;
           watermarked?: boolean;
+          status?: "pending" | "completed" | "failed";
+          quality?: "low" | "medium" | "high" | null;
+          source_generation_id?: string | null;
           created_at?: string;
         };
         Relationships: [];

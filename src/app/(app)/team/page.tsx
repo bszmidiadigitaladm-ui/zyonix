@@ -30,6 +30,7 @@ export default async function TeamPage() {
       .from("bible_art_generations")
       .select("*")
       .eq("team_id", profile.team_id)
+      .eq("status", "completed")
       .order("created_at", { ascending: false })
       .limit(8),
   ]);

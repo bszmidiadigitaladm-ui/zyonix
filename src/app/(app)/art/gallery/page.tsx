@@ -14,6 +14,7 @@ export default async function ArtGalleryPage() {
   const query = supabase
     .from("bible_art_generations")
     .select("*")
+    .neq("status", "failed")
     .order("created_at", { ascending: false });
 
   const { data: generations } = profile.team_id

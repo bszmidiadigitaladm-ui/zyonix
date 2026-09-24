@@ -68,6 +68,7 @@ export default async function DashboardPage() {
       .from("bible_art_generations")
       .select("id, verse_reference, theme, created_at")
       .eq("user_id", profile.id)
+      .eq("status", "completed")
       .order("created_at", { ascending: false })
       .limit(5),
     supabase

@@ -1,19 +1,36 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type { BibleArtGeneration } from "@/lib/types/database.types";
 
 export function ArtCard({ generation }: { generation: BibleArtGeneration }) {
   const t = useTranslations("art");
+  const label = generation.verse_reference ?? generation.theme ?? t("fallbackLabel");
+  const imageUrl = generation.thumbnail_url ?? generation.image_url;
+
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-surface">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={generation.thumbnail_url ?? generation.image_url} alt="" className="aspect-square w-full object-cover" />
-      <div className="flex items-center justify-between p-2 text-xs text-muted">
-        <span className="truncate">{generation.verse_reference ?? generation.theme ?? t("fallbackLabel")}</span>
-        <a href={generation.image_url} download className="font-medium text-accent hover:underline">
-          {t("download")}
-        </a>
+      {generation.status === "pending" || !imageUrl ? (
+        <div className="flex aspect-square w-full animate-pulse items-center justify-center bg-surface-raised text-xs text-muted">
+          {t("galleryPending")}
+        </div>
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={imageUrl} alt="" className="aspect-square w-full object-cover" />
+      )}
+      <div className="flex items-center justify-between gap-2 p-2 text-xs text-muted">
+        <span className="truncate">{label}</span>
+        {generation.status === "completed" && generation.image_url && (
+          <span className="flex shrink-0 items-center gap-3">
+            <Link href={`/art?variation=${generation.id}`} className="font-medium text-accent hover:underline">
+              {t("createVariation")}
+            </Link>
+            <a href={generation.image_url} download className="font-medium text-accent hover:underline">
+              {t("download")}
+            </a>
+          </span>
+        )}
       </div>
     </div>
   );

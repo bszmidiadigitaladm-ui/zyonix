@@ -30,7 +30,11 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
     admin.from("pending_activations").select("*").eq("email", profile.email),
     admin.from("admin_audit_log").select("*").eq("target_user_id", id).order("created_at", { ascending: false }).limit(15),
     admin.from("ai_usage_log").select("estimated_cost_usd").eq("user_id", id).gte("created_at", since30).limit(20000),
-    admin.from("bible_art_generations").select("id", { count: "exact", head: true }).eq("user_id", id),
+    admin
+      .from("bible_art_generations")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", id)
+      .eq("status", "completed"),
     admin.from("message_outlines").select("id", { count: "exact", head: true }).eq("user_id", id),
     admin.from("spiritual_chat_conversations").select("id", { count: "exact", head: true }).eq("user_id", id),
   ]);
