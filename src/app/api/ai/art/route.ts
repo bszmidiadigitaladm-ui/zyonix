@@ -16,6 +16,7 @@ import { uploadGeneratedImage } from "@/lib/supabase/storage";
 import { awardBadge } from "@/lib/badges/award";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { MAX_PENDING_JOBS, failArtJob, failStaleArtJobs } from "@/lib/art/jobs";
+import { bibleArtCostUsd } from "@/lib/ai/cost";
 
 const bodySchema = z
   .object({
@@ -154,6 +155,7 @@ export async function POST(request: Request) {
         feature: "bible_art",
         model: "gpt-image-1",
         image_count: 1,
+        estimated_cost_usd: bibleArtCostUsd(quality, output_format),
       });
 
       await awardBadge(user.id, "first_art");

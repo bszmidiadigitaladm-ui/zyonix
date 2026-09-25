@@ -5,6 +5,7 @@ import { refundCredit } from "@/lib/credits/consume";
 import { getVideoGenerationStatus } from "@/lib/video/runway";
 import { uploadGeneratedFile } from "@/lib/supabase/storage";
 import { awardBadge } from "@/lib/badges/award";
+import { videoCostUsd } from "@/lib/ai/cost";
 
 export async function GET(_request: Request, { params }: RouteContext<"/api/ai/video/[id]/status">) {
   const { id } = await params;
@@ -88,6 +89,7 @@ export async function GET(_request: Request, { params }: RouteContext<"/api/ai/v
       plan_code: subscription?.plan_code ?? "starter",
       feature: "video",
       model: "runway-gen4.5",
+      estimated_cost_usd: videoCostUsd(row.duration_seconds),
     });
 
     await awardBadge(row.user_id, "first_video");

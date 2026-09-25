@@ -6,6 +6,7 @@ import { consumeCredit, refundCredit } from "@/lib/credits/consume";
 import { buildEventFlyerPrompt, createEventFlyerImage } from "@/lib/video/runway";
 import { uploadGeneratedImage } from "@/lib/supabase/storage";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { eventFlyerCostUsd } from "@/lib/ai/cost";
 
 export async function POST(_request: Request, { params }: RouteContext<"/api/church/events/[id]/flyer">) {
   const { id } = await params;
@@ -83,6 +84,7 @@ export async function POST(_request: Request, { params }: RouteContext<"/api/chu
       feature: "event_flyer",
       model: "runway-gen4_image",
       image_count: 1,
+      estimated_cost_usd: eventFlyerCostUsd(),
     });
 
     return NextResponse.json({ event: updated, credits_remaining: remaining });

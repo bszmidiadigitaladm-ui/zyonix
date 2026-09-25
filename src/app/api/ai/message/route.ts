@@ -7,6 +7,7 @@ import { consumeCredit, refundCredit } from "@/lib/credits/consume";
 import { generateMessageOutline } from "@/lib/openai/text";
 import { awardBadge } from "@/lib/badges/award";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { textCostUsd } from "@/lib/ai/cost";
 
 const bodySchema = z.object({
   topic: z.string().trim().min(1).max(300),
@@ -90,6 +91,7 @@ export async function POST(request: Request) {
       plan_code: subscription.plan_code,
       feature: "message_outline",
       model: "gpt-4.1-mini",
+      estimated_cost_usd: textCostUsd("message_outline"),
     });
 
     await awardBadge(user.id, "first_message_outline");

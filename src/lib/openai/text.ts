@@ -36,8 +36,22 @@ export async function generateCaption(params: {
 
 export async function generateDevotional(params: {
   date: string;
+  /** Today's theme, so consecutive days don't drift to the same idea. */
+  theme?: string;
+  /** Titles / scripture references published recently, which must not be reused. */
+  avoid?: string[];
 }): Promise<{ title: string; body: string; scriptureReference: string }> {
   const openai = getOpenAI();
+
+  const request = [`Write today's devotional (${params.date}).`];
+  if (params.theme) request.push(`Today's theme: ${params.theme}. Choose a Bible verse that fits this theme.`);
+  if (params.avoid && params.avoid.length > 0) {
+    request.push(
+      "These were published recently, so do NOT reuse their titles or scripture references " +
+        "(pick a different verse and a different title):\n" +
+        params.avoid.map((entry) => `- ${entry}`).join("\n"),
+    );
+  }
 
   const response = await openai.chat.completions.create({
     model: CAPTION_MODEL,
@@ -51,7 +65,7 @@ export async function generateDevotional(params: {
       },
       {
         role: "user",
-        content: `Write today's devotional (${params.date}).`,
+        content: request.join("\n\n"),
       },
     ],
     max_tokens: 700,

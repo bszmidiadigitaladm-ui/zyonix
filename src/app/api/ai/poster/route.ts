@@ -10,6 +10,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { MAX_PENDING_POSTERS, describeError, failPosterJob, failStalePosterJobs } from "@/lib/posters/jobs";
 import { FONT_STYLES, TEMPLATE_FIELDS, getTemplate, templateInputPath } from "@/lib/templates/catalog";
 import { HEX_COLOR, buildPosterPrompt } from "@/lib/templates/prompt";
+import { posterCostUsd } from "@/lib/ai/cost";
 
 const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -192,6 +193,7 @@ export async function POST(request: Request) {
         feature: "poster",
         model: "gpt-image-1",
         image_count: 1,
+        estimated_cost_usd: posterCostUsd(),
       });
     } catch (err) {
       console.error("Poster generation failed", err);

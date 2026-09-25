@@ -8,6 +8,7 @@ import { consumeCredit, refundCredit } from "@/lib/credits/consume";
 import { generateCaption } from "@/lib/openai/text";
 import { awardBadge } from "@/lib/badges/award";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { textCostUsd } from "@/lib/ai/cost";
 
 const bodySchema = z.object({
   template_id: z.string().uuid().optional(),
@@ -117,6 +118,7 @@ export async function POST(request: Request) {
       plan_code: subscription.plan_code,
       feature: "post_caption",
       model: "gpt-4.1-mini",
+      estimated_cost_usd: textCostUsd("post_caption"),
     });
 
     await awardBadge(user.id, "first_post");

@@ -9,6 +9,7 @@ import { checkSelfHarmModeration } from "@/lib/openai/moderation";
 import { matchesCrisisKeywords } from "@/lib/safety/crisis-keywords";
 import { CRISIS_RESOURCES, CRISIS_REDIRECT_MESSAGE } from "@/lib/safety/crisis-resources";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { textCostUsd } from "@/lib/ai/cost";
 
 const bodySchema = z.object({
   message: z.string().trim().min(1).max(4000),
@@ -197,6 +198,7 @@ export async function POST(request: Request) {
       plan_code: subscription.plan_code,
       feature: "spiritual_chat",
       model: "gpt-4.1-mini",
+      estimated_cost_usd: textCostUsd("spiritual_chat"),
     });
 
     return NextResponse.json({ type: "normal", message: reply });

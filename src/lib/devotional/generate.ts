@@ -1,6 +1,22 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateDevotional } from "@/lib/openai/text";
+import { devotionalThemeFor } from "@/lib/devotional/themes";
 import type { Devotional } from "@/lib/types/database.types";
+
+// How many past devotionals the model is told not to repeat.
+const RECENT_COUNT = 30;
+
+const normalize = (text: string | null | undefined) =>
+  (text ?? "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+
+export function repeatsRecent(
+  generated: { title: string; scriptureReference: string },
+  recent: { title: string; scripture_reference: string | null }[],
+): boolean {
+  const title = normalize(generated.title);
+  const reference = normalize(generated.scriptureReference);
+  return recent.some((past) => normalize(past.title) === title || (reference && normalize(past.scripture_reference) === reference));
+}
 
 /**
  * Returns today's devotional, generating and caching it on first request.
@@ -20,7 +36,26 @@ export async function ensureTodaysDevotional(): Promise<Devotional> {
 
   if (existing) return existing;
 
-  const generated = await generateDevotional({ date: today });
+  // Tell the model what already ran and give it a theme of the day. If it repeats a recent
+  // title or verse anyway, ask once more with that attempt added to the "do not reuse" list.
+  const { data: recentRows } = await supabase
+    .from("devotionals")
+    .select("title, scripture_reference")
+    .lt("publish_date", today)
+    .order("publish_date", { ascending: false })
+    .limit(RECENT_COUNT);
+  const recent = recentRows ?? [];
+  const avoid = recent.map((past) => (past.scripture_reference ? `${past.title} (${past.scripture_reference})` : past.title));
+  const theme = devotionalThemeFor(today);
+
+  let generated = await generateDevotional({ date: today, theme, avoid });
+  if (repeatsRecent(generated, recent)) {
+    generated = await generateDevotional({
+      date: today,
+      theme,
+      avoid: [...avoid, `${generated.title} (${generated.scriptureReference})`],
+    });
+  }
 
   const { data: inserted, error } = await supabase
     .from("devotionals")
